@@ -4,7 +4,7 @@ Fred Myers is a story-driven frog adventure currently playable as a five-level b
 
 ## Current milestone
 
-Milestone M1's playable greybox foundation is complete at its evidence gate on branch `milestone/m1-greybox-foundation` and is open for review in [draft PR #2](https://github.com/tommyheflin1/fred-myers-moonpetal-marsh/pull/2). The browser prototype remains the five-level reference; the Godot build now proves Lily Leap, deterministic session logic, input intents, save/recovery, and offline startup. No merge, mobile build, or production release is claimed.
+Milestone M1's playable greybox foundation is complete at its evidence gate on branch `milestone/m1-greybox-foundation` and is open for review against `main` in [draft PR #3](https://github.com/tommyheflin1/fred-myers-moonpetal-marsh/pull/3). The browser prototype remains the five-level reference; the Godot build now proves Lily Leap, deterministic session logic, input intents, save/recovery, and offline startup. No merge, mobile build, or production release is claimed.
 
 - Play: https://fred-myers-moonpetal-marsh.tommyheflin.chatgpt.site/
 - Current repository: https://github.com/tommyheflin1/fred-myers-moonpetal-marsh

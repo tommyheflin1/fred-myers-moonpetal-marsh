@@ -43,5 +43,5 @@ Fred model/rig and animation set; lily pads/reeds/pond banks/holes; underwater t
 
 ## Readiness scoring
 
-M0 and M1 are complete at the evidence gate. M1 has implementation, 30/30 tests, headless import, readiness validation, visible desktop proof, exact-commit branch CI, and draft PR #2. Using the original planning estimate of M0 as 8% and M1 as the next 12%, total migration is **20%** (`8 + 12`). This is a milestone-weighted planning estimate, not a release-readiness claim.
+M0 and M1 are complete at the evidence gate. M1 has implementation, 30/30 tests, headless import, readiness validation, visible desktop proof, exact-commit branch CI, and draft PR #3 against `main`. Using the original planning estimate of M0 as 8% and M1 as the next 12%, total migration is **20%** (`8 + 12`). This is a milestone-weighted planning estimate, not a release-readiness claim.
 
