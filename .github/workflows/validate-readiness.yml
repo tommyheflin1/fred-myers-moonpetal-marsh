@@ -1,0 +1,47 @@
+name: validate-m1-greybox
+on:
+  pull_request:
+  push:
+    branches:
+      - discovery/migration-readiness
+      - milestone/m1-greybox-foundation
+permissions:
+  contents: read
+jobs:
+  readiness:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+      - run: python tools/validate_readiness.py
+      - name: Download official Godot 4.7.1
+        run: |
+          curl --fail --location --output godot.zip https://github.com/godotengine/godot/releases/download/4.7.1-stable/Godot_v4.7.1-stable_linux.x86_64.zip
+          unzip -q godot.zip
+          chmod +x Godot_v4.7.1-stable_linux.x86_64
+      - name: Import M1 project
+        run: ./Godot_v4.7.1-stable_linux.x86_64 --headless --path godot --editor --quit
+      - name: Run M1 automated tests
+        run: ./Godot_v4.7.1-stable_linux.x86_64 --headless --path godot --script res://tests/run_tests.gd
+      - name: Verify exact Core agreement
+        run: |
+          test "$(cat godot/CORE_VERSION)" = "0.5.1"
+          grep -q 'const CORE_VERSION := "0.5.1"' godot/addons/mobile_game_core/mobile_game_core.gd
+          grep -q 'version="0.5.1"' godot/addons/mobile_game_core/plugin.cfg
+          grep -q 'framework_version: String = "0.5.1"' godot/addons/mobile_game_core/configuration/game_config.gd
+      - name: Verify clean patch formatting
+        shell: bash
+        run: |
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            git diff --check "${{ github.event.pull_request.base.sha }}...HEAD" -- . ':(exclude)godot/addons/mobile_game_core/**'
+          elif [[ "${{ github.event.before }}" != "0000000000000000000000000000000000000000" ]]; then
+            git diff --check "${{ github.event.before }}...HEAD" -- . ':(exclude)godot/addons/mobile_game_core/**'
+          else
+            git diff --check HEAD^ -- . ':(exclude)godot/addons/mobile_game_core/**'
+          fi
+      - name: Reject common secret files
+        run: test -z "$(find . -type f \( -name '*.pem' -o -name '*.p12' -o -name '*.jks' -o -name '.env' \) -print -quit)"
