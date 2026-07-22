@@ -43,5 +43,5 @@ Fred model/rig and animation set; lily pads/reeds/pond banks/holes; underwater t
 
 ## Readiness scoring
 
-M0 is complete. M1 is **90% complete locally**: implementation, 30/30 tests, headless import, readiness validation, and visible desktop proof exist; remote CI and the draft PR remain pending GitHub authentication. Using the original planning estimate of M0 as 8% and M1 as the next 12%, total migration is approximately **19%** (`8 + 12 * 0.90`, rounded). This is a milestone-weighted planning estimate, not a release-readiness claim.
+M0 and M1 are complete at the evidence gate. M1 has implementation, 30/30 tests, headless import, readiness validation, visible desktop proof, exact-commit branch CI, and draft PR #2. Using the original planning estimate of M0 as 8% and M1 as the next 12%, total migration is **20%** (`8 + 12`). This is a milestone-weighted planning estimate, not a release-readiness claim.
 
