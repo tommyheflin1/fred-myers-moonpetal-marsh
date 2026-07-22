@@ -1,6 +1,6 @@
 # Milestone M1: playable greybox foundation
 
-Status: local implementation and validation complete; remote publication pending GitHub authentication.
+Status: implementation, local validation, branch push, and branch CI complete; draft PR creation is blocked by GitHub write authentication.
 
 ## Baseline
 
@@ -40,7 +40,7 @@ Committed captures:
 ## Limitations and deferred work
 
 - No export preset or distributable build artifact is produced in M1.
-- CI cannot be claimed until the branch is pushed and GitHub Actions completes.
-- Draft PR creation is pending restored `gh` authentication.
+- Branch CI run `29889964435` passed against implementation commit `d7dbf0dcea1769bedd5327f3e18a6f906d6bace8`.
+- Draft PR creation is pending restored GitHub write authentication; the connected integration returned HTTP 403 and `gh auth status` reports an invalid token.
 - Touch/controller/web adapters have extension points but no final controls or art.
 - Final 3D assets, animation, water, audio, cloud sync, monetization, remaining levels, signing, store work, and production release remain out of scope.
