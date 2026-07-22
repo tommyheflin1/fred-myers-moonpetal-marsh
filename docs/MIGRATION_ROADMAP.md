@@ -43,5 +43,5 @@ Fred model/rig and animation set; lily pads/reeds/pond banks/holes; underwater t
 
 ## Readiness scoring
 
-M0 is 100% complete when the branch is pushed and CI validates the scaffold. The total Godot migration is approximately 8% complete: discovery and contracts exist, but gameplay, assets, exports, device QA, and release evidence have not begun. This percentage is a milestone-weighted planning estimate, not runtime proof.
+M0 is complete. M1 is **90% complete locally**: implementation, 30/30 tests, headless import, readiness validation, and visible desktop proof exist; remote CI and the draft PR remain pending GitHub authentication. Using the original planning estimate of M0 as 8% and M1 as the next 12%, total migration is approximately **19%** (`8 + 12 * 0.90`, rounded). This is a milestone-weighted planning estimate, not a release-readiness claim.
 

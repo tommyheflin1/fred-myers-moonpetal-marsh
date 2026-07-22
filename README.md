@@ -4,7 +4,7 @@ Fred Myers is a story-driven frog adventure currently playable as a five-level b
 
 ## Current milestone
 
-Discovery and Godot migration readiness are complete. The browser prototype remains the playable reference, and the `godot/` directory is deliberately only a compatibility scaffold. No claim is made that the Godot game has been implemented or that a mobile build has been produced.
+Milestone M1's playable greybox foundation is implemented and locally validated on branch `milestone/m1-greybox-foundation`. The browser prototype remains the five-level reference; the Godot build now proves Lily Leap, deterministic session logic, input intents, save/recovery, and offline startup. No mobile build or production release is claimed.
 
 - Play: https://fred-myers-moonpetal-marsh.tommyheflin.chatgpt.site/
 - Current repository: https://github.com/tommyheflin1/fred-myers-moonpetal-marsh
@@ -37,10 +37,11 @@ This repository owns Fred gameplay. Core owns only reusable, game-neutral servic
 - [Testing and build plan](docs/TEST_BUILD_PLAN.md)
 - [Migration and milestone roadmap](docs/MIGRATION_ROADMAP.md)
 - [Evidence report](docs/EVIDENCE_REPORT.md)
+- [Milestone M1 report](docs/MILESTONE_M1_REPORT.md)
 
-## Minimal Godot scaffold
+## Godot M1 foundation
 
-`godot/project.godot` proves the intended engine/project boundary and `godot/CORE_VERSION` records the dependency pin. It intentionally contains no gameplay scene, copied Core add-on, export preset, or signing configuration. The first implementation milestone must start from the current `mobile-game-template`, vendor the exact Core 0.5.1 snapshot, and then add Fred-owned code outside `addons/mobile_game_core`.
+`godot/project.godot` launches the Lily Leap greybox. The exact Core 0.5.1 add-on is vendored under `godot/addons/mobile_game_core` and remains unchanged; Fred-owned code lives under `godot/scripts`. Run `Godot --headless --path godot --script res://tests/run_tests.gd` for the deterministic suite. Export presets, signing, and production distribution remain deferred.
 
 ## Legacy source
 
