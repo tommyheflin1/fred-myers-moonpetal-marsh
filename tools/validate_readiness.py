@@ -58,4 +58,3 @@ for link in re.findall(r"\[[^]]+\]\(([^)]+)\)", readme):
         raise SystemExit(f"Broken README link: {link}")
 
 print(f"Readiness validation passed: {len(REQUIRED)} artifacts, {len(FIXTURES)} fixtures, Core {core_version}, Godot 4.7")
-

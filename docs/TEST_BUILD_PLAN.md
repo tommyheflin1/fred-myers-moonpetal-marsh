@@ -33,4 +33,3 @@ Windows Phone has no current Microsoft mobile store target in this toolchain. Tr
 ## Current reproducibility
 
 The live browser prototype is publicly reproducible as a playable reference and the local Sites checkout has a locked JavaScript dependency graph, but GitHub currently stores it as a source zip rather than a normal source tree. The Godot target is not yet reproducible beyond parsing the minimal project scaffold because the Core add-on, main scene, tests, and export presets intentionally await implementation milestone 1.
-

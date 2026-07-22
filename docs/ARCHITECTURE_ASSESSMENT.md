@@ -65,4 +65,3 @@ No production analytics is approved or required for the offline MVP. Define a pr
 ## Tracker integration
 
 Add Fred as its own project row and workstream in the App Vault documentation-only portfolio repository. Evidence must reference Fred commit SHAs and executed validations. Scores roll up from Fred technical tasks; the existence of this plan is not gameplay implementation credit. The Codex workstream is titled **Fred Myers and the Moonpetal Marsh** under **The Flins App Vault**.
-

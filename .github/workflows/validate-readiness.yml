@@ -32,6 +32,14 @@ jobs:
           grep -q 'version="0.5.1"' godot/addons/mobile_game_core/plugin.cfg
           grep -q 'framework_version: String = "0.5.1"' godot/addons/mobile_game_core/configuration/game_config.gd
       - name: Verify clean patch formatting
-        run: git diff --check
+        shell: bash
+        run: |
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            git diff --check "${{ github.event.pull_request.base.sha }}...HEAD" -- . ':(exclude)godot/addons/mobile_game_core/**'
+          elif [[ "${{ github.event.before }}" != "0000000000000000000000000000000000000000" ]]; then
+            git diff --check "${{ github.event.before }}...HEAD" -- . ':(exclude)godot/addons/mobile_game_core/**'
+          else
+            git diff --check HEAD^ -- . ':(exclude)godot/addons/mobile_game_core/**'
+          fi
       - name: Reject common secret files
         run: test -z "$(find . -type f \( -name '*.pem' -o -name '*.p12' -o -name '*.jks' -o -name '.env' \) -print -quit)"

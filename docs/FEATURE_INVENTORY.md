@@ -31,4 +31,3 @@
 ## Reference acceptance baseline
 
 The migration must retain all five chapters, both water layers, four predator families, bug eating, limited boost, holes, three-heart failure, story opening/ending, pointer/keyboard/touch play, and a visibly frog-like Fred before the legacy prototype can be considered behaviorally superseded.
-

@@ -30,4 +30,3 @@ No Godot gameplay rewrite, Core vendoring, export, APK/AAB, Windows package, iOS
 ## Tracker handoff
 
 The App Vault portfolio tracker should add Fred only after this branch/commit is verified remotely. Suggested entry: project `PRJ-002`, independent repository, active discovery milestone complete, overall Godot migration 8% with high confidence for documentation and low confidence for implementation schedule. The root tracker update should reference this exact Fred commit and must not retroactively award gameplay completion.
-

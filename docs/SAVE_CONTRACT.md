@@ -56,4 +56,3 @@ Fixtures must cover empty/missing save, valid v1, missing optional fields, unkno
 ## Cloud projection
 
 Cloud sync is deferred. When enabled, project only monotonic/validated adventure fields. `completed_levels` uses stable union; `unlocked_level` and `campaign_completions` use maximum. Hearts, energy, checkpoint position, and best times require an explicit conflict rule before syncing. No cloud field becomes authoritative merely because the client sends it.
-

@@ -21,4 +21,3 @@ Pin Mobile Game Core `0.5.1`. Copy the exact add-on snapshot from the matching C
 ## Compatibility gate
 
 The implementation branch must include `CORE_VERSION=0.5.1`, copied Core plugin constant/manifest/config agreement, the template compatibility smoke, and a SHA-256 inventory of the vendored add-on. Any Core upgrade requires save fixtures, API compatibility, Fred runtime tests, and all export checks before the pin changes.
-
