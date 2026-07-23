@@ -76,11 +76,12 @@ func _fixed_tick(delta: float) -> void:
     _update_secondary_predators()
     in_safe_location = fred.distance_to(SAFE_LOCATION) < float(level_profile.safe_radius)
     for index in BUGS.size():
-        if index not in collected and fred.distance_to(BUGS[index]) < 35:
-            eat_target = BUGS[index]
+        var bug_position := _bug_position(index)
+        if index not in collected and fred.distance_to(bug_position) < 35:
+            eat_target = bug_position
             eat_effect_seconds = 0.32
             collected.append(index); session.collect_bug(); _set_feedback("[MUNCH!] Fred ate a marsh bug.")
-    if fred.distance_to(Vector2(630,390)) < 42 and session.checkpoint_sequence < 1:
+    if fred.distance_to(_pad_position(3)) < 42 and session.checkpoint_sequence < 1:
         session.reach_checkpoint(AdventureSession.CHECKPOINTS[1], 1); _save("Midpoint is safe.")
     if _check_danger_collision():
         return
@@ -106,6 +107,30 @@ func _update_secondary_predators() -> void:
     secondary_predators[1] = Vector2(1030 + cos(simulation_time * 0.62 * pressure) * 105, 350 + sin(simulation_time * 0.94) * 125)
     secondary_predators[2] = Vector2(770 + sin(simulation_time * 0.82) * 135, 175 + absf(sin(simulation_time * 1.28)) * 125)
     secondary_predators[3] = Vector2(405 + cos(simulation_time * 1.05) * 150, 575 + sin(simulation_time * 0.65) * 55)
+
+func _pad_position(index: int) -> Vector2:
+    var base: Vector2 = PADS[index]
+    var level_phase := float(level_number * 17 + index * 31)
+    var level_offset := Vector2(
+        sin(level_phase * 0.19) * minf(34.0, 8.0 + float(level_number) * 0.28),
+        cos(level_phase * 0.13) * minf(26.0, 6.0 + float(level_number) * 0.20)
+    )
+    var drift := float(level_profile.lily_drift)
+    var motion := Vector2(
+        sin(simulation_time * (0.22 + float(index % 3) * 0.035) + float(index)) * drift,
+        cos(simulation_time * (0.18 + float(index % 2) * 0.04) + float(index) * 0.7) * drift * 0.55
+    )
+    return (base + level_offset + motion).clamp(Vector2(100, 140), Vector2(1135, 620))
+
+func _bug_position(index: int) -> Vector2:
+    var base: Vector2 = BUGS[index]
+    var radius := float(level_profile.bug_flight_radius)
+    var speed := float(level_profile.bug_flight_speed)
+    var level_phase := float(level_number * 23 + index * 41)
+    var level_offset := Vector2(sin(level_phase * 0.17) * 38.0, cos(level_phase * 0.11) * 25.0)
+    var angle := simulation_time * speed * (1.0 if index % 2 == 0 else -1.0) + float(index) * 2.1
+    var flight := Vector2(cos(angle) * radius, sin(angle * 1.35) * radius * 0.72)
+    return (base + level_offset + flight).clamp(Vector2(90, 130), Vector2(1170, 620))
 
 func _active_predator_positions() -> Array[Vector2]:
     var positions: Array[Vector2] = [predator]
@@ -280,7 +305,7 @@ func _draw_level() -> void:
     _draw_reeds(float(visual.reed_sway))
     _draw_whirlpools()
     for index in PADS.size():
-        var pad: Vector2 = PADS[index]
+        var pad: Vector2 = _pad_position(index)
         var pad_bob := FredVisualState.wave(visual_time, float(index) * 0.65, 3.0, reduced_motion)
         var drawn_pad: Vector2 = pad + Vector2(0,pad_bob)
         draw_circle(drawn_pad + Vector2(0,5), 45, Color(0.01,0.12,0.12,0.3))
@@ -295,7 +320,7 @@ func _draw_level() -> void:
     _text(SAFE_LOCATION+Vector2(0,7), "SAFE", 16, Color("b9f5c7"), HORIZONTAL_ALIGNMENT_CENTER, 100)
     for index in BUGS.size():
         if index not in collected:
-            _draw_bug(BUGS[index], index, float(visual.wildlife_flutter))
+            _draw_bug(_bug_position(index), index, float(visual.wildlife_flutter))
     var predator_names := ["BASS", "PIKE", "HERON", "SNAKE", "MUSKIE"]
     var active_positions := _active_predator_positions()
     for index in active_positions.size():
@@ -339,26 +364,77 @@ func _draw_whirlpools() -> void:
         _text(center + Vector2(0,72), "WHIRLPOOL", 11, Color("cdefff"), HORIZONTAL_ALIGNMENT_CENTER, 110)
 
 func _draw_predator(position: Vector2, species: String) -> void:
-    var body := Color("d44b4b")
-    if species == "PIKE": body = Color("6f9f58")
-    elif species == "HERON": body = Color("9eb8c8")
-    elif species == "SNAKE": body = Color("b89155")
-    elif species == "MUSKIE": body = Color("7d78b5")
-    draw_circle(position + Vector2(0,6), 39, Color(0.02,0.08,0.1,0.38))
-    draw_colored_polygon(PackedVector2Array([position+Vector2(-38,4), position+Vector2(-61,-18), position+Vector2(-56,21)]), body.darkened(0.2))
-    draw_circle(position, 35, body)
-    draw_arc(position, 35, 0, TAU, 24, Color("f4e4cf"), 2)
-    draw_circle(position+Vector2(-12,-8), 6, Color.WHITE)
-    draw_circle(position+Vector2(12,-8), 6, Color.WHITE)
-    draw_circle(position+Vector2(-12,-8), 3, Color("301519"))
-    draw_circle(position+Vector2(12,-8), 3, Color("301519"))
-    draw_arc(position, 25, 0.25, PI - 0.25, 16, body.lightened(0.35), 3)
+    draw_circle(position + Vector2(0,8), 44, Color(0.02,0.08,0.1,0.34))
     if species == "HERON":
-        draw_line(position+Vector2(28,-8), position+Vector2(62,-2), Color("f3c968"), 7)
-        draw_line(position+Vector2(-10,30), position+Vector2(-14,55), Color("d9b454"), 4)
+        _draw_heron(position)
     elif species == "SNAKE":
-        draw_arc(position+Vector2(-45,15), 32, -1.2, 1.2, 16, body, 10)
+        _draw_snake(position)
+    else:
+        _draw_fish(position, species)
     _text(position+Vector2(0,55), species, 11, Color("fff2dc"), HORIZONTAL_ALIGNMENT_CENTER, 90)
+
+func _draw_fish(position: Vector2, species: String) -> void:
+    var body := Color("d76145")
+    if species == "PIKE": body = Color("759d55")
+    elif species == "MUSKIE": body = Color("777bb0")
+    var facing := -1.0 if species == "BASS" or species == "MUSKIE" else 1.0
+    var nose := position + Vector2(38.0 * facing, 0)
+    var tail_root := position - Vector2(36.0 * facing, 0)
+    draw_colored_polygon(PackedVector2Array([
+        tail_root, tail_root - Vector2(26.0 * facing, 22), tail_root - Vector2(22.0 * facing, -23)
+    ]), body.darkened(0.2))
+    draw_colored_polygon(PackedVector2Array([
+        position + Vector2(-7, -22), position + Vector2(9, -39), position + Vector2(22, -18)
+    ]), body.lightened(0.12))
+    draw_colored_polygon(PackedVector2Array([
+        position + Vector2(-4, 19), position + Vector2(13, 34), position + Vector2(22, 16)
+    ]), body.darkened(0.12))
+    draw_colored_polygon(PackedVector2Array([
+        position - Vector2(35.0 * facing, 0), position + Vector2(0, -27), nose,
+        position + Vector2(0, 27)
+    ]), body)
+    draw_arc(position, 27, 0, TAU, 28, Color("f2dfc7"), 2)
+    for stripe in [-13.0, 0.0, 13.0]:
+        draw_line(position + Vector2(stripe, -18), position + Vector2(stripe + 5, 18), body.darkened(0.28), 3)
+    var eye := position + Vector2(22.0 * facing, -7)
+    draw_circle(eye, 5, Color.WHITE)
+    draw_circle(eye + Vector2(1.5 * facing, 0), 2.5, Color("172026"))
+    draw_line(nose + Vector2(0, 7), nose - Vector2(9.0 * facing, -8), body.darkened(0.45), 2)
+
+func _draw_snake(position: Vector2) -> void:
+    var body := Color("9a7c3f")
+    for segment in range(7):
+        var offset := Vector2(-42 + segment * 12, sin(float(segment) * 1.35 + simulation_time * 2.0) * 15)
+        draw_circle(position + offset, 12.0 - float(segment) * 0.35, body.darkened(float(segment % 2) * 0.1))
+    var head := position + Vector2(38, -3)
+    draw_circle(head, 19, body.lightened(0.08))
+    draw_colored_polygon(PackedVector2Array([head+Vector2(12,-12), head+Vector2(25,0), head+Vector2(12,12)]), body.lightened(0.08))
+    draw_circle(head + Vector2(9, -6), 3.5, Color("f4e077"))
+    draw_circle(head + Vector2(10, -6), 1.7, Color("1b1710"))
+    draw_line(head + Vector2(24, 2), head + Vector2(36, 2), Color("e45d62"), 2)
+    draw_line(head + Vector2(36, 2), head + Vector2(42, -3), Color("e45d62"), 2)
+    draw_line(head + Vector2(36, 2), head + Vector2(42, 7), Color("e45d62"), 2)
+
+func _draw_heron(position: Vector2) -> void:
+    var feathers := Color("9fb8c2")
+    var wing_lift := 0.0 if reduced_motion else sin(visual_time * 3.0) * 10.0
+    draw_colored_polygon(PackedVector2Array([
+        position+Vector2(-30, 5), position+Vector2(-58, -18-wing_lift), position+Vector2(-6, -9)
+    ]), feathers.darkened(0.12))
+    draw_colored_polygon(PackedVector2Array([
+        position+Vector2(20, 7), position+Vector2(47, -20-wing_lift), position+Vector2(4, -10)
+    ]), feathers.lightened(0.08))
+    draw_circle(position, 24, feathers)
+    draw_line(position + Vector2(13,-17), position + Vector2(31,-39), feathers.lightened(0.12), 9)
+    var head := position + Vector2(34,-43)
+    draw_circle(head, 12, feathers.lightened(0.18))
+    draw_colored_polygon(PackedVector2Array([head+Vector2(8,-2), head+Vector2(44,4), head+Vector2(8,7)]), Color("e7b94e"))
+    draw_circle(head + Vector2(4,-4), 3, Color.WHITE)
+    draw_circle(head + Vector2(5,-4), 1.5, Color("172026"))
+    draw_line(position+Vector2(-8,20), position+Vector2(-13,48), Color("d7b253"), 3)
+    draw_line(position+Vector2(8,20), position+Vector2(14,48), Color("d7b253"), 3)
+    draw_line(position+Vector2(-13,48), position+Vector2(-22,52), Color("d7b253"), 2)
+    draw_line(position+Vector2(14,48), position+Vector2(24,52), Color("d7b253"), 2)
 
 func _draw_reeds(sway: float) -> void:
     for x in range(55,1240,95):
@@ -368,11 +444,16 @@ func _draw_reeds(sway: float) -> void:
 
 func _draw_bug(position: Vector2, index: int, flutter: float) -> void:
     var wing := absf(flutter) + 5.0
-    draw_circle(position, 12, Color("ffd85a")); draw_arc(position, 12, 0, TAU, 18, Color("4d3512"), 2)
-    draw_line(position-Vector2(5,2), position-Vector2(18,wing), Color("fff4b0"), 3)
-    draw_line(position+Vector2(5,-2), position+Vector2(18,wing), Color("fff4b0"), 3)
-    draw_circle(position-Vector2(4,0), 2, Color("3b2810"))
-    draw_circle(position+Vector2(4,0), 2, Color("3b2810"))
+    draw_circle(position + Vector2(-9,-wing), 9, Color(0.92,0.98,1.0,0.56))
+    draw_circle(position + Vector2(9,-wing), 9, Color(0.92,0.98,1.0,0.56))
+    draw_circle(position + Vector2(-8,wing), 7, Color(0.92,0.98,1.0,0.45))
+    draw_circle(position + Vector2(8,wing), 7, Color(0.92,0.98,1.0,0.45))
+    draw_circle(position, 10, Color("eab23d"))
+    draw_circle(position + Vector2(0,-10), 6, Color("59401d"))
+    draw_line(position + Vector2(-3,-15), position + Vector2(-8,-22), Color("59401d"), 2)
+    draw_line(position + Vector2(3,-15), position + Vector2(8,-22), Color("59401d"), 2)
+    draw_line(position + Vector2(-7,-2), position + Vector2(7,-2), Color("59401d"), 2)
+    draw_line(position + Vector2(-7,4), position + Vector2(7,4), Color("59401d"), 2)
     _text(position+Vector2(0,30), "BUG %d" % (index + 1), 11, Color("fff7cb"), HORIZONTAL_ALIGNMENT_CENTER, 70)
 
 func _draw_fred(position: Vector2) -> void:

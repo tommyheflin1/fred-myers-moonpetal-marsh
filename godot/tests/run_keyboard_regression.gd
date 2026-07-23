@@ -123,7 +123,8 @@ func _run() -> void:
     check(game.screen == game.Screen.PLAYING and game.fred == Vector2(630, 390), "Enter resumes at restored checkpoint")
 
     game.predator = Vector2(1200, 650)
-    for bug: Vector2 in game.BUGS:
+    for index in game.BUGS.size():
+        var bug: Vector2 = game._bug_position(index)
         game.fred = bug + Vector2(-24, 0)
         await tick_with_key(game, KEY_D, 0.1)
     check(game.session.bug_count == 3, "keyboard traversal collects all three bugs")

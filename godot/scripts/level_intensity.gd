@@ -24,6 +24,9 @@ static func profile(level: int) -> Dictionary:
 		"danger_radius": snappedf(minf(53.0, 45.0 + float(maxi(0, safe_level - 5)) * 0.10), 0.01),
 		"predator_count": mini(5, 2 + ((safe_level - 1) / 3)),
 		"whirlpool_count": mini(3, 1 + ((safe_level - 1) / 4)),
+		"lily_drift": snappedf(4.0 + curve * 14.0, 0.01),
+		"bug_flight_radius": snappedf(10.0 + curve * 18.0, 0.01),
+		"bug_flight_speed": snappedf(0.65 + curve * 0.70, 0.01),
 	}
 
 static func _label_for(level: int) -> String:

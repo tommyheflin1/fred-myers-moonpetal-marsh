@@ -40,6 +40,9 @@ func _run() -> void:
 	check(int(FredLevelIntensity.profile(1).predator_count) == 2, "level one starts with multiple predators")
 	check(int(FredLevelIntensity.profile(100).predator_count) == 5, "late levels reach five active predators")
 	check(int(FredLevelIntensity.profile(100).whirlpool_count) == 3, "late levels combine three whirlpools")
+	check(float(FredLevelIntensity.profile(100).lily_drift) > float(FredLevelIntensity.profile(1).lily_drift), "lily drift grows progressively")
+	check(float(FredLevelIntensity.profile(100).bug_flight_radius) > float(FredLevelIntensity.profile(1).bug_flight_radius), "bug flight range grows progressively")
+	check(float(FredLevelIntensity.profile(100).bug_flight_speed) > float(FredLevelIntensity.profile(1).bug_flight_speed), "bug flight speed grows progressively")
 
 	var identity := FredPlayerIdentity.new()
 	check(identity.state == FredPlayerIdentity.State.GUEST, "identity starts guest-first")
@@ -79,6 +82,19 @@ func _run() -> void:
 	game.level_profile = FredLevelIntensity.profile(1)
 	game._update_secondary_predators()
 	check(game._active_predator_positions().size() == 2, "level one activates bass and pike")
+	var pad_one_start: Vector2 = game._pad_position(0)
+	var bug_one_start: Vector2 = game._bug_position(0)
+	game.simulation_time = 3.0
+	check(game._pad_position(0) != pad_one_start, "lily pads drift during gameplay")
+	check(game._bug_position(0) != bug_one_start, "bugs fly during gameplay")
+	var level_one_pad: Vector2 = game._pad_position(2)
+	game.level_number = 12
+	game.level_profile = FredLevelIntensity.profile(12)
+	check(game._pad_position(2) != level_one_pad, "lily route layout changes by level")
+	check(game._pad_position(2).x >= 100.0 and game._pad_position(2).x <= 1135.0, "moving lily pad remains inside safe bounds")
+	check(game._bug_position(2).y >= 130.0 and game._bug_position(2).y <= 620.0, "moving bug remains inside safe bounds")
+	game.level_number = 1
+	game.level_profile = FredLevelIntensity.profile(1)
 	game.fred = game.WHIRLPOOLS[0]
 	var health_before: int = game.session.health
 	game._fixed_tick(0.0)
