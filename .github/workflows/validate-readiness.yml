@@ -3,6 +3,7 @@ on:
   pull_request:
   push:
     branches:
+      - main
       - discovery/migration-readiness
       - milestone/m1-greybox-foundation
 permissions:
