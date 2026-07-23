@@ -1,0 +1,55 @@
+extends SceneTree
+
+var passed := 0
+var failed := 0
+
+func check(condition: bool, label: String) -> void:
+	if condition:
+		passed += 1
+		print("PASS ", label)
+	else:
+		failed += 1
+		push_error("FAIL " + label)
+
+func _init() -> void:
+	_run()
+
+func _run() -> void:
+	var previous := FredLevelIntensity.profile(1)
+	check(previous.level == 1 and previous.chapter == 1, "level one starts in chapter one")
+	check(FredLevelIntensity.profile(0) == previous, "levels below one clamp safely")
+	check(FredLevelIntensity.profile(101) == FredLevelIntensity.profile(100), "levels above 100 clamp safely")
+	for level in range(2, 101):
+		var current := FredLevelIntensity.profile(level)
+		check(float(current.intensity) >= float(previous.intensity), "level %03d never reduces intensity" % level)
+		check(float(current.intensity) - float(previous.intensity) <= 0.012, "level %03d increase remains slight" % level)
+		check(float(current.predator_speed_scale) >= float(previous.predator_speed_scale), "level %03d predator pressure is monotonic" % level)
+		check(float(current.reaction_window_seconds) <= float(previous.reaction_window_seconds), "level %03d reaction window is monotonic" % level)
+		check(current == FredLevelIntensity.profile(level), "level %03d profile is deterministic" % level)
+		previous = current
+	check(float(FredLevelIntensity.profile(100).intensity) > float(FredLevelIntensity.profile(80).intensity), "final twenty levels retain increasing intensity")
+	check(FredLevelIntensity.profile(100).label == "Moonpetal Mastery", "level 100 has mastery identity")
+
+	var identity := FredPlayerIdentity.new()
+	check(identity.state == FredPlayerIdentity.State.GUEST, "identity starts guest-first")
+	check(identity.status_message().contains("Play now"), "guest play is immediately available")
+	check(not identity.begin_link(false), "linking requires consent")
+	check(identity.offer(FredPlayerIdentity.Provider.APPLE_GAME_CENTER), "Game Center can be offered")
+	check(identity.begin_link(true), "consented platform link begins")
+	check(identity.complete_link("fictional_player_001", "Lily Friend"), "opaque fictional profile links")
+	check(identity.state == FredPlayerIdentity.State.LINKED, "identity reaches linked state")
+	var preferences := identity.to_local_preferences()
+	check(not preferences.has("password") and not preferences.has("token"), "local preferences exclude credentials")
+	check(preferences.opaque_profile_id == "fictional_player_001", "only opaque profile id persists")
+	identity.unlink_local()
+	check(identity.state == FredPlayerIdentity.State.GUEST and identity.opaque_profile_id.is_empty(), "unlink clears local identity")
+	check(identity.offer(FredPlayerIdentity.Provider.SIGN_IN_WITH_APPLE), "Sign in with Apple can be offered")
+	check(identity.begin_link(true), "Apple account link begins with consent")
+	check(not identity.complete_link("../unsafe", "Unsafe"), "unsafe profile id is rejected")
+	check(identity.state == FredPlayerIdentity.State.ERROR, "invalid response enters recoverable error")
+	check(identity.status_message().contains("local progress is safe"), "identity error protects offline confidence")
+	identity.continue_offline()
+	check(identity.state == FredPlayerIdentity.State.OFFLINE, "account setup remains skippable")
+
+	print("RESULT m2_foundation_passed=%d m2_foundation_failed=%d" % [passed, failed])
+	quit(1 if failed else 0)

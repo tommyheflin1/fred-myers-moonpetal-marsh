@@ -19,11 +19,15 @@ REQUIRED = [
     "godot/scripts/fred_save_adapter.gd",
     "godot/scripts/fred_save_feedback.gd",
     "godot/scripts/fred_visual_state.gd",
+    "godot/scripts/level_intensity.gd",
+    "godot/scripts/player_identity.gd",
     "godot/tests/run_tests.gd",
     "godot/tests/run_keyboard_regression.gd",
     "godot/tests/run_save_stress.gd",
     "godot/tests/run_save_feedback.gd",
     "godot/tests/run_visual_clarity.gd",
+    "godot/tests/run_m2_foundation.gd",
+    "docs/M2_PROGRESSION_IDENTITY_FOUNDATION.md",
 ]
 
 FIXTURES = {

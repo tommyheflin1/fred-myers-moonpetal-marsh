@@ -21,6 +21,8 @@ var predator_direction := 1.0
 var _fixed_accumulator := 0.0
 var visual_time := 0.0
 var reduced_motion := bool(ProjectSettings.get_setting("accessibility/reduced_motion", false))
+var level_profile := FredLevelIntensity.profile(1)
+var identity := FredPlayerIdentity.new()
 
 func _ready() -> void:
     if "--reduced-motion" in OS.get_cmdline_user_args():
@@ -160,10 +162,12 @@ func _draw_title() -> void:
     draw_arc(title_center + Vector2(0,10), 27, 0.25, PI - 0.25, 18, Color("173128"), 4)
     _text(Vector2(640,70), "FRED MYERS", 46, Color("f7d36a"), HORIZONTAL_ALIGNMENT_CENTER, 700)
     _text(Vector2(640,120), "and the Moonpetal Marsh", 30, Color("d9f4e2"), HORIZONTAL_ALIGNMENT_CENTER, 700)
+    _text(Vector2(640,380), "A 100-level marsh adventure", 19, Color("bfe7dc"), HORIZONTAL_ALIGNMENT_CENTER, 700)
     _button(Rect2(490,440,300,70), "PLAY AGAIN" if session.completed else ("CONTINUE" if session.checkpoint_sequence > 0 else "START ADVENTURE"))
     _status_panel(Rect2(280,510,720,46), 18)
     if reduced_motion:
         _text(Vector2(640,675), "[REDUCED MOTION] All gameplay cues remain visible.", 15, Color("e8fbff"), HORIZONTAL_ALIGNMENT_CENTER, 700)
+    _text(Vector2(640,650), "[GUEST] Play now. Platform account linking stays optional.", 15, Color("e8fbff"), HORIZONTAL_ALIGNMENT_CENTER, 900)
     _text(Vector2(640,620), "WASD / arrows move  •  Shift boosts  •  Q dive  •  E surface  •  P pause", 17, Color("bfd8dc"), HORIZONTAL_ALIGNMENT_CENTER, 1000)
 
 func _draw_level() -> void:
@@ -197,6 +201,7 @@ func _draw_level() -> void:
     _text(EXIT+Vector2(0,6), "EXIT", 15, Color("321c45"), HORIZONTAL_ALIGNMENT_CENTER, 90)
     _draw_fred(fred + Vector2(0,float(visual.fred_bob)))
     _text(Vector2(45,38), "LILY LEAP", 28, Color("f7d36a"), HORIZONTAL_ALIGNMENT_LEFT, 300)
+    _text(Vector2(45,75), "LEVEL %03d  -  %s" % [level_profile.level, level_profile.label], 15, Color("d9f4e2"), HORIZONTAL_ALIGNMENT_LEFT, 280)
     draw_rect(Rect2(330,10,560,52), Color("06151f"), true); draw_rect(Rect2(330,10,560,52), Color("e8fbff"), false, 2)
     _text(Vector2(350,43), "OBJECTIVE: " + ("Reach the moonpetal exit" if session.bug_count >= 3 else "Collect 3 marsh bugs"), 19, Color("e8fbff"), HORIZONTAL_ALIGNMENT_LEFT, 520)
     _text(Vector2(45,710), "Bugs %d/3   Boost %d%%   Health %s   %s" % [session.bug_count, session.boost_energy, "♥".repeat(session.health), session.player_state.capitalize()], 20, Color.WHITE, HORIZONTAL_ALIGNMENT_LEFT, 850)

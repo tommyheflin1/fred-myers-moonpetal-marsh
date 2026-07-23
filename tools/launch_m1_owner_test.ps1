@@ -11,7 +11,7 @@ if ($null -eq $godotCommand -or $null -eq $godotConsole) {
     Add-Type -AssemblyName PresentationFramework
     [System.Windows.MessageBox]::Show(
         "Godot 4.7.1 is required. Install or restore Godot 4.7.1, then run this launcher again.",
-        "Fred Myers M1 Owner Test",
+        "Fred Myers Owner Test",
         "OK",
         "Error"
     ) | Out-Null
