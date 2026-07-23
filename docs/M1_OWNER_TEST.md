@@ -2,6 +2,8 @@
 
 Double-click `Fred Myers M1 Owner Test.cmd`. The launcher verifies that Godot 4.7.1 is installed and opens the committed M1 project directly. It does not export, install, sign, publish, or deploy the game.
 
+To create or repair the Windows desktop shortcut, run `tools/install_m1_desktop_shortcut.ps1` with PowerShell. The installer verifies the saved shortcut target before reporting success.
+
 ## Controls
 
 - Start or continue: click the gold title button, or press Enter.
