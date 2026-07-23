@@ -31,6 +31,9 @@ var secondary_predators: Array[Vector2] = [Vector2(500,245), Vector2(1030,360), 
 var simulation_time := 0.0
 var danger_cooldown_seconds := 0.0
 var hazards_enabled := true
+var impact_burst_seconds := 0.0
+var impact_burst_origin := Vector2.ZERO
+var impact_burst_kind := "SPLASH"
 
 func _ready() -> void:
     if "--reduced-motion" in OS.get_cmdline_user_args():
@@ -53,6 +56,7 @@ func _process(delta: float) -> void:
 func _advance_visual(delta: float) -> void:
     visual_time = FredVisualState.bounded_time(visual_time, delta)
     eat_effect_seconds = maxf(0.0, eat_effect_seconds - maxf(0.0, delta))
+    impact_burst_seconds = maxf(0.0, impact_burst_seconds - maxf(0.0, delta))
     queue_redraw()
 
 func _fixed_tick(delta: float) -> void:
@@ -160,6 +164,9 @@ func _check_danger_collision() -> bool:
     return false
 
 func _apply_danger_hit(message: String) -> void:
+    impact_burst_origin = fred
+    impact_burst_seconds = 0.62
+    impact_burst_kind = "CURRENT BURST" if message.begins_with("[WHIRLPOOL]") else "PREDATOR HIT"
     fred = START
     danger_cooldown_seconds = 1.0
     _set_feedback(message)
@@ -238,6 +245,7 @@ func _advance_level() -> void:
     eat_effect_seconds = 0.0
     simulation_time = 0.0
     danger_cooldown_seconds = 0.0
+    impact_burst_seconds = 0.0
     screen = Screen.PLAYING
     _set_feedback("[NEW TWIST] %s" % str(level_profile.new_twist))
 
@@ -331,6 +339,8 @@ func _draw_level() -> void:
     _draw_fred(fred + Vector2(0,float(visual.fred_bob)))
     if eat_effect_seconds > 0.0:
         _draw_eating_effect(fred + Vector2(0,float(visual.fred_bob)), eat_target)
+    if impact_burst_seconds > 0.0:
+        _draw_impact_burst()
     _text(Vector2(45,38), "LILY LEAP", 28, Color("f7d36a"), HORIZONTAL_ALIGNMENT_LEFT, 300)
     _text(Vector2(45,75), "LEVEL %03d  -  %s" % [level_profile.level, level_profile.label], 15, Color("d9f4e2"), HORIZONTAL_ALIGNMENT_LEFT, 280)
     _text(Vector2(890,75), "NEW: %s  |  THREATS %d" % [str(level_profile.new_twist).to_upper(), int(level_profile.predator_count)], 13, Color("fff0ae"), HORIZONTAL_ALIGNMENT_LEFT, 350)
@@ -357,10 +367,22 @@ func _draw_whirlpools() -> void:
     for index in range(mini(int(level_profile.whirlpool_count), WHIRLPOOLS.size())):
         var center: Vector2 = WHIRLPOOLS[index]
         var rotation := 0.0 if reduced_motion else visual_time * (1.1 + float(index) * 0.2)
-        draw_circle(center, 54, Color(0.02,0.13,0.22,0.65))
-        for ring in range(3):
-            var radius := 18.0 + float(ring) * 12.0
-            draw_arc(center, radius, rotation + float(ring), rotation + float(ring) + PI * 1.45, 20, Color(0.55,0.9,1.0,0.62), 3)
+        draw_circle(center + Vector2(0,5), 62, Color(0.01,0.06,0.12,0.45))
+        draw_circle(center, 58, Color(0.02,0.20,0.31,0.72))
+        draw_circle(center, 45, Color(0.02,0.13,0.23,0.88))
+        draw_circle(center, 18, Color(0.005,0.035,0.07,0.96))
+        for ring in range(4):
+            var radius := 16.0 + float(ring) * 11.0
+            var brightness := 0.78 - float(ring) * 0.09
+            draw_arc(center, radius, rotation + float(ring) * 0.8, rotation + float(ring) * 0.8 + PI * 1.55, 28, Color(0.55,0.93,1.0,brightness), 3.5)
+        for foam_index in range(8):
+            var foam_angle := rotation * 0.7 + float(foam_index) * TAU / 8.0
+            var foam_position := center + Vector2.from_angle(foam_angle) * (47.0 + float(foam_index % 2) * 7.0)
+            draw_circle(foam_position, 3.5, Color(0.78,0.96,1.0,0.72))
+        draw_colored_polygon(PackedVector2Array([
+            center+Vector2(-9,-4), center+Vector2(1,-11), center+Vector2(11,-2),
+            center+Vector2(6,8), center+Vector2(-7,9)
+        ]), Color(0.0,0.02,0.04,0.9))
         _text(center + Vector2(0,72), "WHIRLPOOL", 11, Color("cdefff"), HORIZONTAL_ALIGNMENT_CENTER, 110)
 
 func _draw_predator(position: Vector2, species: String) -> void:
@@ -402,18 +424,42 @@ func _draw_fish(position: Vector2, species: String) -> void:
     draw_line(nose + Vector2(0, 7), nose - Vector2(9.0 * facing, -8), body.darkened(0.45), 2)
 
 func _draw_snake(position: Vector2) -> void:
-    var body := Color("9a7c3f")
-    for segment in range(7):
-        var offset := Vector2(-42 + segment * 12, sin(float(segment) * 1.35 + simulation_time * 2.0) * 15)
-        draw_circle(position + offset, 12.0 - float(segment) * 0.35, body.darkened(float(segment % 2) * 0.1))
-    var head := position + Vector2(38, -3)
-    draw_circle(head, 19, body.lightened(0.08))
-    draw_colored_polygon(PackedVector2Array([head+Vector2(12,-12), head+Vector2(25,0), head+Vector2(12,12)]), body.lightened(0.08))
-    draw_circle(head + Vector2(9, -6), 3.5, Color("f4e077"))
-    draw_circle(head + Vector2(10, -6), 1.7, Color("1b1710"))
-    draw_line(head + Vector2(24, 2), head + Vector2(36, 2), Color("e45d62"), 2)
-    draw_line(head + Vector2(36, 2), head + Vector2(42, -3), Color("e45d62"), 2)
-    draw_line(head + Vector2(36, 2), head + Vector2(42, 7), Color("e45d62"), 2)
+    var body := Color("8e7838")
+    for segment in range(9):
+        var offset := Vector2(-55 + segment * 12, sin(float(segment) * 1.18 + simulation_time * 2.0) * 15)
+        var radius := 11.0 + sin(float(segment) * 0.6) * 1.5
+        draw_circle(position + offset + Vector2(0,4), radius + 2.0, Color(0.03,0.08,0.05,0.32))
+        draw_circle(position + offset, radius, body.darkened(float(segment % 2) * 0.12))
+        draw_arc(position + offset, radius * 0.58, -2.7, -0.45, 8, Color("d6c36b"), 2)
+        draw_circle(position + offset + Vector2(0,4), 2.5, Color("4f5f2d"))
+    var head := position + Vector2(46, -4)
+    draw_colored_polygon(PackedVector2Array([
+        head+Vector2(-17,-14), head+Vector2(12,-17), head+Vector2(28,-5),
+        head+Vector2(27,9), head+Vector2(8,17), head+Vector2(-17,12)
+    ]), body.lightened(0.08))
+    draw_arc(head, 20, -2.4, 2.4, 20, Color("d6c36b"), 2)
+    draw_circle(head + Vector2(11, -7), 4.5, Color("f4e077"))
+    draw_line(head + Vector2(12,-10), head + Vector2(12,-4), Color("17150b"), 2)
+    draw_circle(head + Vector2(21,1), 1.8, Color("3a2619"))
+    draw_line(head + Vector2(27, 4), head + Vector2(40, 4), Color("e45d62"), 2)
+    draw_line(head + Vector2(40, 4), head + Vector2(47, -2), Color("e45d62"), 2)
+    draw_line(head + Vector2(40, 4), head + Vector2(47, 10), Color("e45d62"), 2)
+
+func _draw_impact_burst() -> void:
+    var lifetime := 0.62
+    var progress := 1.0 - clampf(impact_burst_seconds / lifetime, 0.0, 1.0)
+    var radius := 18.0 + progress * 68.0
+    var alpha := 1.0 - progress
+    draw_circle(impact_burst_origin, radius * 0.58, Color(0.92,0.72,0.25,0.20 * alpha))
+    draw_arc(impact_burst_origin, radius, 0, TAU, 32, Color(0.86,0.97,1.0,0.90 * alpha), 5)
+    draw_arc(impact_burst_origin, radius * 0.72, 0, TAU, 24, Color(1.0,0.74,0.25,0.82 * alpha), 4)
+    for ray in range(12):
+        var angle := float(ray) * TAU / 12.0
+        var inner := impact_burst_origin + Vector2.from_angle(angle) * radius * 0.42
+        var outer := impact_burst_origin + Vector2.from_angle(angle) * radius * (0.82 + float(ray % 3) * 0.10)
+        draw_line(inner, outer, Color(0.78,0.95,1.0,0.88 * alpha), 4)
+        draw_circle(outer, 3.0 + float(ray % 2) * 2.0, Color(0.93,0.99,1.0,0.82 * alpha))
+    _text(impact_burst_origin + Vector2(0,-radius-12), impact_burst_kind + "!", 14, Color(1.0,0.91,0.55,alpha), HORIZONTAL_ALIGNMENT_CENTER, 160)
 
 func _draw_heron(position: Vector2) -> void:
     var feathers := Color("9fb8c2")

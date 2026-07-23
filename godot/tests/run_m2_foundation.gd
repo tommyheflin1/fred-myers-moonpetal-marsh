@@ -99,6 +99,11 @@ func _run() -> void:
 	var health_before: int = game.session.health
 	game._fixed_tick(0.0)
 	check(game.session.health == health_before - 1 and game.fred == game.START, "whirlpool costs one heart and returns Fred safely")
+	check(game.impact_burst_seconds > 0.0 and game.impact_burst_kind == "CURRENT BURST", "whirlpool triggers a visible current burst")
+	var impact_save_before: Dictionary = game.session.to_save("2000-01-01T00:00:00Z")
+	game._advance_visual(0.2)
+	check(game.impact_burst_seconds < 0.62, "impact burst advances and expires visually")
+	check(game.session.to_save("2000-01-01T00:00:00Z") == impact_save_before, "impact burst cannot mutate save state")
 	game._fixed_tick(0.0)
 	check(game.session.health == health_before - 1, "danger cooldown prevents repeated unavoidable damage")
 	game.eat_target = Vector2(200, 200)
