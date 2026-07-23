@@ -1,5 +1,7 @@
 extends Node2D
 
+const LeapTraversal = preload("res://scripts/leap_traversal.gd")
+
 enum Screen { TITLE, PLAYING, FAILED, COMPLETE }
 const START := Vector2(135, 560)
 const EXIT := Vector2(1150, 120)
@@ -34,6 +36,8 @@ var hazards_enabled := true
 var impact_burst_seconds := 0.0
 var impact_burst_origin := Vector2.ZERO
 var impact_burst_kind := "SPLASH"
+var leap: RefCounted = LeapTraversal.new()
+var camera_response_y := 0.0
 
 func _ready() -> void:
     if "--reduced-motion" in OS.get_cmdline_user_args():
@@ -68,11 +72,21 @@ func _fixed_tick(delta: float) -> void:
     if Input.is_key_pressed(KEY_W) or Input.is_key_pressed(KEY_UP): direction.y -= 1.0
     if Input.is_key_pressed(KEY_S) or Input.is_key_pressed(KEY_DOWN): direction.y += 1.0
     direction = direction.normalized()
-    var speed := 210.0
-    if FredInputIntent.held(FredInputIntent.Intent.BOOST) and session.use_boost(1): speed = 380.0
-    elif direction == Vector2.ZERO: session.recharge_boost(1)
+    if FredInputIntent.pressed(FredInputIntent.Intent.LEAP):
+        _request_leap(direction)
     var current := _current_vector()
-    fred = (fred + (direction * speed + current) * delta).clamp(Vector2(55,105), Vector2(1225,665))
+    if leap.state == LeapTraversal.State.AIRBORNE:
+        var leap_step: Dictionary = leap.advance(delta)
+        fred = (fred + Vector2(leap_step.movement) + current * delta * 0.35).clamp(Vector2(55,105), Vector2(1225,665))
+        if bool(leap_step.landed):
+            _resolve_landing()
+    else:
+        leap.advance(delta)
+        var speed := 210.0
+        if FredInputIntent.held(FredInputIntent.Intent.BOOST) and session.use_boost(1): speed = 380.0
+        elif direction == Vector2.ZERO: session.recharge_boost(1)
+        fred = (fred + (direction * speed + current) * delta).clamp(Vector2(55,105), Vector2(1225,665))
+    camera_response_y = 0.0 if reduced_motion else -minf(10.0, leap.visual_height * 0.18)
     predator.x += predator_direction * 110.0 * float(level_profile.predator_speed_scale) * delta
     if bool(level_profile.weaving_patrol):
         predator.y = PREDATOR_START.y + sin(visual_time * (0.8 + float(level_number) * 0.015)) * minf(115.0, 42.0 + float(level_number))
@@ -166,7 +180,9 @@ func _check_danger_collision() -> bool:
 func _apply_danger_hit(message: String) -> void:
     impact_burst_origin = fred
     impact_burst_seconds = 0.62
-    impact_burst_kind = "CURRENT BURST" if message.begins_with("[WHIRLPOOL]") else "PREDATOR HIT"
+    impact_burst_kind = "CURRENT BURST" if message.begins_with("[WHIRLPOOL]") else ("LANDING SPLASH" if message.begins_with("[LANDING]") else "PREDATOR HIT")
+    leap.reset()
+    camera_response_y = 0.0
     fred = START
     danger_cooldown_seconds = 1.0
     _set_feedback(message)
@@ -181,6 +197,31 @@ func direct_route_has_danger() -> bool:
                 return true
     return false
 
+func _request_leap(requested_direction: Vector2) -> bool:
+    if screen != Screen.PLAYING or session.paused or session.player_state == "underwater":
+        return false
+    var accepted: bool = leap.request(requested_direction)
+    if accepted:
+        _set_feedback("[LEAP] Fred launched toward a landing.")
+    return accepted
+
+func _is_valid_landing(position: Vector2) -> bool:
+    if position.distance_to(START) <= 78.0 or position.distance_to(SAFE_LOCATION) <= float(level_profile.safe_radius) + 16.0:
+        return true
+    if position.distance_to(EXIT) <= 58.0:
+        return true
+    for index in PADS.size():
+        if position.distance_to(_pad_position(index)) <= 64.0:
+            return true
+    return false
+
+func _resolve_landing() -> bool:
+    if _is_valid_landing(fred):
+        _set_feedback("[LANDING] Fred found a safe perch.")
+        return true
+    _apply_danger_hit("[LANDING] Fred splashed down away from a safe perch!")
+    return false
+
 func _unhandled_input(event: InputEvent) -> void:
     if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
         _handle_click(event.position)
@@ -191,6 +232,8 @@ func _unhandled_input(event: InputEvent) -> void:
         session.set_underwater(true); _set_feedback("[STATUS] Fred is underwater.")
     if not event is InputEventKey and event.is_action_pressed("surface") and screen == Screen.PLAYING:
         session.set_underwater(false); _set_feedback("[STATUS] Fred is at the surface.")
+    if not event is InputEventKey and event.is_action_pressed("leap") and screen == Screen.PLAYING:
+        _request_leap(FredInputIntent.movement())
     if not event is InputEventKey and event.is_action_pressed("retry") and screen == Screen.FAILED: _retry()
     if not event is InputEventKey and event.is_action_pressed("confirm") and screen == Screen.TITLE: _start()
     if event is InputEventKey and event.pressed and not event.echo:
@@ -216,6 +259,8 @@ func _handle_click(position: Vector2) -> void:
         _set_feedback("[PAUSED] Your last checkpoint is safe." if session.paused else "[PLAYING] Adventure resumed.")
     elif screen == Screen.PLAYING and session.paused and Rect2(490,410,300,65).has_point(position):
         session.paused = false; _set_feedback("[PLAYING] Adventure resumed.")
+    elif screen == Screen.PLAYING:
+        _request_leap(position - fred)
     elif screen == Screen.FAILED and Rect2(490,430,300,70).has_point(position): _retry()
     elif screen == Screen.COMPLETE and Rect2(490,500,300,60).has_point(position):
         _advance_level()
@@ -232,6 +277,8 @@ func _start() -> void:
 
 func _retry() -> void:
     session.retry_from_checkpoint()
+    leap.reset()
+    camera_response_y = 0.0
     fred = Vector2(630,390) if session.current_checkpoint == AdventureSession.CHECKPOINTS[1] else START
     screen = Screen.PLAYING; _set_feedback("[RESTORED] Your checkpoint is ready.")
 
@@ -246,6 +293,8 @@ func _advance_level() -> void:
     simulation_time = 0.0
     danger_cooldown_seconds = 0.0
     impact_burst_seconds = 0.0
+    leap.reset()
+    camera_response_y = 0.0
     screen = Screen.PLAYING
     _set_feedback("[NEW TWIST] %s" % str(level_profile.new_twist))
 
@@ -293,7 +342,7 @@ func _draw_title() -> void:
     if reduced_motion:
         _text(Vector2(640,675), "[REDUCED MOTION] All gameplay cues remain visible.", 15, Color("e8fbff"), HORIZONTAL_ALIGNMENT_CENTER, 700)
     _text(Vector2(640,650), "[GUEST] Play now. Platform account linking stays optional.", 15, Color("e8fbff"), HORIZONTAL_ALIGNMENT_CENTER, 900)
-    _text(Vector2(640,620), "WASD / arrows move  •  Shift boosts  •  Q dive  •  E surface  •  P pause", 17, Color("bfd8dc"), HORIZONTAL_ALIGNMENT_CENTER, 1000)
+    _text(Vector2(640,620), "WASD / arrows move  •  Space leaps  •  Shift boosts  •  Q dive  •  E surface  •  P pause", 17, Color("bfd8dc"), HORIZONTAL_ALIGNMENT_CENTER, 1100)
 
 func _draw_level() -> void:
     var visual := FredVisualState.snapshot(visual_time, reduced_motion)
@@ -304,6 +353,7 @@ func _draw_level() -> void:
     draw_rect(Rect2(35,85,1210,120), Color(0.2,0.75,0.85,0.08), true)
     for glow in [Vector2(180,155), Vector2(530,260), Vector2(1020,420)]:
         draw_circle(glow, 95, Color(0.2,0.85,0.78,0.035))
+    draw_set_transform(Vector2(0,camera_response_y))
     _draw_current_trails()
     for row in range(4):
         var ripple_y := 150.0 + row * 130.0
@@ -336,11 +386,17 @@ func _draw_level() -> void:
     var exit_radius := 45.0 * float(visual.exit_pulse)
     draw_circle(EXIT, exit_radius + 5, Color(0.9,0.8,1.0,0.16)); draw_circle(EXIT, exit_radius, Color("d49cff"))
     _text(EXIT+Vector2(0,6), "EXIT", 15, Color("321c45"), HORIZONTAL_ALIGNMENT_CENTER, 90)
-    _draw_fred(fred + Vector2(0,float(visual.fred_bob)))
+    if leap.state == LeapTraversal.State.GROUNDED:
+        _draw_fred(fred + Vector2(0,float(visual.fred_bob)))
+    else:
+        draw_circle(fred + Vector2(0,10), 20.0 + leap.visual_height * 0.10, Color(0.01,0.05,0.08,0.28))
+        _draw_fred(fred + Vector2(0,float(visual.fred_bob) - leap.visual_height))
+        _text(fred + Vector2(0,-leap.visual_height-48), "[%s]" % leap.cue(), 13, Color("fff0ae"), HORIZONTAL_ALIGNMENT_CENTER, 120)
     if eat_effect_seconds > 0.0:
         _draw_eating_effect(fred + Vector2(0,float(visual.fred_bob)), eat_target)
     if impact_burst_seconds > 0.0:
         _draw_impact_burst()
+    draw_set_transform(Vector2.ZERO)
     _text(Vector2(45,38), "LILY LEAP", 28, Color("f7d36a"), HORIZONTAL_ALIGNMENT_LEFT, 300)
     _text(Vector2(45,75), "LEVEL %03d  -  %s" % [level_profile.level, level_profile.label], 15, Color("d9f4e2"), HORIZONTAL_ALIGNMENT_LEFT, 280)
     _text(Vector2(890,75), "NEW: %s  |  THREATS %d" % [str(level_profile.new_twist).to_upper(), int(level_profile.predator_count)], 13, Color("fff0ae"), HORIZONTAL_ALIGNMENT_LEFT, 350)

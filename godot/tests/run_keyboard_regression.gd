@@ -74,6 +74,10 @@ func _run() -> void:
     await tick_with_key(game, KEY_DOWN)
     check(game.fred.y > before.y, "Down-arrow keyboard event moves Fred down")
 
+    await tick_with_key(game, KEY_SPACE)
+    check(game.leap.is_airborne(), "Space keyboard event launches Fred")
+    game.leap.reset()
+
     game.fred = Vector2(400, 400)
     var energy_before: int = game.session.boost_energy
     await send_key(KEY_D, true)
