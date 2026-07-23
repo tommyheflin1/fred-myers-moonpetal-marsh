@@ -22,13 +22,21 @@ func _run() -> void:
 	for level in range(2, 101):
 		var current := FredLevelIntensity.profile(level)
 		check(float(current.intensity) >= float(previous.intensity), "level %03d never reduces intensity" % level)
-		check(float(current.intensity) - float(previous.intensity) <= 0.012, "level %03d increase remains slight" % level)
+		check(float(current.intensity) - float(previous.intensity) <= 0.02, "level %03d increase remains bounded" % level)
 		check(float(current.predator_speed_scale) >= float(previous.predator_speed_scale), "level %03d predator pressure is monotonic" % level)
 		check(float(current.reaction_window_seconds) <= float(previous.reaction_window_seconds), "level %03d reaction window is monotonic" % level)
 		check(current == FredLevelIntensity.profile(level), "level %03d profile is deterministic" % level)
 		previous = current
 	check(float(FredLevelIntensity.profile(100).intensity) > float(FredLevelIntensity.profile(80).intensity), "final twenty levels retain increasing intensity")
+	check(float(FredLevelIntensity.profile(100).intensity) >= 2.0, "level 100 reaches the stronger approved intensity")
 	check(FredLevelIntensity.profile(100).label == "Moonpetal Mastery", "level 100 has mastery identity")
+	for level in range(1, 101):
+		var twist := str(FredLevelIntensity.profile(level).new_twist)
+		check(not twist.is_empty(), "level %03d declares a complexity twist" % level)
+	check(FredLevelIntensity.profile(2).new_twist == "Marsh current", "level two introduces the current")
+	check(FredLevelIntensity.profile(3).weaving_patrol, "level three introduces weaving patrol")
+	check(FredLevelIntensity.profile(4).reversing_current, "level four introduces reversing flow")
+	check(float(FredLevelIntensity.profile(6).danger_radius) > float(FredLevelIntensity.profile(5).danger_radius), "level six widens danger reach")
 
 	var identity := FredPlayerIdentity.new()
 	check(identity.state == FredPlayerIdentity.State.GUEST, "identity starts guest-first")
@@ -59,6 +67,10 @@ func _run() -> void:
 	game._advance_level()
 	check(game.level_number == 2 and game.screen == game.Screen.PLAYING, "completion flow enters level two without title")
 	check(float(game.level_profile.intensity) >= float(FredLevelIntensity.profile(1).intensity), "level two applies its increased intensity")
+	game.visual_time = 1.0
+	check(game._current_vector().x > 0.0, "level two current applies deterministic pressure")
+	game._advance_level()
+	check(game.level_number == 3 and game.level_profile.weaving_patrol, "level three adds weaving patrol complexity")
 	game.eat_target = Vector2(200, 200)
 	game.eat_effect_seconds = 0.32
 	var save_before: Dictionary = game.session.to_save("2000-01-01T00:00:00Z")

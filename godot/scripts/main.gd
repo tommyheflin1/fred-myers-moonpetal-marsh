@@ -60,10 +60,13 @@ func _fixed_tick(delta: float) -> void:
     var speed := 210.0
     if FredInputIntent.held(FredInputIntent.Intent.BOOST) and session.use_boost(1): speed = 380.0
     elif direction == Vector2.ZERO: session.recharge_boost(1)
-    fred = (fred + direction * speed * delta).clamp(Vector2(55,105), Vector2(1225,665))
+    var current := _current_vector()
+    fred = (fred + (direction * speed + current) * delta).clamp(Vector2(55,105), Vector2(1225,665))
     predator.x += predator_direction * 110.0 * float(level_profile.predator_speed_scale) * delta
+    if bool(level_profile.weaving_patrol):
+        predator.y = PREDATOR_START.y + sin(visual_time * (0.8 + float(level_number) * 0.015)) * minf(115.0, 42.0 + float(level_number))
     if predator.x > 1120 or predator.x < 760: predator_direction *= -1.0
-    in_safe_location = fred.distance_to(SAFE_LOCATION) < 55
+    in_safe_location = fred.distance_to(SAFE_LOCATION) < float(level_profile.safe_radius)
     for index in BUGS.size():
         if index not in collected and fred.distance_to(BUGS[index]) < 35:
             eat_target = BUGS[index]
@@ -71,11 +74,24 @@ func _fixed_tick(delta: float) -> void:
             collected.append(index); session.collect_bug(); _set_feedback("[MUNCH!] Fred ate a marsh bug.")
     if fred.distance_to(Vector2(630,390)) < 42 and session.checkpoint_sequence < 1:
         session.reach_checkpoint(AdventureSession.CHECKPOINTS[1], 1); _save("Midpoint is safe.")
-    if fred.distance_to(predator) < 45 and not in_safe_location:
+    if fred.distance_to(predator) < float(level_profile.danger_radius) and not in_safe_location:
         fred = START
         if session.damage(): screen = Screen.FAILED
     if fred.distance_to(EXIT) < 55 and session.complete_level():
         screen = Screen.COMPLETE; _save("Lily Leap is complete.")
+
+func _current_vector() -> Vector2:
+    var strength := float(level_profile.current_strength)
+    if is_zero_approx(strength):
+        return Vector2.ZERO
+    var direction := 1.0
+    if bool(level_profile.reversing_current):
+        var frequency := 0.65 if level_number < 8 else 1.05
+        direction = 1.0 if sin(visual_time * frequency) >= 0.0 else -1.0
+    var vertical := 0.0
+    if level_number >= 7 and session.player_state == "underwater":
+        vertical = sin(visual_time * 0.9) * strength * 0.55
+    return Vector2(strength * direction, vertical)
 
 func _unhandled_input(event: InputEvent) -> void:
     if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
@@ -140,7 +156,7 @@ func _advance_level() -> void:
     collected.clear()
     eat_effect_seconds = 0.0
     screen = Screen.PLAYING
-    _set_feedback("[LEVEL %03d] A livelier marsh path begins!" % level_number)
+    _set_feedback("[NEW TWIST] %s" % str(level_profile.new_twist))
 
 func _save(message: String) -> void:
     var timestamp := Time.get_datetime_string_from_system(true, true)
@@ -197,6 +213,7 @@ func _draw_level() -> void:
     draw_rect(Rect2(35,85,1210,120), Color(0.2,0.75,0.85,0.08), true)
     for glow in [Vector2(180,155), Vector2(530,260), Vector2(1020,420)]:
         draw_circle(glow, 95, Color(0.2,0.85,0.78,0.035))
+    _draw_current_trails()
     for row in range(4):
         var ripple_y := 150.0 + row * 130.0
         var shift := float(visual.water_shift) * (1.0 if row % 2 == 0 else -1.0)
@@ -212,7 +229,11 @@ func _draw_level() -> void:
         draw_line(drawn_pad, drawn_pad+Vector2(35,-18), Color("c4eb8b"), 5)
         for vein_angle in [-0.55, 0.0, 0.55]:
             draw_line(drawn_pad + Vector2(3,0), drawn_pad + Vector2.from_angle(vein_angle) * 28.0, Color(0.72,0.93,0.55,0.42), 2)
-    draw_circle(SAFE_LOCATION, 62, Color("183f31")); _text(SAFE_LOCATION+Vector2(0,7), "SAFE", 16, Color("b9f5c7"), HORIZONTAL_ALIGNMENT_CENTER, 100)
+    var safe_radius := float(level_profile.safe_radius)
+    draw_circle(SAFE_LOCATION, safe_radius + 7, Color(0.02,0.08,0.08,0.35))
+    draw_circle(SAFE_LOCATION, safe_radius, Color("183f31"))
+    draw_arc(SAFE_LOCATION, safe_radius, 0, TAU, 32, Color("8fe5a2"), 2)
+    _text(SAFE_LOCATION+Vector2(0,7), "SAFE", 16, Color("b9f5c7"), HORIZONTAL_ALIGNMENT_CENTER, 100)
     for index in BUGS.size():
         if index not in collected:
             _draw_bug(BUGS[index], index, float(visual.wildlife_flutter))
@@ -230,6 +251,7 @@ func _draw_level() -> void:
         _draw_eating_effect(fred + Vector2(0,float(visual.fred_bob)), eat_target)
     _text(Vector2(45,38), "LILY LEAP", 28, Color("f7d36a"), HORIZONTAL_ALIGNMENT_LEFT, 300)
     _text(Vector2(45,75), "LEVEL %03d  -  %s" % [level_profile.level, level_profile.label], 15, Color("d9f4e2"), HORIZONTAL_ALIGNMENT_LEFT, 280)
+    _text(Vector2(915,75), "NEW: %s" % str(level_profile.new_twist).to_upper(), 13, Color("fff0ae"), HORIZONTAL_ALIGNMENT_LEFT, 320)
     draw_rect(Rect2(330,10,560,52), Color("06151f"), true); draw_rect(Rect2(330,10,560,52), Color("e8fbff"), false, 2)
     _text(Vector2(350,43), "OBJECTIVE: " + ("Reach the moonpetal exit" if session.bug_count >= 3 else "Collect 3 marsh bugs"), 19, Color("e8fbff"), HORIZONTAL_ALIGNMENT_LEFT, 520)
     _text(Vector2(45,710), "Bugs %d/3   Boost %d%%   Health %s   %s" % [session.bug_count, session.boost_energy, "♥".repeat(session.health), session.player_state.capitalize()], 20, Color.WHITE, HORIZONTAL_ALIGNMENT_LEFT, 850)
@@ -237,6 +259,17 @@ func _draw_level() -> void:
     _button(Rect2(1120,20,120,48), "PAUSE")
     if reduced_motion:
         _text(Vector2(1000,105), "[REDUCED MOTION]", 14, Color("e8fbff"), HORIZONTAL_ALIGNMENT_CENTER, 220)
+
+func _draw_current_trails() -> void:
+    if level_number < 2:
+        return
+    var current := _current_vector()
+    var arrow := ">" if current.x >= 0.0 else "<"
+    for row in range(3):
+        for column in range(6):
+            var point := Vector2(130 + column * 190, 210 + row * 145)
+            var phase := 0.0 if reduced_motion else sin(visual_time * 1.4 + float(column + row)) * 10.0
+            _text(point + Vector2(phase,0), arrow + arrow, 18, Color(0.65,0.95,1.0,0.36), HORIZONTAL_ALIGNMENT_CENTER, 54)
 
 func _draw_reeds(sway: float) -> void:
     for x in range(55,1240,95):
