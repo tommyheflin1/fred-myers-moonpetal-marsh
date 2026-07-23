@@ -19,6 +19,7 @@ REQUIRED = [
     "godot/scripts/fred_save_adapter.gd",
     "godot/tests/run_tests.gd",
     "godot/tests/run_keyboard_regression.gd",
+    "godot/tests/run_save_stress.gd",
 ]
 
 FIXTURES = {

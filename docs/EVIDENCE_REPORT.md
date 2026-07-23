@@ -27,6 +27,32 @@ Evidence date: 2026-07-21 MDT.
 
 No Godot gameplay rewrite, Core vendoring, export, APK/AAB, Windows package, iOS build, physical-device QA, production backend, analytics provider, deployment, repository rename, store submission, or full campaign playtest was performed in M0.
 
+## Accepted-M1 save-integrity regression
+
+On 2026-07-23, the accepted M1 save-v1 adapter was exercised from exact accepted
+`main` commit `c4f44a2f53462af0df740ad9058ff22936db94e2` with Godot 4.7.1 and fictional
+temporary `user://` data only. The first stress run passed 14 assertions and
+failed 11, proving that newer recovery candidates could be ignored, malformed
+primary data could replace a valid backup, future schema/Core data could be
+overwritten, and unsafe save prefixes were accepted.
+
+The focused adapter repair adds bounded reads, safe `user://` prefix validation,
+candidate-wide monotonic checkpoint enforcement, newest-valid recovery selection,
+verified temporary writes, valid-primary-only backup rotation, future schema/Core
+overwrite refusal across primary, backup, and interrupted candidates, and a
+re-entrant save guard. It does not change AdventureSession, save schema v1, or
+Mobile Game Core 0.5.1.
+
+The deterministic suite performs 250 identical atomic saves and covers backup
+rotation, malformed/truncated/oversized JSON, primary/backup/temp disagreement,
+interrupted writes, stale/equal checkpoint ordering, timestamp offsets, unsupported
+schema/Core versions, re-entrant saves, missing paths, path traversal, cleanup, and
+last-known-good preservation. After adding explicit re-entrancy coverage, five
+independent final runs passed 31/31 assertions each (155 assertions total). The
+250-save loops completed in 431-539 ms, each reported 577 bytes of static-memory
+growth, and each produced a 513-byte primary save. The original M1 suite remained
+30/30, and the separate accepted-M1 keyboard regression branch remained 19/19.
+
 ## Tracker handoff
 
 The App Vault portfolio tracker should add Fred only after this branch/commit is verified remotely. Suggested entry: project `PRJ-002`, independent repository, active discovery milestone complete, overall Godot migration 8% with high confidence for documentation and low confidence for implementation schedule. The root tracker update should reference this exact Fred commit and must not retroactively award gameplay completion.
