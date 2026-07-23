@@ -76,6 +76,9 @@ func _run() -> void:
     game._handle_click(Vector2(640,475)); check(game.screen == game.Screen.PLAYING, "desktop mouse starts game")
     game.session.collect_bug(); game.session.collect_bug(); game.session.collect_bug(); game.fred = game.EXIT; game._fixed_tick(0.0)
     check(game.screen == game.Screen.COMPLETE, "playable level completion condition")
+    game._handle_click(Vector2(640,530))
+    check(game.screen == game.Screen.PLAYING and game.level_number == 2, "completion advances directly to level two")
+    check(game.level_profile.level == 2 and game.session.bug_count == 0, "next level starts with fresh deterministic objectives")
     game.queue_free(); await process_frame
     clean_files()
     print("RESULT passed=%d failed=%d" % [passed, failed])

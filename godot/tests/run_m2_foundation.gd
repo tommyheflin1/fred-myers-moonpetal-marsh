@@ -51,5 +51,21 @@ func _run() -> void:
 	identity.continue_offline()
 	check(identity.state == FredPlayerIdentity.State.OFFLINE, "account setup remains skippable")
 
+	var game: Node2D = load("res://scripts/main.gd").new()
+	game.saver = FredSaveAdapter.new("user://m2_progression_test")
+	root.add_child(game)
+	await process_frame
+	game.screen = game.Screen.COMPLETE
+	game._advance_level()
+	check(game.level_number == 2 and game.screen == game.Screen.PLAYING, "completion flow enters level two without title")
+	check(float(game.level_profile.intensity) >= float(FredLevelIntensity.profile(1).intensity), "level two applies its increased intensity")
+	game.eat_target = Vector2(200, 200)
+	game.eat_effect_seconds = 0.32
+	var save_before: Dictionary = game.session.to_save("2000-01-01T00:00:00Z")
+	game._advance_visual(0.1)
+	check(game.eat_effect_seconds < 0.32, "eating animation advances visibly")
+	check(game.session.to_save("2000-01-01T00:00:00Z") == save_before, "eating animation cannot mutate gameplay or save state")
+	game.queue_free()
+
 	print("RESULT m2_foundation_passed=%d m2_foundation_failed=%d" % [passed, failed])
 	quit(1 if failed else 0)

@@ -23,6 +23,9 @@ var visual_time := 0.0
 var reduced_motion := bool(ProjectSettings.get_setting("accessibility/reduced_motion", false))
 var level_profile := FredLevelIntensity.profile(1)
 var identity := FredPlayerIdentity.new()
+var level_number := 1
+var eat_effect_seconds := 0.0
+var eat_target := Vector2.ZERO
 
 func _ready() -> void:
     if "--reduced-motion" in OS.get_cmdline_user_args():
@@ -44,6 +47,7 @@ func _process(delta: float) -> void:
 
 func _advance_visual(delta: float) -> void:
     visual_time = FredVisualState.bounded_time(visual_time, delta)
+    eat_effect_seconds = maxf(0.0, eat_effect_seconds - maxf(0.0, delta))
     queue_redraw()
 
 func _fixed_tick(delta: float) -> void:
@@ -57,12 +61,14 @@ func _fixed_tick(delta: float) -> void:
     if FredInputIntent.held(FredInputIntent.Intent.BOOST) and session.use_boost(1): speed = 380.0
     elif direction == Vector2.ZERO: session.recharge_boost(1)
     fred = (fred + direction * speed * delta).clamp(Vector2(55,105), Vector2(1225,665))
-    predator.x += predator_direction * 110.0 * delta
+    predator.x += predator_direction * 110.0 * float(level_profile.predator_speed_scale) * delta
     if predator.x > 1120 or predator.x < 760: predator_direction *= -1.0
     in_safe_location = fred.distance_to(SAFE_LOCATION) < 55
     for index in BUGS.size():
         if index not in collected and fred.distance_to(BUGS[index]) < 35:
-            collected.append(index); session.collect_bug(); _set_feedback("[STATUS] Marsh bug collected.")
+            eat_target = BUGS[index]
+            eat_effect_seconds = 0.32
+            collected.append(index); session.collect_bug(); _set_feedback("[MUNCH!] Fred ate a marsh bug.")
     if fred.distance_to(Vector2(630,390)) < 42 and session.checkpoint_sequence < 1:
         session.reach_checkpoint(AdventureSession.CHECKPOINTS[1], 1); _save("Midpoint is safe.")
     if fred.distance_to(predator) < 45 and not in_safe_location:
@@ -97,6 +103,7 @@ func _unhandled_input(event: InputEvent) -> void:
                 if screen == Screen.FAILED: _retry()
             KEY_ENTER:
                 if screen == Screen.TITLE: _start()
+                elif screen == Screen.COMPLETE: _advance_level()
 
 func _handle_click(position: Vector2) -> void:
     if screen == Screen.TITLE and Rect2(490,440,300,70).has_point(position): _start()
@@ -107,7 +114,7 @@ func _handle_click(position: Vector2) -> void:
         session.paused = false; _set_feedback("[PLAYING] Adventure resumed.")
     elif screen == Screen.FAILED and Rect2(490,430,300,70).has_point(position): _retry()
     elif screen == Screen.COMPLETE and Rect2(490,500,300,60).has_point(position):
-        screen = Screen.TITLE; queue_redraw()
+        _advance_level()
 
 func _start() -> void:
     if session.completed:
@@ -123,6 +130,17 @@ func _retry() -> void:
     session.retry_from_checkpoint()
     fred = Vector2(630,390) if session.current_checkpoint == AdventureSession.CHECKPOINTS[1] else START
     screen = Screen.PLAYING; _set_feedback("[RESTORED] Your checkpoint is ready.")
+
+func _advance_level() -> void:
+    level_number = mini(FredLevelIntensity.MAX_LEVEL, level_number + 1)
+    level_profile = FredLevelIntensity.profile(level_number)
+    session = AdventureSession.new(1337 + level_number)
+    fred = START
+    predator = PREDATOR_START + Vector2(-25.0 * float((level_number - 1) % 4), 0)
+    collected.clear()
+    eat_effect_seconds = 0.0
+    screen = Screen.PLAYING
+    _set_feedback("[LEVEL %03d] A livelier marsh path begins!" % level_number)
 
 func _save(message: String) -> void:
     var timestamp := Time.get_datetime_string_from_system(true, true)
@@ -147,7 +165,7 @@ func _draw() -> void:
     if screen == Screen.TITLE: _draw_title(); return
     _draw_level()
     if screen == Screen.FAILED: _draw_overlay("Fred got gobbled!", "Press R or click Retry", "Retry", Rect2(490,430,300,70), "TRY AGAIN")
-    elif screen == Screen.COMPLETE: _draw_overlay("Lily Leap Complete!", "The marsh path is open.", "Back to title", Rect2(490,500,300,60), "LEVEL CLEAR")
+    elif screen == Screen.COMPLETE: _draw_overlay("Lily Leap Complete!", "Level %03d is ready." % mini(100, level_number + 1), "Next Level", Rect2(490,500,300,60), "LEVEL CLEAR")
     elif session.paused: _draw_overlay("Marsh Paused", "Your checkpoint is safe.", "Resume", Rect2(490,410,300,65), "PAUSED")
 
 func _draw_title() -> void:
@@ -173,8 +191,12 @@ func _draw_title() -> void:
 func _draw_level() -> void:
     var visual := FredVisualState.snapshot(visual_time, reduced_motion)
     var water := Color("075c78") if session.player_state == "surface" else Color("07334f")
+    draw_rect(Rect2(26,76,1228,618), Color("03131c"), true)
     draw_rect(Rect2(35,85,1210,600), water, true)
+    draw_rect(Rect2(35,85,1210,600), Color("8be8e1"), false, 3)
     draw_rect(Rect2(35,85,1210,120), Color(0.2,0.75,0.85,0.08), true)
+    for glow in [Vector2(180,155), Vector2(530,260), Vector2(1020,420)]:
+        draw_circle(glow, 95, Color(0.2,0.85,0.78,0.035))
     for row in range(4):
         var ripple_y := 150.0 + row * 130.0
         var shift := float(visual.water_shift) * (1.0 if row % 2 == 0 else -1.0)
@@ -188,6 +210,8 @@ func _draw_level() -> void:
         draw_circle(drawn_pad + Vector2(0,5), 45, Color(0.01,0.12,0.12,0.3))
         draw_circle(drawn_pad, 43, Color("3d9a5a")); draw_arc(drawn_pad, 43, 0, TAU, 32, Color("a7df78"), 2)
         draw_line(drawn_pad, drawn_pad+Vector2(35,-18), Color("c4eb8b"), 5)
+        for vein_angle in [-0.55, 0.0, 0.55]:
+            draw_line(drawn_pad + Vector2(3,0), drawn_pad + Vector2.from_angle(vein_angle) * 28.0, Color(0.72,0.93,0.55,0.42), 2)
     draw_circle(SAFE_LOCATION, 62, Color("183f31")); _text(SAFE_LOCATION+Vector2(0,7), "SAFE", 16, Color("b9f5c7"), HORIZONTAL_ALIGNMENT_CENTER, 100)
     for index in BUGS.size():
         if index not in collected:
@@ -196,10 +220,14 @@ func _draw_level() -> void:
     draw_circle(predator, 34, Color("d44b4b")); draw_arc(predator, 34, 0, TAU, 24, Color("ffd2c7"), 2)
     draw_circle(predator+Vector2(-12,-8), 6, Color.WHITE); draw_circle(predator+Vector2(12,-8), 6, Color.WHITE)
     draw_circle(predator+Vector2(-12,-8), 3, Color("301519")); draw_circle(predator+Vector2(12,-8), 3, Color("301519"))
+    draw_colored_polygon(PackedVector2Array([predator+Vector2(-34,4), predator+Vector2(-55,-15), predator+Vector2(-50,18)]), Color("a83445"))
+    draw_arc(predator, 25, 0.25, PI - 0.25, 16, Color("ff9b88"), 3)
     var exit_radius := 45.0 * float(visual.exit_pulse)
     draw_circle(EXIT, exit_radius + 5, Color(0.9,0.8,1.0,0.16)); draw_circle(EXIT, exit_radius, Color("d49cff"))
     _text(EXIT+Vector2(0,6), "EXIT", 15, Color("321c45"), HORIZONTAL_ALIGNMENT_CENTER, 90)
     _draw_fred(fred + Vector2(0,float(visual.fred_bob)))
+    if eat_effect_seconds > 0.0:
+        _draw_eating_effect(fred + Vector2(0,float(visual.fred_bob)), eat_target)
     _text(Vector2(45,38), "LILY LEAP", 28, Color("f7d36a"), HORIZONTAL_ALIGNMENT_LEFT, 300)
     _text(Vector2(45,75), "LEVEL %03d  -  %s" % [level_profile.level, level_profile.label], 15, Color("d9f4e2"), HORIZONTAL_ALIGNMENT_LEFT, 280)
     draw_rect(Rect2(330,10,560,52), Color("06151f"), true); draw_rect(Rect2(330,10,560,52), Color("e8fbff"), false, 2)
@@ -221,14 +249,19 @@ func _draw_bug(position: Vector2, index: int, flutter: float) -> void:
     draw_circle(position, 12, Color("ffd85a")); draw_arc(position, 12, 0, TAU, 18, Color("4d3512"), 2)
     draw_line(position-Vector2(5,2), position-Vector2(18,wing), Color("fff4b0"), 3)
     draw_line(position+Vector2(5,-2), position+Vector2(18,wing), Color("fff4b0"), 3)
+    draw_circle(position-Vector2(4,0), 2, Color("3b2810"))
+    draw_circle(position+Vector2(4,0), 2, Color("3b2810"))
     _text(position+Vector2(0,30), "BUG %d" % (index + 1), 11, Color("fff7cb"), HORIZONTAL_ALIGNMENT_CENTER, 70)
 
 func _draw_fred(position: Vector2) -> void:
     var fred_color := Color("75e06f") if session.player_state == "surface" else Color("62b9d5")
     var outline := Color("173128") if session.player_state == "surface" else Color("d8f7ff")
     draw_circle(position + Vector2(-22,18), 14, outline); draw_circle(position + Vector2(22,18), 14, outline)
+    draw_line(position+Vector2(-16,14), position+Vector2(-34,30), outline, 8)
+    draw_line(position+Vector2(16,14), position+Vector2(34,30), outline, 8)
     draw_circle(position, 28, outline)
     draw_circle(position, 24, fred_color)
+    draw_circle(position-Vector2(7,7), 8, Color(1,1,1,0.12))
     draw_circle(position+Vector2(-12,-20), 13, outline); draw_circle(position+Vector2(12,-20), 13, outline)
     draw_circle(position+Vector2(-12,-20), 10, fred_color); draw_circle(position+Vector2(12,-20), 10, fred_color)
     draw_circle(position+Vector2(-12,-22), 4, Color("17252c")); draw_circle(position+Vector2(12,-22), 4, Color("17252c"))
@@ -236,6 +269,14 @@ func _draw_fred(position: Vector2) -> void:
     if session.player_state == "underwater":
         draw_circle(position + Vector2(30,-30), 5, Color(0.75,0.95,1.0,0.65), false, 2)
         draw_circle(position + Vector2(42,-45), 3, Color(0.75,0.95,1.0,0.65), false, 2)
+
+func _draw_eating_effect(origin: Vector2, target: Vector2) -> void:
+    var progress := clampf(eat_effect_seconds / 0.32, 0.0, 1.0)
+    var tongue_tip := origin.lerp(target, sin(progress * PI))
+    draw_line(origin + Vector2(0,5), tongue_tip, Color("ff7ca8"), 7)
+    draw_circle(tongue_tip, 6, Color("ffb1c9"))
+    draw_arc(origin + Vector2(0,4), 13, 0.15, PI - 0.15, 12, Color("311629"), 4)
+    _text(origin + Vector2(0,-48), "MUNCH!", 14, Color("fff0ae"), HORIZONTAL_ALIGNMENT_CENTER, 100)
 
 func _draw_overlay(title: String, subtitle: String, action: String, rect: Rect2, cue: String) -> void:
     draw_rect(Rect2(350,245,580,300), Color(0.02,0.07,0.1,0.94), true)
