@@ -42,6 +42,7 @@ func tick_with_key(game: Node2D, keycode: int, delta: float = 1.0 / 60.0) -> voi
 func create_game() -> Node2D:
     var game: Node2D = load("res://scripts/main.gd").new()
     game.saver = FredSaveAdapter.new(prefix)
+    game.hazards_enabled = false
     root.add_child(game)
     game.set_process(false)
     return game

@@ -37,6 +37,9 @@ func _run() -> void:
 	check(FredLevelIntensity.profile(3).weaving_patrol, "level three introduces weaving patrol")
 	check(FredLevelIntensity.profile(4).reversing_current, "level four introduces reversing flow")
 	check(float(FredLevelIntensity.profile(6).danger_radius) > float(FredLevelIntensity.profile(5).danger_radius), "level six widens danger reach")
+	check(int(FredLevelIntensity.profile(1).predator_count) == 2, "level one starts with multiple predators")
+	check(int(FredLevelIntensity.profile(100).predator_count) == 5, "late levels reach five active predators")
+	check(int(FredLevelIntensity.profile(100).whirlpool_count) == 3, "late levels combine three whirlpools")
 
 	var identity := FredPlayerIdentity.new()
 	check(identity.state == FredPlayerIdentity.State.GUEST, "identity starts guest-first")
@@ -71,6 +74,17 @@ func _run() -> void:
 	check(game._current_vector().x > 0.0, "level two current applies deterministic pressure")
 	game._advance_level()
 	check(game.level_number == 3 and game.level_profile.weaving_patrol, "level three adds weaving patrol complexity")
+	check(game.direct_route_has_danger(), "straight-line route intersects a telegraphed hazard")
+	game.level_number = 1
+	game.level_profile = FredLevelIntensity.profile(1)
+	game._update_secondary_predators()
+	check(game._active_predator_positions().size() == 2, "level one activates bass and pike")
+	game.fred = game.WHIRLPOOLS[0]
+	var health_before: int = game.session.health
+	game._fixed_tick(0.0)
+	check(game.session.health == health_before - 1 and game.fred == game.START, "whirlpool costs one heart and returns Fred safely")
+	game._fixed_tick(0.0)
+	check(game.session.health == health_before - 1, "danger cooldown prevents repeated unavoidable damage")
 	game.eat_target = Vector2(200, 200)
 	game.eat_effect_seconds = 0.32
 	var save_before: Dictionary = game.session.to_save("2000-01-01T00:00:00Z")

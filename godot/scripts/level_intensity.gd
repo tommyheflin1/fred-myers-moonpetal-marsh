@@ -22,6 +22,8 @@ static func profile(level: int) -> Dictionary:
 		"reversing_current": safe_level >= 4,
 		"safe_radius": snappedf(maxf(42.0, 55.0 - float(maxi(0, safe_level - 4)) * 0.16), 0.01),
 		"danger_radius": snappedf(minf(53.0, 45.0 + float(maxi(0, safe_level - 5)) * 0.10), 0.01),
+		"predator_count": mini(5, 2 + ((safe_level - 1) / 3)),
+		"whirlpool_count": mini(3, 1 + ((safe_level - 1) / 4)),
 	}
 
 static func _label_for(level: int) -> String:
