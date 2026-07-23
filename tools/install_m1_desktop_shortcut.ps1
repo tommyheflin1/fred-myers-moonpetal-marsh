@@ -23,7 +23,7 @@ $shortcut = $shell.CreateShortcut($shortcutPath)
 $shortcut.TargetPath = $powerShell
 $shortcut.Arguments = "-NoProfile -ExecutionPolicy Bypass -File `"$launcher`""
 $shortcut.WorkingDirectory = $projectRoot
-$shortcut.Description = "Local Fred Myers M1 owner test - Godot 4.7.1"
+$shortcut.Description = "Local Fred Myers M1 recovery-feedback owner test - Godot 4.7.1"
 $shortcut.Save()
 
 $verified = $shell.CreateShortcut($shortcutPath)

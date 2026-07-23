@@ -19,12 +19,21 @@ To create or repair the Windows desktop shortcut, run `tools/install_m1_desktop_
 1. Confirm the title and controls are readable; start with the mouse.
 2. Move across the lily pads and collect all three gold bugs.
 3. Hold Shift while moving and confirm boost energy decreases; stop and confirm it recharges.
-4. Press Q and confirm `Underwater`; press E and confirm `Surface`.
+4. Press Q and confirm `[STATUS] Fred is underwater.`; press E and confirm `[STATUS] Fred is at the surface.`.
 5. Pause and resume once by keyboard and once with the mouse.
 6. Enter the dark `SAFE` circle and confirm the red predator cannot damage Fred there.
 7. Contact the predator away from `SAFE` until the failure overlay appears; retry.
-8. Cross the center lily pad and confirm `Midpoint saved`.
-9. Close the window, relaunch from the same shortcut, choose Continue, and confirm Fred resumes at midpoint.
+8. Cross the center lily pad and confirm `[SAVED] Midpoint is safe.`.
+9. Close the window, relaunch from the same shortcut, choose Continue, and confirm Fred resumes at midpoint with a `[RESTORED]` or `[RECOVERED]` notice.
 10. Collect the remaining bugs and reach the purple EXIT; confirm `Lily Leap Complete`.
+
+## Save-status checks
+
+- A fresh test shows `[NEW GAME]`; it must not claim progress was restored.
+- A normal relaunch with a valid save shows `[RESTORED]`.
+- Recovery from a valid backup or interrupted save shows `[RECOVERED]`.
+- A damaged fictional test save shows `[SAFE START]`, never a restored-progress message.
+- A blocked save shows `[SAVE BLOCKED]` without a file path or technical error code.
+- Status notices remain readable without blocking movement, buttons, pause, or retry.
 
 Touch and controller behavior is deferred to M2. This is a local, non-production owner candidate only.
