@@ -96,3 +96,27 @@ invented for this regression.
 The isolated visible game process launched at the existing 1280x720 target, but
 Computer Use approval timed out before interaction or capture. Therefore this
 branch claims no new visible-validation or owner-UAT credit.
+
+## Accepted-M1 regression integration
+
+On 2026-07-23, the keyboard commit
+`ea17d2bc1bb2be90b24c9c670e61afd07cb07419` and save-integrity commit
+`22deaceab9c57a4d201c9239f1096b308760ae75` were cherry-picked in that order onto
+exact accepted `main` `c4f44a2f53462af0df740ad9058ff22936db94e2`. The two expected
+additive conflicts in the workflow test steps and readiness artifact list were
+resolved by retaining both runners. No product-code conflict occurred.
+
+Five isolated full-union executions varied the order of the original 30 checks,
+19 keyboard-event checks, and 31 save-integrity checks. Every execution passed
+80/80, for 400/400 assertions total. The 250-save stress loop completed in
+374-392 ms per execution, reported 577 bytes of static-memory growth, and produced
+a 513-byte primary save before cleanup. The combined run exposed one test-harness
+leak: the original runner recreated `m1_test_save.json` during its final gameplay
+completion. A final `clean_files()` call now removes that fictional test artifact.
+All five repeated order permutations then ended with zero non-log user files and
+zero temporary files.
+
+The integration preserves Mobile Game Core 0.5.1, save schema v1, all eight
+fixtures, and the owner primary/backup save hashes. It adds no M2 behavior and
+does not constitute physical-keyboard owner UAT, deployment, export, signing,
+publication, or release evidence.

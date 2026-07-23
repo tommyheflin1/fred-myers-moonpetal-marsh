@@ -77,5 +77,6 @@ func _run() -> void:
     game.session.collect_bug(); game.session.collect_bug(); game.session.collect_bug(); game.fred = game.EXIT; game._fixed_tick(0.0)
     check(game.screen == game.Screen.COMPLETE, "playable level completion condition")
     game.queue_free(); await process_frame
+    clean_files()
     print("RESULT passed=%d failed=%d" % [passed, failed])
     quit(1 if failed else 0)
