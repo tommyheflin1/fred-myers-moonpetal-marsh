@@ -19,20 +19,29 @@ var save_feedback := FredSaveFeedback.NEUTRAL
 var save_feedback_seconds := 0.0
 var predator_direction := 1.0
 var _fixed_accumulator := 0.0
+var visual_time := 0.0
+var reduced_motion := bool(ProjectSettings.get_setting("accessibility/reduced_motion", false))
 
 func _ready() -> void:
+    if "--reduced-motion" in OS.get_cmdline_user_args():
+        reduced_motion = true
     var result := saver.load_session(session)
     _set_feedback(FredSaveFeedback.load_message(result))
     set_process(true)
     queue_redraw()
 
 func _process(delta: float) -> void:
+    _advance_visual(delta)
     _tick_feedback(delta)
     if screen != Screen.PLAYING or session.paused: return
     _fixed_accumulator += delta
     while _fixed_accumulator >= 1.0 / 60.0:
         _fixed_tick(1.0 / 60.0)
         _fixed_accumulator -= 1.0 / 60.0
+    queue_redraw()
+
+func _advance_visual(delta: float) -> void:
+    visual_time = FredVisualState.bounded_time(visual_time, delta)
     queue_redraw()
 
 func _fixed_tick(delta: float) -> void:
@@ -135,45 +144,98 @@ func _draw() -> void:
     draw_rect(Rect2(0,0,1280,720), Color("071d2d"))
     if screen == Screen.TITLE: _draw_title(); return
     _draw_level()
-    if screen == Screen.FAILED: _draw_overlay("Fred got gobbled!", "Press R or click Retry", "Retry", Rect2(490,430,300,70))
-    elif screen == Screen.COMPLETE: _draw_overlay("Lily Leap Complete!", "The marsh path is open.", "Back to title", Rect2(490,500,300,60))
-    elif session.paused: _draw_overlay("Marsh Paused", "Your checkpoint is safe.", "Resume", Rect2(490,410,300,65))
+    if screen == Screen.FAILED: _draw_overlay("Fred got gobbled!", "Press R or click Retry", "Retry", Rect2(490,430,300,70), "TRY AGAIN")
+    elif screen == Screen.COMPLETE: _draw_overlay("Lily Leap Complete!", "The marsh path is open.", "Back to title", Rect2(490,500,300,60), "LEVEL CLEAR")
+    elif session.paused: _draw_overlay("Marsh Paused", "Your checkpoint is safe.", "Resume", Rect2(490,410,300,65), "PAUSED")
 
 func _draw_title() -> void:
+    var visual := FredVisualState.snapshot(visual_time, reduced_motion)
+    for y in range(20, 720, 70):
+        draw_rect(Rect2(0,y,1280,35), Color(0.02,0.12,0.17,0.18), true)
     draw_circle(Vector2(640,220), 155, Color("123e4a"))
-    draw_circle(Vector2(600,215), 65, Color("69c96b")); draw_circle(Vector2(680,215), 65, Color("69c96b"))
-    draw_circle(Vector2(615,190), 13, Color.WHITE); draw_circle(Vector2(665,190), 13, Color.WHITE)
-    draw_circle(Vector2(615,190), 6, Color("13242a")); draw_circle(Vector2(665,190), 6, Color("13242a"))
+    var title_center := Vector2(640,215 + float(visual.fred_bob))
+    draw_circle(title_center + Vector2(-40,0), 65, Color("69c96b")); draw_circle(title_center + Vector2(40,0), 65, Color("69c96b"))
+    draw_circle(title_center + Vector2(-25,-25), 13, Color.WHITE); draw_circle(title_center + Vector2(25,-25), 13, Color.WHITE)
+    draw_circle(title_center + Vector2(-25,-25), 6, Color("13242a")); draw_circle(title_center + Vector2(25,-25), 6, Color("13242a"))
+    draw_arc(title_center + Vector2(0,10), 27, 0.25, PI - 0.25, 18, Color("173128"), 4)
     _text(Vector2(640,70), "FRED MYERS", 46, Color("f7d36a"), HORIZONTAL_ALIGNMENT_CENTER, 700)
     _text(Vector2(640,120), "and the Moonpetal Marsh", 30, Color("d9f4e2"), HORIZONTAL_ALIGNMENT_CENTER, 700)
     _button(Rect2(490,440,300,70), "PLAY AGAIN" if session.completed else ("CONTINUE" if session.checkpoint_sequence > 0 else "START ADVENTURE"))
     _status_panel(Rect2(280,510,720,46), 18)
+    if reduced_motion:
+        _text(Vector2(640,675), "[REDUCED MOTION] All gameplay cues remain visible.", 15, Color("e8fbff"), HORIZONTAL_ALIGNMENT_CENTER, 700)
     _text(Vector2(640,620), "WASD / arrows move  •  Shift boosts  •  Q dive  •  E surface  •  P pause", 17, Color("bfd8dc"), HORIZONTAL_ALIGNMENT_CENTER, 1000)
 
 func _draw_level() -> void:
+    var visual := FredVisualState.snapshot(visual_time, reduced_motion)
     var water := Color("075c78") if session.player_state == "surface" else Color("07334f")
     draw_rect(Rect2(35,85,1210,600), water, true)
-    for x in range(60,1240,80): draw_line(Vector2(x,130 + (x % 160)), Vector2(x+35,130 + (x % 160)), Color(0.3,0.8,0.9,0.18), 3)
-    for pad in PADS:
-        draw_circle(pad, 43, Color("3d9a5a")); draw_line(pad, pad+Vector2(35,-18), Color("9bd36a"), 5)
+    draw_rect(Rect2(35,85,1210,120), Color(0.2,0.75,0.85,0.08), true)
+    for row in range(4):
+        var ripple_y := 150.0 + row * 130.0
+        var shift := float(visual.water_shift) * (1.0 if row % 2 == 0 else -1.0)
+        for x in range(55,1240,120):
+            draw_line(Vector2(x + shift,ripple_y), Vector2(x + 58 + shift,ripple_y), Color(0.55,0.9,0.95,0.22), 3)
+    _draw_reeds(float(visual.reed_sway))
+    for index in PADS.size():
+        var pad: Vector2 = PADS[index]
+        var pad_bob := FredVisualState.wave(visual_time, float(index) * 0.65, 3.0, reduced_motion)
+        var drawn_pad: Vector2 = pad + Vector2(0,pad_bob)
+        draw_circle(drawn_pad + Vector2(0,5), 45, Color(0.01,0.12,0.12,0.3))
+        draw_circle(drawn_pad, 43, Color("3d9a5a")); draw_arc(drawn_pad, 43, 0, TAU, 32, Color("a7df78"), 2)
+        draw_line(drawn_pad, drawn_pad+Vector2(35,-18), Color("c4eb8b"), 5)
     draw_circle(SAFE_LOCATION, 62, Color("183f31")); _text(SAFE_LOCATION+Vector2(0,7), "SAFE", 16, Color("b9f5c7"), HORIZONTAL_ALIGNMENT_CENTER, 100)
     for index in BUGS.size():
         if index not in collected:
-            draw_circle(BUGS[index], 11, Color("ffd85a")); draw_line(BUGS[index]-Vector2(15,0), BUGS[index]+Vector2(15,0), Color("fff2a8"), 2)
-    draw_circle(predator, 34, Color("d44b4b")); draw_circle(predator+Vector2(-12,-8), 5, Color.WHITE); draw_circle(predator+Vector2(12,-8), 5, Color.WHITE)
-    draw_circle(EXIT, 45, Color("d49cff")); _text(EXIT+Vector2(0,6), "EXIT", 15, Color("321c45"), HORIZONTAL_ALIGNMENT_CENTER, 90)
-    var fred_color := Color("75e06f") if session.player_state == "surface" else Color("62b9d5")
-    draw_circle(fred, 25, fred_color); draw_circle(fred+Vector2(-11,-19), 12, fred_color); draw_circle(fred+Vector2(11,-19), 12, fred_color)
-    draw_circle(fred+Vector2(-11,-21), 4, Color("17252c")); draw_circle(fred+Vector2(11,-21), 4, Color("17252c"))
+            _draw_bug(BUGS[index], index, float(visual.wildlife_flutter))
+    draw_circle(predator + Vector2(0,5), 37, Color(0.02,0.08,0.1,0.35))
+    draw_circle(predator, 34, Color("d44b4b")); draw_arc(predator, 34, 0, TAU, 24, Color("ffd2c7"), 2)
+    draw_circle(predator+Vector2(-12,-8), 6, Color.WHITE); draw_circle(predator+Vector2(12,-8), 6, Color.WHITE)
+    draw_circle(predator+Vector2(-12,-8), 3, Color("301519")); draw_circle(predator+Vector2(12,-8), 3, Color("301519"))
+    var exit_radius := 45.0 * float(visual.exit_pulse)
+    draw_circle(EXIT, exit_radius + 5, Color(0.9,0.8,1.0,0.16)); draw_circle(EXIT, exit_radius, Color("d49cff"))
+    _text(EXIT+Vector2(0,6), "EXIT", 15, Color("321c45"), HORIZONTAL_ALIGNMENT_CENTER, 90)
+    _draw_fred(fred + Vector2(0,float(visual.fred_bob)))
     _text(Vector2(45,38), "LILY LEAP", 28, Color("f7d36a"), HORIZONTAL_ALIGNMENT_LEFT, 300)
-    _text(Vector2(350,35), "Objective: " + ("Reach the moonpetal exit" if session.bug_count >= 3 else "Collect 3 marsh bugs"), 20, Color.WHITE, HORIZONTAL_ALIGNMENT_LEFT, 500)
+    draw_rect(Rect2(330,10,560,52), Color("06151f"), true); draw_rect(Rect2(330,10,560,52), Color("e8fbff"), false, 2)
+    _text(Vector2(350,43), "OBJECTIVE: " + ("Reach the moonpetal exit" if session.bug_count >= 3 else "Collect 3 marsh bugs"), 19, Color("e8fbff"), HORIZONTAL_ALIGNMENT_LEFT, 520)
     _text(Vector2(45,710), "Bugs %d/3   Boost %d%%   Health %s   %s" % [session.bug_count, session.boost_energy, "♥".repeat(session.health), session.player_state.capitalize()], 20, Color.WHITE, HORIZONTAL_ALIGNMENT_LEFT, 850)
     _status_panel(Rect2(820,632,410,42), 16)
     _button(Rect2(1120,20,120,48), "PAUSE")
+    if reduced_motion:
+        _text(Vector2(1000,105), "[REDUCED MOTION]", 14, Color("e8fbff"), HORIZONTAL_ALIGNMENT_CENTER, 220)
 
-func _draw_overlay(title: String, subtitle: String, action: String, rect: Rect2) -> void:
+func _draw_reeds(sway: float) -> void:
+    for x in range(55,1240,95):
+        var base := Vector2(x,680)
+        draw_line(base, base + Vector2(sway,-46 - (x % 3) * 8), Color("78ad63"), 4)
+        draw_line(base + Vector2(sway,-30), base + Vector2(sway + 14,-40), Color("a8d77c"), 3)
+
+func _draw_bug(position: Vector2, index: int, flutter: float) -> void:
+    var wing := absf(flutter) + 5.0
+    draw_circle(position, 12, Color("ffd85a")); draw_arc(position, 12, 0, TAU, 18, Color("4d3512"), 2)
+    draw_line(position-Vector2(5,2), position-Vector2(18,wing), Color("fff4b0"), 3)
+    draw_line(position+Vector2(5,-2), position+Vector2(18,wing), Color("fff4b0"), 3)
+    _text(position+Vector2(0,30), "BUG %d" % (index + 1), 11, Color("fff7cb"), HORIZONTAL_ALIGNMENT_CENTER, 70)
+
+func _draw_fred(position: Vector2) -> void:
+    var fred_color := Color("75e06f") if session.player_state == "surface" else Color("62b9d5")
+    var outline := Color("173128") if session.player_state == "surface" else Color("d8f7ff")
+    draw_circle(position + Vector2(-22,18), 14, outline); draw_circle(position + Vector2(22,18), 14, outline)
+    draw_circle(position, 28, outline)
+    draw_circle(position, 24, fred_color)
+    draw_circle(position+Vector2(-12,-20), 13, outline); draw_circle(position+Vector2(12,-20), 13, outline)
+    draw_circle(position+Vector2(-12,-20), 10, fred_color); draw_circle(position+Vector2(12,-20), 10, fred_color)
+    draw_circle(position+Vector2(-12,-22), 4, Color("17252c")); draw_circle(position+Vector2(12,-22), 4, Color("17252c"))
+    draw_arc(position + Vector2(0,1), 10, 0.2, PI - 0.2, 10, outline, 2)
+    if session.player_state == "underwater":
+        draw_circle(position + Vector2(30,-30), 5, Color(0.75,0.95,1.0,0.65), false, 2)
+        draw_circle(position + Vector2(42,-45), 3, Color(0.75,0.95,1.0,0.65), false, 2)
+
+func _draw_overlay(title: String, subtitle: String, action: String, rect: Rect2, cue: String) -> void:
     draw_rect(Rect2(350,245,580,300), Color(0.02,0.07,0.1,0.94), true)
     draw_rect(Rect2(350,245,580,300), Color("70d6c2"), false, 4)
+    _text(Vector2(640,275), "[%s]" % cue, 15, Color("e8fbff"), HORIZONTAL_ALIGNMENT_CENTER, 500)
     _text(Vector2(640,315), title, 35, Color("f7d36a"), HORIZONTAL_ALIGNMENT_CENTER, 520)
     _text(Vector2(640,365), subtitle, 20, Color.WHITE, HORIZONTAL_ALIGNMENT_CENTER, 520)
     _button(rect, action)

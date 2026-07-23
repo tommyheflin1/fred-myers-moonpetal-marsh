@@ -149,3 +149,36 @@ temporary files. After the final timing adjustment, the same five permutations
 again passed 108/108 each (540/540 total). Their full-suite runtimes were
 1,642-1,834 ms; the embedded 250-save loops completed in 430-464 ms with 577 bytes
 reported static-memory growth and a 513-byte primary save before cleanup.
+
+## Accepted-M1 visual clarity micro-pass
+
+On 2026-07-23, a local branch from exact owner candidate `db7f05c` received a
+bounded procedural visual pass without external assets or gameplay changes.
+Before/after 1280x720 Computer Use inspection covered title and Lily Leap.
+The pass adds a smiling, legged and outlined Fred silhouette; layered water
+ripples; outlined and subtly bobbing lily pads; reeds; numbered winged bugs;
+outlined predator/exit cues; a high-contrast objective panel; and explicit
+`[TRY AGAIN]`, `[LEVEL CLEAR]`, and `[PAUSED]` overlay cues.
+
+All motion is derived from bounded `FredVisualState` time and never changes the
+fixed tick, collision coordinates, objectives, inputs, session, or saves. Local
+launches may use `-- --reduced-motion`; that mode makes all derived offsets zero,
+keeps the exit scale fixed, and visibly retains the objective, numbered bugs,
+outlines, state panels and `[REDUCED MOTION]` label. The objective/reduced-motion
+text uses `#e8fbff` on `#06151f` and meets the WCAG AA contrast threshold.
+
+The deterministic visual suite performs 10,000 snapshot calculations, checks
+bounded motion and time, proves animation cannot mutate gameplay/session/save
+state, validates reduced-motion equivalence and non-color cues, and cleans its
+fictional save directory. Its first passing run completed the snapshot loop in
+15 ms with zero reported static-memory growth. A visible standard-mode runtime
+sample used 211.3 MB working set and 236.5 MB private memory; this is a local
+debug-process observation, not a production-build benchmark.
+
+Final validation ran five isolated order permutations of the original 30,
+keyboard 19, save-integrity 31, save-feedback 28, and visual-clarity 30 checks.
+Every permutation passed 138/138, totaling 690/690 assertions. Full-suite runs
+completed in 1,920-2,095 ms; the 250-save loops completed in 436-521 ms with
+577 bytes reported static-memory growth, while 10,000 visual snapshots completed
+in 15-18 ms with zero reported static-memory growth. Every run ended with zero
+non-log user files and zero temporary files.
