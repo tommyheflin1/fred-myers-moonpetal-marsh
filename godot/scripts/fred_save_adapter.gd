@@ -86,7 +86,16 @@ func load_session(session: AdventureSession) -> Dictionary:
     for candidate: Dictionary in candidates:
         if candidate.get("error") in ["unsupported_schema", "core_incompatible"]:
             return {"ok":false, "error":candidate.error}
-    return {"ok":true, "source":"default"}
+    var invalid_save_exists := false
+    for candidate: Dictionary in candidates:
+        if candidate.get("exists", false):
+            invalid_save_exists = true
+            break
+    return {
+        "ok":true,
+        "source":"default",
+        "reason":"corrupt" if invalid_save_exists else "missing",
+    }
 
 func _candidate(path: String, source: String) -> Dictionary:
     var read_result := _read_result(path)

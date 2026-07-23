@@ -120,3 +120,32 @@ The integration preserves Mobile Game Core 0.5.1, save schema v1, all eight
 fixtures, and the owner primary/backup save hashes. It adds no M2 behavior and
 does not constitute physical-keyboard owner UAT, deployment, export, signing,
 publication, or release evidence.
+
+## Accepted-M1 save and recovery feedback
+
+On 2026-07-23, a local descendant of integrated M1 candidate `9a342cf` added
+plain-language feedback for new games, successful saves, primary restores,
+backup/interrupted-write recovery, damaged-save safe starts, and blocked saves.
+Every state uses a bracketed text cue rather than color alone, and the visible
+copy never includes a filesystem path or internal error code. A bordered
+dark-background status panel uses `#e8fbff` text on `#06151f`, exceeding the
+WCAG AA 4.5:1 contrast threshold.
+
+The adapter now reports whether a default session came from genuinely missing
+data or invalid existing data; the save schema and serialized data are unchanged.
+Feedback remains visible for a deterministic, non-blocking 15 seconds before
+returning to a neutral offline message. Visible 1280x720 validation covered the
+new-game/title panel, gameplay panel, paused state, fictional backup recovery,
+and fictional damaged-save safe start. The initial five-second and intermediate
+eight-second windows expired too quickly during visible startup review; 15 seconds
+was the smallest duration demonstrated to remain readable in that launch cycle.
+
+The new deterministic suite checks 28 mappings, contrast/timing, safe-default
+truthfulness, error/path redaction, repeated-confirm navigation, checkpoint-write
+deduplication, and cleanup using fictional isolated `user://` data. Before the
+final timing adjustment, five order-varied runs of the full 30 + 19 + 31 + 28
+union passed 108/108 each (540/540 total), with zero non-log user files and zero
+temporary files. After the final timing adjustment, the same five permutations
+again passed 108/108 each (540/540 total). Their full-suite runtimes were
+1,642-1,834 ms; the embedded 250-save loops completed in 430-464 ms with 577 bytes
+reported static-memory growth and a 513-byte primary save before cleanup.

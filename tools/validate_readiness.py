@@ -17,9 +17,11 @@ REQUIRED = [
     "godot/scripts/adventure_session.gd",
     "godot/scripts/input_intent.gd",
     "godot/scripts/fred_save_adapter.gd",
+    "godot/scripts/fred_save_feedback.gd",
     "godot/tests/run_tests.gd",
     "godot/tests/run_keyboard_regression.gd",
     "godot/tests/run_save_stress.gd",
+    "godot/tests/run_save_feedback.gd",
 ]
 
 FIXTURES = {

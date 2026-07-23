@@ -15,18 +15,19 @@ var fred := START
 var predator := PREDATOR_START
 var collected: Array[int] = []
 var in_safe_location := false
-var save_feedback := "Offline save ready"
+var save_feedback := FredSaveFeedback.NEUTRAL
+var save_feedback_seconds := 0.0
 var predator_direction := 1.0
 var _fixed_accumulator := 0.0
 
 func _ready() -> void:
     var result := saver.load_session(session)
-    if result.get("source") in ["primary", "backup", "temp"]:
-        save_feedback = "Continue from %s" % session.current_checkpoint.replace("lily_leap_", "")
+    _set_feedback(FredSaveFeedback.load_message(result))
     set_process(true)
     queue_redraw()
 
 func _process(delta: float) -> void:
+    _tick_feedback(delta)
     if screen != Screen.PLAYING or session.paused: return
     _fixed_accumulator += delta
     while _fixed_accumulator >= 1.0 / 60.0:
@@ -50,34 +51,37 @@ func _fixed_tick(delta: float) -> void:
     in_safe_location = fred.distance_to(SAFE_LOCATION) < 55
     for index in BUGS.size():
         if index not in collected and fred.distance_to(BUGS[index]) < 35:
-            collected.append(index); session.collect_bug(); save_feedback = "Bug collected"
+            collected.append(index); session.collect_bug(); _set_feedback("[STATUS] Marsh bug collected.")
     if fred.distance_to(Vector2(630,390)) < 42 and session.checkpoint_sequence < 1:
-        session.reach_checkpoint(AdventureSession.CHECKPOINTS[1], 1); _save("Midpoint saved")
+        session.reach_checkpoint(AdventureSession.CHECKPOINTS[1], 1); _save("Midpoint is safe.")
     if fred.distance_to(predator) < 45 and not in_safe_location:
         fred = START
         if session.damage(): screen = Screen.FAILED
     if fred.distance_to(EXIT) < 55 and session.complete_level():
-        screen = Screen.COMPLETE; _save("Lily Leap complete")
+        screen = Screen.COMPLETE; _save("Lily Leap is complete.")
 
 func _unhandled_input(event: InputEvent) -> void:
     if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
         _handle_click(event.position)
     if not event is InputEventKey and event.is_action_pressed("pause") and screen == Screen.PLAYING:
-        session.paused = not session.paused; save_feedback = "Paused" if session.paused else "Resumed"; queue_redraw()
+        session.paused = not session.paused
+        _set_feedback("[PAUSED] Your last checkpoint is safe." if session.paused else "[PLAYING] Adventure resumed.")
     if not event is InputEventKey and event.is_action_pressed("dive") and screen == Screen.PLAYING:
-        session.set_underwater(true); save_feedback = "Underwater"; queue_redraw()
+        session.set_underwater(true); _set_feedback("[STATUS] Fred is underwater.")
     if not event is InputEventKey and event.is_action_pressed("surface") and screen == Screen.PLAYING:
-        session.set_underwater(false); save_feedback = "At the surface"; queue_redraw()
+        session.set_underwater(false); _set_feedback("[STATUS] Fred is at the surface.")
     if not event is InputEventKey and event.is_action_pressed("retry") and screen == Screen.FAILED: _retry()
     if not event is InputEventKey and event.is_action_pressed("confirm") and screen == Screen.TITLE: _start()
     if event is InputEventKey and event.pressed and not event.echo:
         match event.keycode:
             KEY_Q:
-                if screen == Screen.PLAYING: session.set_underwater(true); save_feedback = "Underwater"; queue_redraw()
+                if screen == Screen.PLAYING: session.set_underwater(true); _set_feedback("[STATUS] Fred is underwater.")
             KEY_E:
-                if screen == Screen.PLAYING: session.set_underwater(false); save_feedback = "At the surface"; queue_redraw()
+                if screen == Screen.PLAYING: session.set_underwater(false); _set_feedback("[STATUS] Fred is at the surface.")
             KEY_P, KEY_ESCAPE:
-                if screen == Screen.PLAYING: session.paused = not session.paused; queue_redraw()
+                if screen == Screen.PLAYING:
+                    session.paused = not session.paused
+                    _set_feedback("[PAUSED] Your last checkpoint is safe." if session.paused else "[PLAYING] Adventure resumed.")
             KEY_R:
                 if screen == Screen.FAILED: _retry()
             KEY_ENTER:
@@ -86,9 +90,10 @@ func _unhandled_input(event: InputEvent) -> void:
 func _handle_click(position: Vector2) -> void:
     if screen == Screen.TITLE and Rect2(490,440,300,70).has_point(position): _start()
     elif screen == Screen.PLAYING and Rect2(1120,20,120,48).has_point(position):
-        session.paused = not session.paused; queue_redraw()
+        session.paused = not session.paused
+        _set_feedback("[PAUSED] Your last checkpoint is safe." if session.paused else "[PLAYING] Adventure resumed.")
     elif screen == Screen.PLAYING and session.paused and Rect2(490,410,300,65).has_point(position):
-        session.paused = false; queue_redraw()
+        session.paused = false; _set_feedback("[PLAYING] Adventure resumed.")
     elif screen == Screen.FAILED and Rect2(490,430,300,70).has_point(position): _retry()
     elif screen == Screen.COMPLETE and Rect2(490,500,300,60).has_point(position):
         screen = Screen.TITLE; queue_redraw()
@@ -96,7 +101,7 @@ func _handle_click(position: Vector2) -> void:
 func _start() -> void:
     if session.completed:
         session = AdventureSession.new(1337)
-        save_feedback = "New Lily Leap run"
+        _set_feedback("[NEW GAME] A fresh Lily Leap run is ready.")
     screen = Screen.PLAYING
     fred = Vector2(630,390) if session.current_checkpoint == AdventureSession.CHECKPOINTS[1] else START
     collected.clear()
@@ -106,12 +111,25 @@ func _start() -> void:
 func _retry() -> void:
     session.retry_from_checkpoint()
     fred = Vector2(630,390) if session.current_checkpoint == AdventureSession.CHECKPOINTS[1] else START
-    screen = Screen.PLAYING; save_feedback = "Restored checkpoint"; queue_redraw()
+    screen = Screen.PLAYING; _set_feedback("[RESTORED] Your checkpoint is ready.")
 
 func _save(message: String) -> void:
     var timestamp := Time.get_datetime_string_from_system(true, true)
     var result := saver.save(session, timestamp)
-    save_feedback = message if result.get("ok") else "Save failed safely: " + str(result.get("error"))
+    _set_feedback(FredSaveFeedback.save_message(result, message))
+
+func _set_feedback(message: String) -> void:
+    save_feedback = message
+    save_feedback_seconds = FredSaveFeedback.DISPLAY_SECONDS
+    queue_redraw()
+
+func _tick_feedback(delta: float) -> void:
+    if save_feedback_seconds <= 0.0:
+        return
+    save_feedback_seconds = maxf(0.0, save_feedback_seconds - delta)
+    if is_zero_approx(save_feedback_seconds):
+        save_feedback = FredSaveFeedback.NEUTRAL
+        queue_redraw()
 
 func _draw() -> void:
     draw_rect(Rect2(0,0,1280,720), Color("071d2d"))
@@ -129,7 +147,7 @@ func _draw_title() -> void:
     _text(Vector2(640,70), "FRED MYERS", 46, Color("f7d36a"), HORIZONTAL_ALIGNMENT_CENTER, 700)
     _text(Vector2(640,120), "and the Moonpetal Marsh", 30, Color("d9f4e2"), HORIZONTAL_ALIGNMENT_CENTER, 700)
     _button(Rect2(490,440,300,70), "PLAY AGAIN" if session.completed else ("CONTINUE" if session.checkpoint_sequence > 0 else "START ADVENTURE"))
-    _text(Vector2(640,545), save_feedback, 18, Color("9fcbd2"), HORIZONTAL_ALIGNMENT_CENTER, 700)
+    _status_panel(Rect2(280,510,720,46), 18)
     _text(Vector2(640,620), "WASD / arrows move  •  Shift boosts  •  Q dive  •  E surface  •  P pause", 17, Color("bfd8dc"), HORIZONTAL_ALIGNMENT_CENTER, 1000)
 
 func _draw_level() -> void:
@@ -150,7 +168,7 @@ func _draw_level() -> void:
     _text(Vector2(45,38), "LILY LEAP", 28, Color("f7d36a"), HORIZONTAL_ALIGNMENT_LEFT, 300)
     _text(Vector2(350,35), "Objective: " + ("Reach the moonpetal exit" if session.bug_count >= 3 else "Collect 3 marsh bugs"), 20, Color.WHITE, HORIZONTAL_ALIGNMENT_LEFT, 500)
     _text(Vector2(45,710), "Bugs %d/3   Boost %d%%   Health %s   %s" % [session.bug_count, session.boost_energy, "♥".repeat(session.health), session.player_state.capitalize()], 20, Color.WHITE, HORIZONTAL_ALIGNMENT_LEFT, 850)
-    _text(Vector2(920,710), save_feedback, 17, Color("a9e9ef"), HORIZONTAL_ALIGNMENT_LEFT, 300)
+    _status_panel(Rect2(820,632,410,42), 16)
     _button(Rect2(1120,20,120,48), "PAUSE")
 
 func _draw_overlay(title: String, subtitle: String, action: String, rect: Rect2) -> void:
@@ -163,6 +181,18 @@ func _draw_overlay(title: String, subtitle: String, action: String, rect: Rect2)
 func _button(rect: Rect2, label: String) -> void:
     draw_rect(rect, Color("e9b949"), true); draw_rect(rect, Color("fff0ae"), false, 3)
     _text(rect.position + Vector2(rect.size.x/2, rect.size.y/2+8), label, 20, Color("102935"), HORIZONTAL_ALIGNMENT_CENTER, rect.size.x)
+
+func _status_panel(rect: Rect2, size: int) -> void:
+    draw_rect(rect, FredSaveFeedback.PANEL_BACKGROUND, true)
+    draw_rect(rect, FredSaveFeedback.PANEL_BORDER, false, 2)
+    _text(
+        rect.position + Vector2(rect.size.x / 2.0, rect.size.y / 2.0 + 6.0),
+        save_feedback,
+        size,
+        FredSaveFeedback.PANEL_TEXT,
+        HORIZONTAL_ALIGNMENT_CENTER,
+        rect.size.x - 16.0
+    )
 
 func _text(anchor: Vector2, value: String, size: int, color: Color, alignment: HorizontalAlignment, width: float) -> void:
     var font := ThemeDB.fallback_font
