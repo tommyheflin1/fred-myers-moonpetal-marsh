@@ -30,3 +30,43 @@ No Godot gameplay rewrite, Core vendoring, export, APK/AAB, Windows package, iOS
 ## Tracker handoff
 
 The App Vault portfolio tracker should add Fred only after this branch/commit is verified remotely. Suggested entry: project `PRJ-002`, independent repository, active discovery milestone complete, overall Godot migration 8% with high confidence for documentation and low confidence for implementation schedule. The root tracker update should reference this exact Fred commit and must not retroactively award gameplay completion.
+
+# Accepted-M1 keyboard regression
+
+The post-M1 regression harness injects Godot `InputEventKey` events through
+`Input.parse_input_event`; it does not call title, pause, dive, surface, retry,
+or completion handlers directly. It covers Enter start, WASD and arrow
+movement, Shift boost, Q/E dive and surface, P/Escape pause and resume,
+predator failure, R retry, midpoint save and runtime restoration, bug
+collection, and Lily Leap completion.
+
+Run:
+
+`Godot_v4.7.1-stable_win64_console.exe --headless --path godot --script res://tests/run_keyboard_regression.gd`
+
+This is automated desktop-keyboard evidence, not owner physical-keyboard UAT.
+It does not add M2 behavior, campaign content, controller/touch behavior, an
+export, signing, deployment, or release evidence.
+
+Validated locally with Godot `4.7.1.stable.official.a13da4feb`:
+
+- readiness: passed, 16 required artifacts and 8 fictional fixtures
+- headless editor import: passed
+- existing M1 suite: 30 passed, 0 failed
+- keyboard-event regression: 19 passed, 0 failed
+- deterministic repeat: four consecutive keyboard runs produced 19 passed,
+  0 failed
+- Core: unchanged exact 0.5.1 vendored snapshot
+- save schema: unchanged at version 1
+- formatting and secret-like-file scan: passed
+
+The keyboard test launches from title with Enter; drives WASD, arrow movement
+and Shift through held input state; drives Q, E, P, Escape, and R through
+unhandled keyboard events; and reaches failure, retry, checkpoint restoration,
+bug collection, and completion through the accepted M1 runtime. No Home action
+or accepted controller/touch adapter exists in M1, so those paths were not
+invented for this regression.
+
+The isolated visible game process launched at the existing 1280x720 target, but
+Computer Use approval timed out before interaction or capture. Therefore this
+branch claims no new visible-validation or owner-UAT credit.

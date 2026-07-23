@@ -28,6 +28,8 @@ jobs:
         run: ./Godot_v4.7.1-stable_linux.x86_64 --headless --path godot --editor --quit
       - name: Run M1 automated tests
         run: ./Godot_v4.7.1-stable_linux.x86_64 --headless --path godot --script res://tests/run_tests.gd
+      - name: Run M1 keyboard regression
+        run: ./Godot_v4.7.1-stable_linux.x86_64 --headless --path godot --script res://tests/run_keyboard_regression.gd
       - name: Verify exact Core agreement
         run: |
           test "$(cat godot/CORE_VERSION)" = "0.5.1"
