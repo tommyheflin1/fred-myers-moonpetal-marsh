@@ -2,6 +2,7 @@ extends Node2D
 
 const LeapTraversal = preload("res://scripts/leap_traversal.gd")
 const DepthTraversal = preload("res://scripts/depth_traversal.gd")
+const TongueTargeting = preload("res://scripts/tongue_targeting.gd")
 
 enum Screen { TITLE, PLAYING, FAILED, COMPLETE, LEADERBOARD }
 const START := Vector2(135, 560)
@@ -48,6 +49,8 @@ var countdown_seconds := 0.0
 var countdown_enabled := true
 var fairy_collected := false
 var title_art: Texture2D
+var tongue: RefCounted = TongueTargeting.new()
+var last_aim_direction := Vector2.RIGHT
 
 func _ready() -> void:
     if "--reduced-motion" in OS.get_cmdline_user_args():
@@ -79,7 +82,8 @@ func _process(delta: float) -> void:
 
 func _advance_visual(delta: float) -> void:
     visual_time = FredVisualState.bounded_time(visual_time, delta)
-    eat_effect_seconds = maxf(0.0, eat_effect_seconds - maxf(0.0, delta))
+    if not session.paused:
+        eat_effect_seconds = maxf(0.0, eat_effect_seconds - maxf(0.0, delta))
     impact_burst_seconds = maxf(0.0, impact_burst_seconds - maxf(0.0, delta))
     queue_redraw()
 
@@ -91,14 +95,19 @@ func _fixed_tick(delta: float) -> void:
         if countdown_seconds > 0.0:
             return
         _set_feedback("[GO!] Leap into the marsh!")
+    tongue.advance(delta)
     var direction := FredInputIntent.movement()
     if Input.is_key_pressed(KEY_A) or Input.is_key_pressed(KEY_LEFT): direction.x -= 1.0
     if Input.is_key_pressed(KEY_D) or Input.is_key_pressed(KEY_RIGHT): direction.x += 1.0
     if Input.is_key_pressed(KEY_W) or Input.is_key_pressed(KEY_UP): direction.y -= 1.0
     if Input.is_key_pressed(KEY_S) or Input.is_key_pressed(KEY_DOWN): direction.y += 1.0
     direction = direction.normalized()
+    if direction != Vector2.ZERO:
+        last_aim_direction = direction
     if FredInputIntent.pressed(FredInputIntent.Intent.LEAP):
         _request_leap(direction)
+    if FredInputIntent.pressed(FredInputIntent.Intent.INTERACT):
+        _request_tongue(last_aim_direction)
     var depth_step: Dictionary = depth.advance(delta)
     if bool(depth_step.completed):
         session.set_underwater(str(depth_step.mode) == "underwater")
@@ -125,19 +134,6 @@ func _fixed_tick(delta: float) -> void:
     if predator.x > 1120 or predator.x < 760: predator_direction *= -1.0
     _update_secondary_predators()
     in_safe_location = fred.distance_to(SAFE_LOCATION) < float(level_profile.safe_radius)
-    for index in BUGS.size():
-        var bug_position := _bug_position(index)
-        if index not in collected and fred.distance_to(bug_position) < 35:
-            eat_target = bug_position
-            eat_effect_seconds = 0.32
-            collected.append(index); session.collect_bug(); _set_feedback("[MUNCH!] Fred ate a marsh bug.")
-    if _fairy_available():
-        var fairy_position := _fairy_position()
-        if fred.distance_to(fairy_position) < 38.0 and session.gain_life():
-            fairy_collected = true
-            eat_target = fairy_position
-            eat_effect_seconds = 0.32
-            _set_feedback("[FAIRY FEAST] Extra life! Fred has %d lives." % session.health)
     if fred.distance_to(_pad_position(3)) < 42 and session.checkpoint_sequence < 1:
         session.reach_checkpoint(AdventureSession.CHECKPOINTS[1], 1); _save("Midpoint is safe.")
     if _check_danger_collision():
@@ -162,6 +158,82 @@ func _fairy_position() -> Vector2:
 
 func _fairy_available() -> bool:
     return level_number % 10 == 0 and not fairy_collected
+
+func _tongue_candidates() -> Array[Dictionary]:
+    var candidates: Array[Dictionary] = []
+    for index in BUGS.size():
+        if index in collected:
+            continue
+        candidates.append({
+            "id": "bug:%03d" % index,
+            "kind": "bug",
+            "position": _bug_position(index),
+            "eligible": true,
+        })
+    if _fairy_available():
+        candidates.append({
+            "id": "fairy:%03d" % level_number,
+            "kind": "fairy",
+            "position": _fairy_position(),
+            "eligible": session.health < 3,
+            "blocked_reason": "life_cap",
+        })
+    return candidates
+
+func _request_tongue(requested_aim: Vector2) -> Dictionary:
+    if screen != Screen.PLAYING:
+        return {"accepted": false, "outcome": "blocked", "reason": "screen"}
+    if session.paused:
+        return {"accepted": false, "outcome": "blocked", "reason": "paused"}
+    if countdown_seconds > 0.0:
+        _set_feedback("[TONGUE WAIT] Get ready for the level to begin.")
+        return {"accepted": false, "outcome": "blocked", "reason": "countdown"}
+    if leap.state != LeapTraversal.State.GROUNDED:
+        _set_feedback("[TONGUE BLOCKED] Land before snapping at prey.")
+        return {"accepted": false, "outcome": "blocked", "reason": "airborne"}
+    if depth.state != DepthTraversal.State.SURFACE:
+        _set_feedback("[TONGUE BLOCKED] Surface before snapping at flying prey.")
+        return {"accepted": false, "outcome": "blocked", "reason": "depth"}
+    if requested_aim.length_squared() > 0.0001:
+        last_aim_direction = requested_aim.normalized()
+    var result: Dictionary = tongue.request(fred, last_aim_direction, _tongue_candidates())
+    if not bool(result.get("accepted", false)):
+        _set_feedback("[TONGUE RECOVERING] Wait for Fred's tongue to return.")
+        return result
+    eat_target = Vector2(result.get("target_point", fred + last_aim_direction * TongueTargeting.MAX_RANGE))
+    match str(result.get("outcome", "miss")):
+        "hit":
+            if not _consume_tongue_target(str(result.get("target_id", "")), str(result.get("target_kind", ""))):
+                tongue.outcome = "blocked"
+                tongue.blocked_reason = "stale_target"
+                _set_feedback("[TONGUE BLOCKED] That target already moved away.")
+        "blocked":
+            if str(result.get("reason", "")) == "life_cap":
+                _set_feedback("[LIVES FULL] Fred already has all three lives.")
+            else:
+                _set_feedback("[TONGUE BLOCKED] That target cannot be eaten now.")
+        _:
+            _set_feedback("[TONGUE MISS] No edible target in Fred's aim cone.")
+    return result
+
+func _consume_tongue_target(target_id: String, target_kind: String) -> bool:
+    if target_kind == "bug" and target_id.begins_with("bug:"):
+        var index := int(target_id.trim_prefix("bug:"))
+        if index < 0 or index >= BUGS.size() or index in collected:
+            return false
+        collected.append(index)
+        session.collect_bug()
+        eat_effect_seconds = TongueTargeting.COOLDOWN_SECONDS
+        _set_feedback("[TONGUE HIT] Fred munched marsh bug %d!" % (index + 1))
+        return true
+    if target_kind == "fairy" and target_id == "fairy:%03d" % level_number:
+        if not _fairy_available() or not session.gain_life():
+            return false
+        fairy_collected = true
+        eat_effect_seconds = TongueTargeting.COOLDOWN_SECONDS
+        _set_feedback("[FAIRY FEAST] Extra life! Fred has %d lives." % session.health)
+        return true
+    return false
 
 func _current_vector() -> Vector2:
     var strength := float(level_profile.current_strength)
@@ -240,6 +312,7 @@ func _apply_danger_hit(message: String) -> void:
     impact_burst_kind = "CURRENT BURST" if message.begins_with("[WHIRLPOOL]") else ("LANDING SPLASH" if message.begins_with("[LANDING]") else "PREDATOR HIT")
     leap.reset()
     depth.reset("surface")
+    tongue.reset()
     session.set_underwater(false)
     camera_response_y = 0.0
     fred = START
@@ -313,6 +386,8 @@ func _resolve_landing() -> bool:
 func _unhandled_input(event: InputEvent) -> void:
     if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
         _handle_click(event.position)
+    if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_RIGHT and event.pressed and screen == Screen.PLAYING:
+        _request_tongue(event.position - fred)
     if not event is InputEventKey and event.is_action_pressed("pause") and screen == Screen.PLAYING:
         session.paused = not session.paused
         _set_feedback("[PAUSED] Your last checkpoint is safe." if session.paused else "[PLAYING] Adventure resumed.")
@@ -322,6 +397,8 @@ func _unhandled_input(event: InputEvent) -> void:
         _request_surface()
     if not event is InputEventKey and event.is_action_pressed("leap") and screen == Screen.PLAYING:
         _request_leap(FredInputIntent.movement())
+    if not event is InputEventKey and event.is_action_pressed("interact") and screen == Screen.PLAYING:
+        _request_tongue(last_aim_direction)
     if not event is InputEventKey and event.is_action_pressed("retry") and screen == Screen.FAILED: _retry()
     if not event is InputEventKey and event.is_action_pressed("confirm") and screen == Screen.TITLE: _start()
     if event is InputEventKey and event.pressed and not event.echo:
@@ -330,6 +407,8 @@ func _unhandled_input(event: InputEvent) -> void:
                 if screen == Screen.PLAYING: _request_dive()
             KEY_E:
                 if screen == Screen.PLAYING: _request_surface()
+            KEY_F:
+                if screen == Screen.PLAYING: _request_tongue(last_aim_direction)
             KEY_P, KEY_ESCAPE:
                 if screen == Screen.PLAYING:
                     session.paused = not session.paused
@@ -366,6 +445,7 @@ func _start() -> void:
     screen = Screen.PLAYING
     countdown_seconds = 5.0 if countdown_enabled else 0.0
     fairy_collected = false
+    tongue.reset()
     _sync_music()
     fred = Vector2(630,390) if session.current_checkpoint == AdventureSession.CHECKPOINTS[1] else START
     collected.clear()
@@ -378,6 +458,7 @@ func _retry() -> void:
     session = AdventureSession.new(1337)
     leap.reset()
     depth.reset("surface")
+    tongue.reset()
     session.set_underwater(false)
     camera_response_y = 0.0
     fred = START
@@ -392,6 +473,7 @@ func _retry() -> void:
 func _go_home() -> void:
     leap.reset()
     depth.reset(session.player_state)
+    tongue.reset()
     countdown_seconds = 0.0
     screen = Screen.TITLE
     _sync_music()
@@ -410,6 +492,7 @@ func _advance_level() -> void:
     impact_burst_seconds = 0.0
     leap.reset()
     depth.reset("surface")
+    tongue.reset()
     fairy_collected = false
     countdown_seconds = 5.0 if countdown_enabled else 0.0
     camera_response_y = 0.0
@@ -457,7 +540,7 @@ func _draw_title() -> void:
     _button(Rect2(475,468,330,66), "PLAY AGAIN" if session.completed else ("CONTINUE" if session.checkpoint_sequence > 0 else "START ADVENTURE"))
     _button(Rect2(475,548,330,50), "LOCAL LEADERBOARD")
     _status_panel(Rect2(260,612,760,42), 16)
-    _text(Vector2(640,680), "WASD / arrows move  |  Space leaps  |  Shift boosts  |  Q dive  |  E surface  |  P pause", 14, Color("d7edf0"), HORIZONTAL_ALIGNMENT_CENTER, 1120)
+    _text(Vector2(640,680), "WASD / arrows move  |  F / right-click tongue  |  Space leap  |  Shift boost  |  Q / E depth  |  P pause", 14, Color("d7edf0"), HORIZONTAL_ALIGNMENT_CENTER, 1160)
     _text(Vector2(640,707), "NOW PLAYING: THE MARSHLAND MARCH  |  GUEST PLAY  |  ACCOUNT LINKING OPTIONAL", 12, Color("b9f5c7"), HORIZONTAL_ALIGNMENT_CENTER, 1000)
 
 func _draw_title_legacy() -> void:
@@ -554,8 +637,10 @@ func _draw_level() -> void:
         draw_circle(fred + Vector2(0,10), 20.0 + leap.visual_height * 0.10, Color(0.01,0.05,0.08,0.28))
         _draw_fred(fred + Vector2(0,float(visual.fred_bob) - leap.visual_height))
         _text(fred + Vector2(0,-leap.visual_height-48), "[%s]" % leap.cue(), 13, Color("fff0ae"), HORIZONTAL_ALIGNMENT_CENTER, 120)
-    if eat_effect_seconds > 0.0:
-        _draw_eating_effect(fred + Vector2(0,float(visual.fred_bob)), eat_target)
+    if tongue.is_ready() and leap.state == LeapTraversal.State.GROUNDED and depth.state == DepthTraversal.State.SURFACE:
+        _draw_tongue_aim(fred + Vector2(0,float(visual.fred_bob)))
+    if tongue.is_busy():
+        _draw_eating_effect(fred + Vector2(0,float(visual.fred_bob)), tongue.target_point)
     if impact_burst_seconds > 0.0:
         _draw_impact_burst()
     draw_set_transform(Vector2.ZERO)
@@ -564,7 +649,7 @@ func _draw_level() -> void:
     _text(Vector2(890,75), "NEW: %s  |  THREATS %d" % [str(level_profile.new_twist).to_upper(), int(level_profile.predator_count)], 13, Color("fff0ae"), HORIZONTAL_ALIGNMENT_LEFT, 350)
     draw_rect(Rect2(330,10,560,52), Color("06151f"), true); draw_rect(Rect2(330,10,560,52), Color("e8fbff"), false, 2)
     _text(Vector2(350,43), "OBJECTIVE: " + ("Reach the moonpetal exit" if session.bug_count >= 3 else "Collect 3 marsh bugs"), 19, Color("e8fbff"), HORIZONTAL_ALIGNMENT_LEFT, 520)
-    _text(Vector2(45,710), "Bugs %d/3   Boost %d%%   Health %s   %s %d%%" % [session.bug_count, session.boost_energy, "♥".repeat(session.health), depth.cue(), roundi(float(depth.depth) * 100.0)], 20, Color.WHITE, HORIZONTAL_ALIGNMENT_LEFT, 850)
+    _text(Vector2(45,710), "Bugs %d/3   Boost %d%%   Health %s   %s %d%%   %s" % [session.bug_count, session.boost_energy, "♥".repeat(session.health), depth.cue(), roundi(float(depth.depth) * 100.0), tongue.cue()], 19, Color.WHITE, HORIZONTAL_ALIGNMENT_LEFT, 990)
     _status_panel(Rect2(820,632,410,42), 16)
     _button(Rect2(1120,20,120,48), "PAUSE")
     if reduced_motion:
@@ -788,12 +873,25 @@ func _draw_fred(position: Vector2) -> void:
         draw_circle(position + Vector2(42,-45), 3, Color(0.75,0.95,1.0,0.65), false, 2)
 
 func _draw_eating_effect(origin: Vector2, target: Vector2) -> void:
-    var progress := clampf(eat_effect_seconds / 0.32, 0.0, 1.0)
-    var tongue_tip := origin.lerp(target, sin(progress * PI))
-    draw_line(origin + Vector2(0,5), tongue_tip, Color("ff7ca8"), 7)
-    draw_circle(tongue_tip, 6, Color("ffb1c9"))
+    var progress: float = 1.0 if reduced_motion else tongue.extension_ratio()
+    var tongue_tip := origin.lerp(target, progress)
+    var tongue_color := Color("ff7ca8")
+    if tongue.outcome == "miss":
+        tongue_color = Color("ffd36a")
+    elif tongue.outcome == "blocked":
+        tongue_color = Color("d7edf0")
+    draw_line(origin + Vector2(0,5), tongue_tip, tongue_color.darkened(0.35), 11)
+    draw_line(origin + Vector2(0,5), tongue_tip, tongue_color, 7)
+    draw_circle(tongue_tip, 7, tongue_color.lightened(0.18))
     draw_arc(origin + Vector2(0,4), 13, 0.15, PI - 0.15, 12, Color("311629"), 4)
-    _text(origin + Vector2(0,-48), "MUNCH!", 14, Color("fff0ae"), HORIZONTAL_ALIGNMENT_CENTER, 100)
+    _text(origin + Vector2(0,-48), "[%s]" % tongue.cue(), 13, Color("fff0ae"), HORIZONTAL_ALIGNMENT_CENTER, 180)
+
+func _draw_tongue_aim(origin: Vector2) -> void:
+    var direction := last_aim_direction.normalized()
+    var marker := origin + direction * 58.0
+    draw_line(origin + direction * 30.0, marker, Color(1.0,0.94,0.58,0.58), 2)
+    draw_arc(marker, 7, 0, TAU, 12, Color("fff0ae"), 2)
+    _text(marker + Vector2(0,-13), "F", 10, Color("fff0ae"), HORIZONTAL_ALIGNMENT_CENTER, 24)
 
 func _draw_overlay(title: String, subtitle: String, action: String, rect: Rect2, cue: String) -> void:
     draw_rect(Rect2(350,245,580,300), Color(0.02,0.07,0.1,0.94), true)

@@ -139,9 +139,12 @@ func _run() -> void:
     game.predator = Vector2(1200, 650)
     for index in game.BUGS.size():
         var bug: Vector2 = game._bug_position(index)
-        game.fred = bug + Vector2(-24, 0)
-        await tick_with_key(game, KEY_D, 0.1)
-    check(game.session.bug_count == 3, "keyboard traversal collects all three bugs")
+        game.fred = bug + Vector2(-110, 0)
+        game.last_aim_direction = Vector2.RIGHT
+        await tick_with_key(game, KEY_F)
+        game.tongue.advance(1.0)
+    check(game.session.bug_count == 3, "F keyboard events aim and eat all three bugs")
+    check(game.tongue.shot_serial == 3, "keyboard interaction produces one tongue shot per press")
 
     game.fred = game.EXIT + Vector2(-24, 0)
     await tick_with_key(game, KEY_D, 0.1)

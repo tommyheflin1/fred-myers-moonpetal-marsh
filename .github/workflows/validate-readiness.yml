@@ -38,6 +38,14 @@ jobs:
         run: ./Godot_v4.7.1-stable_linux.x86_64 --headless --path godot --script res://tests/run_visual_clarity.gd
       - name: Run M2 progression and identity foundation
         run: ./Godot_v4.7.1-stable_linux.x86_64 --headless --path godot --script res://tests/run_m2_foundation.gd
+      - name: Run M2 leap traversal tests
+        run: ./Godot_v4.7.1-stable_linux.x86_64 --headless --path godot --script res://tests/run_leap_traversal.gd
+      - name: Run M2 depth traversal tests
+        run: ./Godot_v4.7.1-stable_linux.x86_64 --headless --path godot --script res://tests/run_depth_traversal.gd
+      - name: Run M2 menu lives and fairy tests
+        run: ./Godot_v4.7.1-stable_linux.x86_64 --headless --path godot --script res://tests/run_menu_lives_leaderboard.gd
+      - name: Run M2 tongue interaction tests
+        run: ./Godot_v4.7.1-stable_linux.x86_64 --headless --path godot --script res://tests/run_tongue_interaction.gd
       - name: Verify exact Core agreement
         run: |
           test "$(cat godot/CORE_VERSION)" = "0.5.1"

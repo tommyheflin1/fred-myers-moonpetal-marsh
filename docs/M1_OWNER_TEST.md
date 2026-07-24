@@ -8,6 +8,8 @@ To create or repair the Windows desktop shortcut, run `tools/install_m1_desktop_
 
 - Start or continue: click the gold title button, or press Enter.
 - Move: WASD or arrow keys.
+- Aim/eat: face with movement, then press F; or right-click the target.
+- Leap: Space or left-click a landing direction.
 - Boost: hold Shift while moving.
 - Dive: Q.
 - Surface: E.
@@ -17,7 +19,9 @@ To create or repair the Windows desktop shortcut, run `tools/install_m1_desktop_
 ## Acceptance path
 
 1. Confirm the title and controls are readable; start with the mouse.
-2. Move across the lily pads and collect all three gold bugs.
+2. Move within tongue range of a gold bug, face it, and press F. Confirm the
+   tongue reaches the selected bug, the counter advances once, and cooldown
+   spam cannot collect it twice. Repeat once with right-click aim.
 3. Hold Shift while moving and confirm boost energy decreases; stop and confirm it recharges.
 4. Press Q and confirm `[STATUS] Fred is underwater.`; press E and confirm `[STATUS] Fred is at the surface.`.
 5. Pause and resume once by keyboard and once with the mouse.
@@ -25,7 +29,11 @@ To create or repair the Windows desktop shortcut, run `tools/install_m1_desktop_
 7. Contact the predator away from `SAFE` until the failure overlay appears; retry.
 8. Cross the center lily pad and confirm `[SAVED] Midpoint is safe.`.
 9. Close the window, relaunch from the same shortcut, choose Continue, and confirm Fred resumes at midpoint with a `[RESTORED]` or `[RECOVERED]` notice.
-10. Collect the remaining bugs and reach the purple EXIT; confirm `Lily Leap Complete`.
+10. Eat the remaining bugs with the tongue and reach the purple EXIT; confirm
+    `Lily Leap Complete`.
+11. On Level 10, confirm the fairy appears once. Below three lives, eat it for
+    exactly one life; at three lives, confirm `[LIVES FULL]` and that the fairy
+    remains unconsumed.
 
 ## Save-status checks
 
@@ -36,4 +44,6 @@ To create or repair the Windows desktop shortcut, run `tools/install_m1_desktop_
 - A blocked save shows `[SAVE BLOCKED]` without a file path or technical error code.
 - Status notices remain readable without blocking movement, buttons, pause, or retry.
 
-Touch and controller behavior is deferred to M2. This is a local, non-production owner candidate only.
+Controller and touch adapter actions are automated only; physical-device
+acceptance remains deferred. This is a local, non-production owner candidate
+only.

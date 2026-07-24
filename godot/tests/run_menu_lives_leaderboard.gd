@@ -86,17 +86,17 @@ func _run() -> void:
 	game.level_profile = FredLevelIntensity.profile(10)
 	game.session.health = 2
 	game.fairy_collected = false
-	game.fred = game._fairy_position()
-	game._fixed_tick(0.0)
+	game.collected.assign([0, 1, 2])
+	game.fred = game._fairy_position() - Vector2(100, 0)
+	game.tongue.reset()
+	game._request_tongue(Vector2.RIGHT)
 	check(game.session.health == 3 and game.fairy_collected, "eating the level-ten fairy grants exactly one extra life")
 	check(game.eat_effect_seconds > 0.0 and game.eat_target == game._fairy_position(), "fairy pickup uses Fred's visible eating animation")
-	game._fixed_tick(0.0)
+	game.tongue.advance(1.0)
+	game._request_tongue(Vector2.RIGHT)
 	check(game.session.health == 3, "collected fairy cannot grant duplicate lives")
 	game.session.health = 1
-	game.predator = game.fred
-	game.hazards_enabled = true
-	game.danger_cooldown_seconds = 0.0
-	game._fixed_tick(0.0)
+	game._apply_danger_hit("[DANGER] Test final life.")
 	check(game.screen == game.Screen.FAILED and game.session.health == 0, "using the final life opens the Fred failure screen")
 	game._handle_click(Vector2(490,532))
 	check(game.screen == game.Screen.PLAYING and game.level_number == 1 and game.session.health == 3, "Try Again restarts at level one with three lives")
