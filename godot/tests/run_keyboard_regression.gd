@@ -87,10 +87,15 @@ func _run() -> void:
     await send_key(KEY_D, false)
     check(game.session.boost_energy == energy_before - 1, "Shift keyboard event consumes boost")
 
+    game.fred = Vector2(550, 300)
     await tap_key(KEY_Q)
-    check(game.session.player_state == "underwater", "Q keyboard event dives")
+    check(game.depth.is_transitioning(), "Q keyboard event begins a dive")
+    for frame in range(48): game._fixed_tick(1.0 / 60.0)
+    check(game.session.player_state == "underwater", "Q keyboard transition reaches underwater")
     await tap_key(KEY_E)
-    check(game.session.player_state == "surface", "E keyboard event surfaces")
+    check(game.depth.is_transitioning(), "E keyboard event begins surfacing")
+    for frame in range(48): game._fixed_tick(1.0 / 60.0)
+    check(game.session.player_state == "surface", "E keyboard transition reaches the surface")
 
     await tap_key(KEY_P)
     check(game.session.paused, "P keyboard event pauses")

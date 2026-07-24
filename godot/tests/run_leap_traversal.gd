@@ -81,8 +81,10 @@ func _run() -> void:
 	game.leap.reset()
 	game.screen = game.Screen.PLAYING
 	game.session.set_underwater(true)
+	game.depth.reset("underwater")
 	check(not game._request_leap(Vector2.RIGHT), "underwater state cannot launch a surface leap")
 	game.session.set_underwater(false)
+	game.depth.reset("surface")
 	var synthetic := InputEventAction.new()
 	synthetic.action = "leap"
 	synthetic.pressed = true

@@ -1,6 +1,7 @@
 extends Node2D
 
 const LeapTraversal = preload("res://scripts/leap_traversal.gd")
+const DepthTraversal = preload("res://scripts/depth_traversal.gd")
 
 enum Screen { TITLE, PLAYING, FAILED, COMPLETE }
 const START := Vector2(135, 560)
@@ -37,6 +38,7 @@ var impact_burst_seconds := 0.0
 var impact_burst_origin := Vector2.ZERO
 var impact_burst_kind := "SPLASH"
 var leap: RefCounted = LeapTraversal.new()
+var depth: RefCounted = DepthTraversal.new()
 var camera_response_y := 0.0
 
 func _ready() -> void:
@@ -74,6 +76,10 @@ func _fixed_tick(delta: float) -> void:
     direction = direction.normalized()
     if FredInputIntent.pressed(FredInputIntent.Intent.LEAP):
         _request_leap(direction)
+    var depth_step: Dictionary = depth.advance(delta)
+    if bool(depth_step.completed):
+        session.set_underwater(str(depth_step.mode) == "underwater")
+        _set_feedback("[DEPTH] Fred reached the %s." % str(depth_step.mode))
     var current := _current_vector()
     if leap.state == LeapTraversal.State.AIRBORNE:
         var leap_step: Dictionary = leap.advance(delta)
@@ -82,11 +88,14 @@ func _fixed_tick(delta: float) -> void:
             _resolve_landing()
     else:
         leap.advance(delta)
-        var speed := 210.0
-        if FredInputIntent.held(FredInputIntent.Intent.BOOST) and session.use_boost(1): speed = 380.0
+        var speed := 210.0 * float(depth.movement_scale())
+        if depth.is_transitioning():
+            speed *= 0.55
+        if FredInputIntent.held(FredInputIntent.Intent.BOOST) and session.use_boost(1):
+            speed = 380.0 * (DepthTraversal.UNDERWATER_BOOST_SCALE if depth.is_underwater_band() else 1.0)
         elif direction == Vector2.ZERO: session.recharge_boost(1)
         fred = (fred + (direction * speed + current) * delta).clamp(Vector2(55,105), Vector2(1225,665))
-    camera_response_y = 0.0 if reduced_motion else -minf(10.0, leap.visual_height * 0.18)
+    camera_response_y = 0.0 if reduced_motion else (-minf(10.0, leap.visual_height * 0.18) + float(depth.depth) * 8.0)
     predator.x += predator_direction * 110.0 * float(level_profile.predator_speed_scale) * delta
     if bool(level_profile.weaving_patrol):
         predator.y = PREDATOR_START.y + sin(visual_time * (0.8 + float(level_number) * 0.015)) * minf(115.0, 42.0 + float(level_number))
@@ -115,7 +124,7 @@ func _current_vector() -> Vector2:
         var frequency := 0.65 if level_number < 8 else 1.05
         direction = 1.0 if sin(visual_time * frequency) >= 0.0 else -1.0
     var vertical := 0.0
-    if level_number >= 7 and session.player_state == "underwater":
+    if level_number >= 7 and depth.is_underwater_band():
         vertical = sin(visual_time * 0.9) * strength * 0.55
     return Vector2(strength * direction, vertical)
 
@@ -182,6 +191,8 @@ func _apply_danger_hit(message: String) -> void:
     impact_burst_seconds = 0.62
     impact_burst_kind = "CURRENT BURST" if message.begins_with("[WHIRLPOOL]") else ("LANDING SPLASH" if message.begins_with("[LANDING]") else "PREDATOR HIT")
     leap.reset()
+    depth.reset("surface")
+    session.set_underwater(false)
     camera_response_y = 0.0
     fred = START
     danger_cooldown_seconds = 1.0
@@ -198,11 +209,40 @@ func direct_route_has_danger() -> bool:
     return false
 
 func _request_leap(requested_direction: Vector2) -> bool:
-    if screen != Screen.PLAYING or session.paused or session.player_state == "underwater":
+    if screen != Screen.PLAYING or session.paused or depth.state != DepthTraversal.State.SURFACE:
         return false
     var accepted: bool = leap.request(requested_direction)
     if accepted:
         _set_feedback("[LEAP] Fred launched toward a landing.")
+    return accepted
+
+func _can_dive_here(position: Vector2) -> bool:
+    if position.distance_to(START) < 62.0 or position.distance_to(SAFE_LOCATION) < float(level_profile.safe_radius) + 8.0:
+        return false
+    if position.distance_to(EXIT) < 52.0:
+        return false
+    for index in PADS.size():
+        if position.distance_to(_pad_position(index)) < 44.0:
+            return false
+    return true
+
+func _request_dive() -> bool:
+    if screen != Screen.PLAYING or session.paused or leap.state != LeapTraversal.State.GROUNDED:
+        return false
+    var allowed := _can_dive_here(fred)
+    var accepted: bool = depth.request_dive(allowed)
+    if accepted:
+        _set_feedback("[DIVING] Hold your course while Fred descends.")
+    elif depth.state == DepthTraversal.State.SURFACE and not allowed:
+        _set_feedback("[DIVE BLOCKED] Move away from a perch into open water.")
+    return accepted
+
+func _request_surface() -> bool:
+    if screen != Screen.PLAYING or session.paused or leap.state != LeapTraversal.State.GROUNDED:
+        return false
+    var accepted: bool = depth.request_surface(true)
+    if accepted:
+        _set_feedback("[SURFACING] Fred is swimming toward the light.")
     return accepted
 
 func _is_valid_landing(position: Vector2) -> bool:
@@ -229,9 +269,9 @@ func _unhandled_input(event: InputEvent) -> void:
         session.paused = not session.paused
         _set_feedback("[PAUSED] Your last checkpoint is safe." if session.paused else "[PLAYING] Adventure resumed.")
     if not event is InputEventKey and event.is_action_pressed("dive") and screen == Screen.PLAYING:
-        session.set_underwater(true); _set_feedback("[STATUS] Fred is underwater.")
+        _request_dive()
     if not event is InputEventKey and event.is_action_pressed("surface") and screen == Screen.PLAYING:
-        session.set_underwater(false); _set_feedback("[STATUS] Fred is at the surface.")
+        _request_surface()
     if not event is InputEventKey and event.is_action_pressed("leap") and screen == Screen.PLAYING:
         _request_leap(FredInputIntent.movement())
     if not event is InputEventKey and event.is_action_pressed("retry") and screen == Screen.FAILED: _retry()
@@ -239,9 +279,9 @@ func _unhandled_input(event: InputEvent) -> void:
     if event is InputEventKey and event.pressed and not event.echo:
         match event.keycode:
             KEY_Q:
-                if screen == Screen.PLAYING: session.set_underwater(true); _set_feedback("[STATUS] Fred is underwater.")
+                if screen == Screen.PLAYING: _request_dive()
             KEY_E:
-                if screen == Screen.PLAYING: session.set_underwater(false); _set_feedback("[STATUS] Fred is at the surface.")
+                if screen == Screen.PLAYING: _request_surface()
             KEY_P, KEY_ESCAPE:
                 if screen == Screen.PLAYING:
                     session.paused = not session.paused
@@ -278,6 +318,8 @@ func _start() -> void:
 func _retry() -> void:
     session.retry_from_checkpoint()
     leap.reset()
+    depth.reset("surface")
+    session.set_underwater(false)
     camera_response_y = 0.0
     fred = Vector2(630,390) if session.current_checkpoint == AdventureSession.CHECKPOINTS[1] else START
     screen = Screen.PLAYING; _set_feedback("[RESTORED] Your checkpoint is ready.")
@@ -294,8 +336,10 @@ func _advance_level() -> void:
     danger_cooldown_seconds = 0.0
     impact_burst_seconds = 0.0
     leap.reset()
+    depth.reset("surface")
     camera_response_y = 0.0
     screen = Screen.PLAYING
+    depth.reset(session.player_state)
     _set_feedback("[NEW TWIST] %s" % str(level_profile.new_twist))
 
 func _save(message: String) -> void:
@@ -346,11 +390,12 @@ func _draw_title() -> void:
 
 func _draw_level() -> void:
     var visual := FredVisualState.snapshot(visual_time, reduced_motion)
-    var water := Color("075c78") if session.player_state == "surface" else Color("07334f")
+    var water := Color("075c78").lerp(Color("07334f"), float(depth.depth))
     draw_rect(Rect2(26,76,1228,618), Color("03131c"), true)
     draw_rect(Rect2(35,85,1210,600), water, true)
     draw_rect(Rect2(35,85,1210,600), Color("8be8e1"), false, 3)
     draw_rect(Rect2(35,85,1210,120), Color(0.2,0.75,0.85,0.08), true)
+    _draw_depth_cues()
     for glow in [Vector2(180,155), Vector2(530,260), Vector2(1020,420)]:
         draw_circle(glow, 95, Color(0.2,0.85,0.78,0.035))
     draw_set_transform(Vector2(0,camera_response_y))
@@ -402,7 +447,7 @@ func _draw_level() -> void:
     _text(Vector2(890,75), "NEW: %s  |  THREATS %d" % [str(level_profile.new_twist).to_upper(), int(level_profile.predator_count)], 13, Color("fff0ae"), HORIZONTAL_ALIGNMENT_LEFT, 350)
     draw_rect(Rect2(330,10,560,52), Color("06151f"), true); draw_rect(Rect2(330,10,560,52), Color("e8fbff"), false, 2)
     _text(Vector2(350,43), "OBJECTIVE: " + ("Reach the moonpetal exit" if session.bug_count >= 3 else "Collect 3 marsh bugs"), 19, Color("e8fbff"), HORIZONTAL_ALIGNMENT_LEFT, 520)
-    _text(Vector2(45,710), "Bugs %d/3   Boost %d%%   Health %s   %s" % [session.bug_count, session.boost_energy, "♥".repeat(session.health), session.player_state.capitalize()], 20, Color.WHITE, HORIZONTAL_ALIGNMENT_LEFT, 850)
+    _text(Vector2(45,710), "Bugs %d/3   Boost %d%%   Health %s   %s %d%%" % [session.bug_count, session.boost_energy, "♥".repeat(session.health), depth.cue(), roundi(float(depth.depth) * 100.0)], 20, Color.WHITE, HORIZONTAL_ALIGNMENT_LEFT, 850)
     _status_panel(Rect2(820,632,410,42), 16)
     _button(Rect2(1120,20,120,48), "PAUSE")
     if reduced_motion:
@@ -418,6 +463,17 @@ func _draw_current_trails() -> void:
             var point := Vector2(130 + column * 190, 210 + row * 145)
             var phase := 0.0 if reduced_motion else sin(visual_time * 1.4 + float(column + row)) * 10.0
             _text(point + Vector2(phase,0), arrow + arrow, 18, Color(0.65,0.95,1.0,0.36), HORIZONTAL_ALIGNMENT_CENTER, 54)
+
+func _draw_depth_cues() -> void:
+    var amount := float(depth.depth)
+    if amount <= 0.001:
+        return
+    draw_rect(Rect2(35,85,1210,600), Color(0.01,0.07,0.16,0.20 * amount), true)
+    for index in range(14):
+        var phase := 0.0 if reduced_motion else fmod(visual_time * (18.0 + float(index % 3) * 3.0), 150.0)
+        var bubble := Vector2(90 + index * 84, 620 - fmod(float(index * 47) + phase, 470.0))
+        draw_circle(bubble, 2.0 + float(index % 3), Color(0.72,0.94,1.0,0.52 * amount), false, 2)
+    _text(Vector2(1080,130), "[%s] DEPTH %d%%" % [depth.cue(), roundi(amount * 100.0)], 14, Color("d9f7ff"), HORIZONTAL_ALIGNMENT_CENTER, 260)
 
 func _draw_whirlpools() -> void:
     for index in range(mini(int(level_profile.whirlpool_count), WHIRLPOOLS.size())):
@@ -559,8 +615,9 @@ func _draw_bug(position: Vector2, index: int, flutter: float) -> void:
     _text(position+Vector2(0,30), "BUG %d" % (index + 1), 11, Color("fff7cb"), HORIZONTAL_ALIGNMENT_CENTER, 70)
 
 func _draw_fred(position: Vector2) -> void:
-    var fred_color := Color("75e06f") if session.player_state == "surface" else Color("62b9d5")
-    var outline := Color("173128") if session.player_state == "surface" else Color("d8f7ff")
+    var underwater_amount := float(depth.depth)
+    var fred_color := Color("75e06f").lerp(Color("62b9d5"), underwater_amount)
+    var outline := Color("173128").lerp(Color("d8f7ff"), underwater_amount)
     draw_circle(position + Vector2(-22,18), 14, outline); draw_circle(position + Vector2(22,18), 14, outline)
     draw_line(position+Vector2(-16,14), position+Vector2(-34,30), outline, 8)
     draw_line(position+Vector2(16,14), position+Vector2(34,30), outline, 8)
@@ -571,7 +628,7 @@ func _draw_fred(position: Vector2) -> void:
     draw_circle(position+Vector2(-12,-20), 10, fred_color); draw_circle(position+Vector2(12,-20), 10, fred_color)
     draw_circle(position+Vector2(-12,-22), 4, Color("17252c")); draw_circle(position+Vector2(12,-22), 4, Color("17252c"))
     draw_arc(position + Vector2(0,1), 10, 0.2, PI - 0.2, 10, outline, 2)
-    if session.player_state == "underwater":
+    if underwater_amount > 0.65:
         draw_circle(position + Vector2(30,-30), 5, Color(0.75,0.95,1.0,0.65), false, 2)
         draw_circle(position + Vector2(42,-45), 3, Color(0.75,0.95,1.0,0.65), false, 2)
 
