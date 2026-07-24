@@ -40,6 +40,7 @@ This repository owns Fred gameplay. Core owns only reusable, game-neutral servic
 - [Milestone M1 report](docs/MILESTONE_M1_REPORT.md)
 - [M2 camera follow evidence](docs/M2_CAMERA_FOLLOW_REPORT.md)
 - [M2 locomotion animation evidence](docs/M2_LOCOMOTION_ANIMATION_REPORT.md)
+- [M2 authored Fred rig evidence](docs/M2_AUTHORED_FRED_RIG_REPORT.md)
 
 ## Godot M1 foundation
 

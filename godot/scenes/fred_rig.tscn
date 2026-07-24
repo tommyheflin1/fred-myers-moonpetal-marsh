@@ -1,0 +1,146 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/fred_rig.gd" id="1_rig"]
+
+[node name="FredRig" type="Node2D"]
+visible = false
+script = ExtResource("1_rig")
+
+[node name="RootJoint" type="Node2D" parent="."]
+
+[node name="HindLeft" type="Node2D" parent="RootJoint"]
+position = Vector2(-18, 14)
+rotation = -0.12
+
+[node name="Fill" type="Polygon2D" parent="RootJoint/HindLeft"]
+polygon = PackedVector2Array(-2, -6, -21, -2, -37, 11, -31, 22, -13, 18, 4, 5)
+color = Color(0.31, 0.74, 0.41, 1)
+
+[node name="Outline" type="Line2D" parent="RootJoint/HindLeft"]
+points = PackedVector2Array(-2, -6, -21, -2, -37, 11, -31, 22, -13, 18, 4, 5, -2, -6)
+width = 4.0
+default_color = Color(0.082, 0.18, 0.16, 1)
+joint_mode = 2
+
+[node name="Toes" type="Line2D" parent="RootJoint/HindLeft"]
+points = PackedVector2Array(-31, 21, -42, 27, -31, 21, -39, 34, -31, 21, -29, 35)
+width = 2.5
+default_color = Color(0.082, 0.18, 0.16, 1)
+joint_mode = 2
+
+[node name="GroundContact" type="Marker2D" parent="RootJoint/HindLeft"]
+position = Vector2(-35, 31)
+
+[node name="HindRight" type="Node2D" parent="RootJoint"]
+position = Vector2(18, 14)
+rotation = 0.12
+
+[node name="Fill" type="Polygon2D" parent="RootJoint/HindRight"]
+polygon = PackedVector2Array(2, -6, 21, -2, 37, 11, 31, 22, 13, 18, -4, 5)
+color = Color(0.31, 0.74, 0.41, 1)
+
+[node name="Outline" type="Line2D" parent="RootJoint/HindRight"]
+points = PackedVector2Array(2, -6, 21, -2, 37, 11, 31, 22, 13, 18, -4, 5, 2, -6)
+width = 4.0
+default_color = Color(0.082, 0.18, 0.16, 1)
+joint_mode = 2
+
+[node name="Toes" type="Line2D" parent="RootJoint/HindRight"]
+points = PackedVector2Array(31, 21, 42, 27, 31, 21, 39, 34, 31, 21, 29, 35)
+width = 2.5
+default_color = Color(0.082, 0.18, 0.16, 1)
+joint_mode = 2
+
+[node name="GroundContact" type="Marker2D" parent="RootJoint/HindRight"]
+position = Vector2(35, 31)
+
+[node name="BodyJoint" type="Node2D" parent="RootJoint"]
+
+[node name="Outline" type="Polygon2D" parent="RootJoint/BodyJoint"]
+polygon = PackedVector2Array(-29, 3, -26, -13, -16, -25, 0, -31, 17, -25, 27, -12, 30, 5, 24, 22, 10, 31, -9, 31, -24, 22, -30, 5)
+color = Color(0.082, 0.18, 0.16, 1)
+
+[node name="Fill" type="Polygon2D" parent="RootJoint/BodyJoint"]
+polygon = PackedVector2Array(-25, 2, -22, -11, -13, -21, 0, -26, 14, -21, 23, -10, 25, 4, 20, 18, 8, 26, -8, 26, -20, 18, -25, 4)
+color = Color(0.31, 0.74, 0.41, 1)
+
+[node name="Belly" type="Polygon2D" parent="RootJoint/BodyJoint"]
+polygon = PackedVector2Array(-13, 5, -8, -9, 0, -14, 9, -9, 14, 5, 10, 19, 0, 23, -10, 19)
+color = Color(0.55, 0.84, 0.48, 0.72)
+
+[node name="Accent" type="Polygon2D" parent="RootJoint/BodyJoint"]
+polygon = PackedVector2Array(-18, -8, -11, -17, -3, -20, -8, -10)
+color = Color(0.73, 0.96, 0.78, 1)
+
+[node name="HeadJoint" type="Node2D" parent="RootJoint"]
+position = Vector2(0, -17)
+
+[node name="Outline" type="Polygon2D" parent="RootJoint/HeadJoint"]
+polygon = PackedVector2Array(-31, 2, -29, -15, -18, -27, 0, -32, 18, -27, 29, -15, 31, 2, 23, 17, 8, 23, -9, 23, -23, 17)
+color = Color(0.082, 0.18, 0.16, 1)
+
+[node name="Fill" type="Polygon2D" parent="RootJoint/HeadJoint"]
+polygon = PackedVector2Array(-27, 1, -25, -13, -16, -23, 0, -28, 16, -23, 25, -13, 27, 1, 20, 14, 7, 19, -8, 19, -20, 14)
+color = Color(0.4, 0.83, 0.47, 1)
+
+[node name="EyeLeft" type="Node2D" parent="RootJoint/HeadJoint"]
+position = Vector2(-13, -21)
+
+[node name="Outline" type="Polygon2D" parent="RootJoint/HeadJoint/EyeLeft"]
+polygon = PackedVector2Array(-10, 1, -9, -6, -5, -11, 1, -12, 7, -9, 10, -3, 9, 4, 5, 9, -2, 10, -8, 7)
+color = Color(0.082, 0.18, 0.16, 1)
+
+[node name="White" type="Polygon2D" parent="RootJoint/HeadJoint/EyeLeft"]
+polygon = PackedVector2Array(-7, 0, -6, -5, -3, -8, 1, -9, 6, -7, 7, -2, 6, 3, 3, 6, -2, 7, -6, 4)
+color = Color(0.96, 0.98, 0.9, 1)
+
+[node name="Pupil" type="Polygon2D" parent="RootJoint/HeadJoint/EyeLeft"]
+polygon = PackedVector2Array(-2, -4, 1, -5, 4, -3, 4, 1, 2, 4, -2, 4, -4, 1, -4, -2)
+color = Color(0.035, 0.09, 0.1, 1)
+
+[node name="EyeRight" type="Node2D" parent="RootJoint/HeadJoint"]
+position = Vector2(13, -21)
+
+[node name="Outline" type="Polygon2D" parent="RootJoint/HeadJoint/EyeRight"]
+polygon = PackedVector2Array(-10, -3, -7, -9, -1, -12, 5, -11, 9, -6, 10, 1, 8, 7, 2, 10, -5, 9, -9, 4)
+color = Color(0.082, 0.18, 0.16, 1)
+
+[node name="White" type="Polygon2D" parent="RootJoint/HeadJoint/EyeRight"]
+polygon = PackedVector2Array(-7, -2, -6, -7, -1, -9, 3, -8, 6, -5, 7, 0, 6, 4, 2, 7, -3, 6, -6, 3)
+color = Color(0.96, 0.98, 0.9, 1)
+
+[node name="Pupil" type="Polygon2D" parent="RootJoint/HeadJoint/EyeRight"]
+polygon = PackedVector2Array(-4, -3, -1, -5, 2, -4, 4, -1, 4, 2, 1, 4, -2, 4, -4, 1)
+color = Color(0.035, 0.09, 0.1, 1)
+
+[node name="MouthCavity" type="Polygon2D" parent="RootJoint/HeadJoint"]
+polygon = PackedVector2Array(-9, 6, -5, 2, 0, 1, 6, 2, 10, 6, 6, 11, 0, 13, -6, 11)
+color = Color(0.25, 0.07, 0.12, 1)
+
+[node name="MouthLine" type="Line2D" parent="RootJoint/HeadJoint"]
+points = PackedVector2Array(-10, 5, -5, 8, 0, 9, 6, 8, 10, 5)
+width = 2.5
+default_color = Color(0.082, 0.18, 0.16, 1)
+
+[node name="Nostrils" type="Line2D" parent="RootJoint/HeadJoint"]
+points = PackedVector2Array(-6, -1, -4, 0, 4, 0, 6, -1)
+width = 2.0
+default_color = Color(0.082, 0.18, 0.16, 1)
+
+[node name="TongueAnchor" type="Marker2D" parent="RootJoint/HeadJoint"]
+position = Vector2(0, 8)
+
+[node name="CueAnchor" type="Marker2D" parent="RootJoint/HeadJoint"]
+position = Vector2(0, -41)
+
+[node name="FrontLeft" type="Line2D" parent="RootJoint"]
+points = PackedVector2Array(-16, -3, -28, 7, -32, 22)
+width = 5.0
+default_color = Color(0.082, 0.18, 0.16, 1)
+joint_mode = 2
+
+[node name="FrontRight" type="Line2D" parent="RootJoint"]
+points = PackedVector2Array(16, -3, 28, 7, 32, 22)
+width = 5.0
+default_color = Color(0.082, 0.18, 0.16, 1)
+joint_mode = 2

@@ -14,6 +14,7 @@ REQUIRED = [
     "godot/CORE_VERSION",
     "godot/project.godot",
     "godot/scenes/main.tscn",
+    "godot/scenes/fred_rig.tscn",
     "godot/scripts/adventure_session.gd",
     "godot/scripts/input_intent.gd",
     "godot/scripts/fred_save_adapter.gd",
@@ -23,6 +24,7 @@ REQUIRED = [
     "godot/scripts/player_identity.gd",
     "godot/scripts/camera_follow.gd",
     "godot/scripts/fred_animation_coordinator.gd",
+    "godot/scripts/fred_rig.gd",
     "godot/tests/run_tests.gd",
     "godot/tests/run_keyboard_regression.gd",
     "godot/tests/run_save_stress.gd",
@@ -31,9 +33,11 @@ REQUIRED = [
     "godot/tests/run_m2_foundation.gd",
     "godot/tests/run_camera_follow.gd",
     "godot/tests/run_animation_coordinator.gd",
+    "godot/tests/run_fred_rig.gd",
     "docs/M2_PROGRESSION_IDENTITY_FOUNDATION.md",
     "docs/M2_CAMERA_FOLLOW_REPORT.md",
     "docs/M2_LOCOMOTION_ANIMATION_REPORT.md",
+    "docs/M2_AUTHORED_FRED_RIG_REPORT.md",
 ]
 
 FIXTURES = {
