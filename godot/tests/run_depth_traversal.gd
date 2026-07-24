@@ -132,7 +132,7 @@ func _run() -> void:
 	game._apply_danger_hit("[DANGER] Test underwater failure.")
 	check(game.screen == game.Screen.FAILED and game.depth.state == DepthTraversal.State.SURFACE, "underwater failure clears transition state")
 	game._retry()
-	check(game.screen == game.Screen.PLAYING and game.session.health == 3 and game.depth.state == DepthTraversal.State.SURFACE, "retry restores safe surface traversal")
+	check(game.screen == game.Screen.PLAYING and game.session.health == 5 and game.depth.state == DepthTraversal.State.SURFACE, "retry restores safe surface traversal")
 
 	var memory_before := Performance.get_monitor(Performance.MEMORY_STATIC)
 	var started := Time.get_ticks_msec()

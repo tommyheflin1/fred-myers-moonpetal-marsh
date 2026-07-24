@@ -3,6 +3,7 @@ extends SceneTree
 var passed := 0
 var failed := 0
 var prefix := "user://m1_test_save"
+var leaderboard_path := "user://m1_test_leaderboard.json"
 
 func check(condition: bool, label: String) -> void:
     if condition:
@@ -21,6 +22,8 @@ func clean_files() -> void:
     for suffix in [".json", ".tmp.json", ".backup.json"]:
         var path: String = prefix + suffix
         if FileAccess.file_exists(path): DirAccess.remove_absolute(ProjectSettings.globalize_path(path))
+    if FileAccess.file_exists(leaderboard_path):
+        DirAccess.remove_absolute(ProjectSettings.globalize_path(leaderboard_path))
 
 func write(path: String, data: Variant) -> void:
     var file := FileAccess.open(path, FileAccess.WRITE)
@@ -29,7 +32,7 @@ func write(path: String, data: Variant) -> void:
 func _run() -> void:
     clean_files()
     var session := AdventureSession.new(42)
-    check(session.current_level == "lily_leap" and session.health == 3 and session.boost_energy == 100, "AdventureSession initial state")
+    check(session.current_level == "lily_leap" and session.health == 5 and session.boost_energy == 100, "AdventureSession initial state")
     var other := AdventureSession.new(42)
     check(session.rng.randi() == other.rng.randi(), "deterministic seeded session behavior")
     check(session.restore(fixture("new_game")).get("ok") and session.bug_count == 0, "new-game fixture")
@@ -44,12 +47,12 @@ func _run() -> void:
     check(session.use_boost(100) and session.boost_energy == 0, "boost depletion")
     session.recharge_boost(15)
     check(session.boost_energy == 15, "boost recharge")
-    check(not session.damage(1, true) and session.health == 3, "hiding behavior prevents predator damage")
-    check(not session.damage() and session.health == 2, "predator damage")
+    check(not session.damage(1, true) and session.health == 5, "hiding behavior prevents predator damage")
+    check(not session.damage() and session.health == 4, "predator damage")
     session.set_underwater(true); check(session.player_state == "underwater", "surface-to-underwater transition")
     session.set_underwater(false); check(session.player_state == "surface", "underwater-to-surface transition")
-    session.damage(); check(session.damage() and session.health == 0, "failure state")
-    session.retry_from_checkpoint(); check(session.health == 3 and session.retrying, "retry reset")
+    check(session.damage(4) and session.health == 0, "failure state")
+    session.retry_from_checkpoint(); check(session.health == 5 and session.retrying, "retry reset")
     check(session.complete_level() and session.completed and session.current_checkpoint == "lily_leap_complete", "Lily Leap completion")
     var adapter := FredSaveAdapter.new(prefix)
     check(adapter.save(session, "2000-01-05T00:00:00Z").get("ok"), "local atomic save creation")
@@ -71,7 +74,7 @@ func _run() -> void:
     check(FredSaveAdapter.new(prefix).load_session(AdventureSession.new()).get("source") == "default", "malformed data rejected to safe default")
     clean_files()
     check(FredSaveAdapter.new(prefix).load_session(AdventureSession.new()).get("source") == "default", "offline startup with no backend and no save")
-    var game: Node2D = load("res://scripts/main.gd").new(); game.saver = FredSaveAdapter.new(prefix); root.add_child(game); await process_frame
+    var game: Node2D = load("res://scripts/main.gd").new(); game.saver = FredSaveAdapter.new(prefix); game.leaderboard = FredLocalLeaderboard.new(leaderboard_path); game.countdown_enabled = false; root.add_child(game); await process_frame
     check(game.screen == game.Screen.TITLE, "level initializes at title")
     game._handle_click(Vector2(640,475)); check(game.screen == game.Screen.PLAYING, "desktop mouse starts game")
     game.session.collect_bug(); game.session.collect_bug(); game.session.collect_bug(); game.fred = game.EXIT; game._fixed_tick(0.0)

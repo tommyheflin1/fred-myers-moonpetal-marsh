@@ -20,6 +20,9 @@ func clean_files() -> void:
         var path := prefix + suffix
         if FileAccess.file_exists(path):
             DirAccess.remove_absolute(ProjectSettings.globalize_path(path))
+    var leaderboard_path := prefix + "_leaderboard.json"
+    if FileAccess.file_exists(leaderboard_path):
+        DirAccess.remove_absolute(ProjectSettings.globalize_path(leaderboard_path))
 
 func send_key(keycode: int, pressed: bool) -> void:
     var event := InputEventKey.new()
@@ -42,7 +45,9 @@ func tick_with_key(game: Node2D, keycode: int, delta: float = 1.0 / 60.0) -> voi
 func create_game() -> Node2D:
     var game: Node2D = load("res://scripts/main.gd").new()
     game.saver = FredSaveAdapter.new(prefix)
+    game.leaderboard = FredLocalLeaderboard.new(prefix + "_leaderboard.json")
     game.hazards_enabled = false
+    game.countdown_enabled = false
     root.add_child(game)
     game.set_process(false)
     return game
@@ -108,7 +113,7 @@ func _run() -> void:
     game._fixed_tick(0.0)
     check(game.screen == game.Screen.FAILED and game.session.health == 0, "predator collision reaches accepted failure state")
     await tap_key(KEY_R)
-    check(game.screen == game.Screen.PLAYING and game.session.health == 3, "R keyboard event retries from failure")
+    check(game.screen == game.Screen.PLAYING and game.session.health == 5, "R keyboard event retries from failure")
 
     game.predator = Vector2(1200, 650)
     game.fred = Vector2(630, 390)

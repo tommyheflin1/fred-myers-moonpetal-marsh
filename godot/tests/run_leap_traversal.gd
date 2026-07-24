@@ -118,7 +118,7 @@ func _run() -> void:
 	game._apply_danger_hit("[DANGER] Test airborne failure.")
 	check(game.screen == game.Screen.FAILED and game.leap.state == LeapTraversal.State.GROUNDED, "airborne predator failure clears traversal safely")
 	game._retry()
-	check(game.screen == game.Screen.PLAYING and game.session.health == 3, "retry restores stable grounded play")
+	check(game.screen == game.Screen.PLAYING and game.session.health == 5, "retry restores stable grounded play")
 
 	var started := Time.get_ticks_msec()
 	for iteration in range(10000):

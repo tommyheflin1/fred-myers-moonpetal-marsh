@@ -136,6 +136,7 @@ func _run() -> void:
     clean_prefix(MAIN_PREFIX)
     var game: Node2D = load("res://scripts/main.gd").new()
     game.saver = FredSaveAdapter.new(MAIN_PREFIX)
+    game.countdown_enabled = false
     root.add_child(game)
     await process_frame
     check(game.save_feedback == "[NEW GAME] No saved adventure yet.", "title displays the mapped new-game state")

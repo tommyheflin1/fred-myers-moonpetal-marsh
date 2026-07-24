@@ -3,7 +3,7 @@ extends Node2D
 const LeapTraversal = preload("res://scripts/leap_traversal.gd")
 const DepthTraversal = preload("res://scripts/depth_traversal.gd")
 
-enum Screen { TITLE, PLAYING, FAILED, COMPLETE }
+enum Screen { TITLE, PLAYING, FAILED, COMPLETE, LEADERBOARD }
 const START := Vector2(135, 560)
 const EXIT := Vector2(1150, 120)
 const PADS := [Vector2(220,500), Vector2(350,420), Vector2(490,500), Vector2(630,390), Vector2(760,300), Vector2(900,225), Vector2(1040,165)]
@@ -11,6 +11,7 @@ const BUGS := [Vector2(350,390), Vector2(625,360), Vector2(900,195)]
 const SAFE_LOCATION := Vector2(720,570)
 const PREDATOR_START := Vector2(850,520)
 const WHIRLPOOLS := [Vector2(500,405), Vector2(790,315), Vector2(960,500)]
+const FAIRY_POSITIONS := [Vector2(455,205), Vector2(835,545), Vector2(1080,365)]
 
 var session := AdventureSession.new(1337)
 var saver := FredSaveAdapter.new()
@@ -40,12 +41,27 @@ var impact_burst_kind := "SPLASH"
 var leap: RefCounted = LeapTraversal.new()
 var depth: RefCounted = DepthTraversal.new()
 var camera_response_y := 0.0
+var leaderboard := FredLocalLeaderboard.new()
+var menu_music: AudioStreamPlayer
+var chase_music: AudioStreamPlayer
+var countdown_seconds := 0.0
+var countdown_enabled := true
+var fairy_collected := false
 
 func _ready() -> void:
     if "--reduced-motion" in OS.get_cmdline_user_args():
         reduced_motion = true
     var result := saver.load_session(session)
     _set_feedback(FredSaveFeedback.load_message(result))
+    menu_music = AudioStreamPlayer.new()
+    chase_music = AudioStreamPlayer.new()
+    menu_music.stream = load("res://assets/audio/the_marshland_march.mp3")
+    chase_music.stream = load("res://assets/audio/marshland_chase.mp3")
+    menu_music.volume_db = -8.0
+    chase_music.volume_db = -7.0
+    add_child(menu_music)
+    add_child(chase_music)
+    _sync_music()
     set_process(true)
     queue_redraw()
 
@@ -68,6 +84,11 @@ func _advance_visual(delta: float) -> void:
 func _fixed_tick(delta: float) -> void:
     simulation_time += maxf(0.0, delta)
     danger_cooldown_seconds = maxf(0.0, danger_cooldown_seconds - maxf(0.0, delta))
+    if countdown_enabled and countdown_seconds > 0.0:
+        countdown_seconds = maxf(0.0, countdown_seconds - maxf(0.0, delta))
+        if countdown_seconds > 0.0:
+            return
+        _set_feedback("[GO!] Leap into the marsh!")
     var direction := FredInputIntent.movement()
     if Input.is_key_pressed(KEY_A) or Input.is_key_pressed(KEY_LEFT): direction.x -= 1.0
     if Input.is_key_pressed(KEY_D) or Input.is_key_pressed(KEY_RIGHT): direction.x += 1.0
@@ -108,12 +129,32 @@ func _fixed_tick(delta: float) -> void:
             eat_target = bug_position
             eat_effect_seconds = 0.32
             collected.append(index); session.collect_bug(); _set_feedback("[MUNCH!] Fred ate a marsh bug.")
+    if not fairy_collected:
+        var fairy_position := _fairy_position()
+        if fred.distance_to(fairy_position) < 38.0 and session.gain_life():
+            fairy_collected = true
+            _set_feedback("[FAIRY FEAST] Extra life! Fred has %d lives." % session.health)
     if fred.distance_to(_pad_position(3)) < 42 and session.checkpoint_sequence < 1:
         session.reach_checkpoint(AdventureSession.CHECKPOINTS[1], 1); _save("Midpoint is safe.")
     if _check_danger_collision():
         return
     if fred.distance_to(EXIT) < 55 and session.complete_level():
+        leaderboard.submit(identity.profile_label, level_number, session.bug_count, session.health)
         screen = Screen.COMPLETE; _save("Lily Leap is complete.")
+
+func _sync_music() -> void:
+    if not is_instance_valid(menu_music) or not is_instance_valid(chase_music):
+        return
+    var wants_menu := screen in [Screen.TITLE, Screen.LEADERBOARD]
+    if wants_menu:
+        if chase_music.playing: chase_music.stop()
+        if not menu_music.playing: menu_music.play()
+    else:
+        if menu_music.playing: menu_music.stop()
+        if not chase_music.playing: chase_music.play()
+
+func _fairy_position() -> Vector2:
+    return FAIRY_POSITIONS[(level_number - 1) % FAIRY_POSITIONS.size()]
 
 func _current_vector() -> Vector2:
     var strength := float(level_profile.current_strength)
@@ -288,12 +329,16 @@ func _unhandled_input(event: InputEvent) -> void:
                     _set_feedback("[PAUSED] Your last checkpoint is safe." if session.paused else "[PLAYING] Adventure resumed.")
             KEY_R:
                 if screen == Screen.FAILED: _retry()
+            KEY_H:
+                if screen in [Screen.FAILED, Screen.LEADERBOARD]: _go_home()
             KEY_ENTER:
                 if screen == Screen.TITLE: _start()
                 elif screen == Screen.COMPLETE: _advance_level()
 
 func _handle_click(position: Vector2) -> void:
     if screen == Screen.TITLE and Rect2(490,440,300,70).has_point(position): _start()
+    elif screen == Screen.TITLE and Rect2(490,525,300,52).has_point(position):
+        screen = Screen.LEADERBOARD; _sync_music(); queue_redraw()
     elif screen == Screen.PLAYING and Rect2(1120,20,120,48).has_point(position):
         session.paused = not session.paused
         _set_feedback("[PAUSED] Your last checkpoint is safe." if session.paused else "[PLAYING] Adventure resumed.")
@@ -301,7 +346,9 @@ func _handle_click(position: Vector2) -> void:
         session.paused = false; _set_feedback("[PLAYING] Adventure resumed.")
     elif screen == Screen.PLAYING:
         _request_leap(position - fred)
-    elif screen == Screen.FAILED and Rect2(490,430,300,70).has_point(position): _retry()
+    elif screen == Screen.FAILED and Rect2(365,500,250,64).has_point(position): _retry()
+    elif screen == Screen.FAILED and Rect2(665,500,250,64).has_point(position): _go_home()
+    elif screen == Screen.LEADERBOARD and Rect2(490,620,300,55).has_point(position): _go_home()
     elif screen == Screen.COMPLETE and Rect2(490,500,300,60).has_point(position):
         _advance_level()
 
@@ -310,19 +357,38 @@ func _start() -> void:
         session = AdventureSession.new(1337)
         _set_feedback("[NEW GAME] A fresh Lily Leap run is ready.")
     screen = Screen.PLAYING
+    countdown_seconds = 5.0 if countdown_enabled else 0.0
+    fairy_collected = false
+    _sync_music()
     fred = Vector2(630,390) if session.current_checkpoint == AdventureSession.CHECKPOINTS[1] else START
     collected.clear()
     for index in range(mini(session.bug_count, BUGS.size())): collected.append(index)
     queue_redraw()
 
 func _retry() -> void:
-    session.retry_from_checkpoint()
+    level_number = 1
+    level_profile = FredLevelIntensity.profile(1)
+    session = AdventureSession.new(1337)
     leap.reset()
     depth.reset("surface")
     session.set_underwater(false)
     camera_response_y = 0.0
-    fred = Vector2(630,390) if session.current_checkpoint == AdventureSession.CHECKPOINTS[1] else START
-    screen = Screen.PLAYING; _set_feedback("[RESTORED] Your checkpoint is ready.")
+    fred = START
+    predator = PREDATOR_START
+    collected.clear()
+    fairy_collected = false
+    countdown_seconds = 5.0 if countdown_enabled else 0.0
+    screen = Screen.PLAYING
+    _sync_music()
+    _set_feedback("[TRY AGAIN] Level 1 is ready.")
+
+func _go_home() -> void:
+    leap.reset()
+    depth.reset(session.player_state)
+    countdown_seconds = 0.0
+    screen = Screen.TITLE
+    _sync_music()
+    _set_feedback("[HOME] Welcome back to Moonpetal Marsh.")
 
 func _advance_level() -> void:
     level_number = mini(FredLevelIntensity.MAX_LEVEL, level_number + 1)
@@ -337,9 +403,12 @@ func _advance_level() -> void:
     impact_burst_seconds = 0.0
     leap.reset()
     depth.reset("surface")
+    fairy_collected = false
+    countdown_seconds = 5.0 if countdown_enabled else 0.0
     camera_response_y = 0.0
     screen = Screen.PLAYING
     depth.reset(session.player_state)
+    _sync_music()
     _set_feedback("[NEW TWIST] %s" % str(level_profile.new_twist))
 
 func _save(message: String) -> void:
@@ -363,13 +432,29 @@ func _tick_feedback(delta: float) -> void:
 func _draw() -> void:
     draw_rect(Rect2(0,0,1280,720), Color("071d2d"))
     if screen == Screen.TITLE: _draw_title(); return
+    if screen == Screen.LEADERBOARD: _draw_leaderboard(); return
     _draw_level()
-    if screen == Screen.FAILED: _draw_overlay("Fred got gobbled!", "Press R or click Retry", "Retry", Rect2(490,430,300,70), "TRY AGAIN")
+    if screen == Screen.FAILED: _draw_failure()
     elif screen == Screen.COMPLETE: _draw_overlay("Lily Leap Complete!", "Level %03d is ready." % mini(100, level_number + 1), "Next Level", Rect2(490,500,300,60), "LEVEL CLEAR")
     elif session.paused: _draw_overlay("Marsh Paused", "Your checkpoint is safe.", "Resume", Rect2(490,410,300,65), "PAUSED")
+    elif countdown_seconds > 0.0: _draw_countdown()
 
 func _draw_title() -> void:
     var visual := FredVisualState.snapshot(visual_time, reduced_motion)
+    draw_rect(Rect2(0,0,1280,720), Color("03141f"), true)
+    draw_circle(Vector2(1030,135), 96, Color(0.86,0.93,0.72,0.12))
+    draw_circle(Vector2(1030,135), 72, Color("d8e7bb"))
+    draw_circle(Vector2(1005,115), 13, Color("b9c9a4"))
+    draw_circle(Vector2(1055,153), 9, Color("b9c9a4"))
+    for index in range(34):
+        var firefly := Vector2(35 + (index * 137) % 1210, 85 + (index * 83) % 500)
+        var glow := 2.0 + float(index % 3)
+        draw_circle(firefly, glow * 3.0, Color(0.95,0.88,0.38,0.06))
+        draw_circle(firefly, glow, Color("f8df67"))
+    for x in range(0,1280,64):
+        var height := 75.0 + float((x / 64) % 4) * 20.0
+        draw_line(Vector2(x,720), Vector2(x + float(visual.reed_sway),720-height), Color("274d38"), 8)
+        draw_line(Vector2(x+8,720), Vector2(x+28,680-height*0.35), Color("477a4b"), 5)
     for y in range(20, 720, 70):
         draw_rect(Rect2(0,y,1280,35), Color(0.02,0.12,0.17,0.18), true)
     draw_circle(Vector2(640,220), 155, Color("123e4a"))
@@ -382,11 +467,20 @@ func _draw_title() -> void:
     _text(Vector2(640,120), "and the Moonpetal Marsh", 30, Color("d9f4e2"), HORIZONTAL_ALIGNMENT_CENTER, 700)
     _text(Vector2(640,380), "A 100-level marsh adventure", 19, Color("bfe7dc"), HORIZONTAL_ALIGNMENT_CENTER, 700)
     _button(Rect2(490,440,300,70), "PLAY AGAIN" if session.completed else ("CONTINUE" if session.checkpoint_sequence > 0 else "START ADVENTURE"))
-    _status_panel(Rect2(280,510,720,46), 18)
+    _button(Rect2(490,525,300,52), "LOCAL LEADERBOARD")
+    _text(Vector2(640,22), "NOW PLAYING: THE MARSHLAND MARCH", 12, Color("b9f5c7"), HORIZONTAL_ALIGNMENT_CENTER, 500)
+    _status_panel(Rect2(280,584,720,42), 16)
     if reduced_motion:
         _text(Vector2(640,675), "[REDUCED MOTION] All gameplay cues remain visible.", 15, Color("e8fbff"), HORIZONTAL_ALIGNMENT_CENTER, 700)
     _text(Vector2(640,650), "[GUEST] Play now. Platform account linking stays optional.", 15, Color("e8fbff"), HORIZONTAL_ALIGNMENT_CENTER, 900)
     _text(Vector2(640,620), "WASD / arrows move  •  Space leaps  •  Shift boosts  •  Q dive  •  E surface  •  P pause", 17, Color("bfd8dc"), HORIZONTAL_ALIGNMENT_CENTER, 1100)
+
+    draw_rect(Rect2(0,580,1280,140), Color(0.01,0.05,0.08,0.92), true)
+    _status_panel(Rect2(280,584,720,42), 16)
+    _text(Vector2(640,652), "WASD / arrows move  |  Space leaps  |  Shift boosts  |  Q dive  |  E surface  |  P pause", 15, Color("bfd8dc"), HORIZONTAL_ALIGNMENT_CENTER, 1100)
+    _text(Vector2(640,680), "[GUEST] Play now. Account linking remains optional.", 14, Color("e8fbff"), HORIZONTAL_ALIGNMENT_CENTER, 900)
+    if reduced_motion:
+        _text(Vector2(640,706), "[REDUCED MOTION] All gameplay cues remain visible.", 13, Color("e8fbff"), HORIZONTAL_ALIGNMENT_CENTER, 700)
 
 func _draw_level() -> void:
     var visual := FredVisualState.snapshot(visual_time, reduced_motion)
@@ -424,6 +518,8 @@ func _draw_level() -> void:
     for index in BUGS.size():
         if index not in collected:
             _draw_bug(_bug_position(index), index, float(visual.wildlife_flutter))
+    if not fairy_collected:
+        _draw_fairy(_fairy_position())
     var predator_names := ["BASS", "PIKE", "HERON", "SNAKE", "MUSKIE"]
     var active_positions := _active_predator_positions()
     for index in active_positions.size():
@@ -614,6 +710,18 @@ func _draw_bug(position: Vector2, index: int, flutter: float) -> void:
     draw_line(position + Vector2(-7,4), position + Vector2(7,4), Color("59401d"), 2)
     _text(position+Vector2(0,30), "BUG %d" % (index + 1), 11, Color("fff7cb"), HORIZONTAL_ALIGNMENT_CENTER, 70)
 
+func _draw_fairy(position: Vector2) -> void:
+    var flutter := 0.0 if reduced_motion else sin(visual_time * 5.0) * 5.0
+    draw_circle(position, 35, Color(0.92,0.84,1.0,0.10))
+    draw_circle(position, 24, Color(0.92,0.84,1.0,0.14))
+    draw_circle(position + Vector2(-15,-4-flutter), 13, Color(0.88,0.96,1.0,0.64))
+    draw_circle(position + Vector2(15,-4+flutter), 13, Color(0.88,0.96,1.0,0.64))
+    draw_circle(position, 9, Color("f8df67"))
+    draw_circle(position + Vector2(0,-11), 6, Color("fff4d5"))
+    draw_line(position + Vector2(0,8), position + Vector2(0,20), Color("f8df67"), 3)
+    draw_line(position + Vector2(-8,11), position + Vector2(8,11), Color("f8df67"), 2)
+    _text(position+Vector2(0,46), "EXTRA LIFE FAIRY", 11, Color("fff0ae"), HORIZONTAL_ALIGNMENT_CENTER, 150)
+
 func _draw_fred(position: Vector2) -> void:
     var underwater_amount := float(depth.depth)
     var fred_color := Color("75e06f").lerp(Color("62b9d5"), underwater_amount)
@@ -647,6 +755,66 @@ func _draw_overlay(title: String, subtitle: String, action: String, rect: Rect2,
     _text(Vector2(640,315), title, 35, Color("f7d36a"), HORIZONTAL_ALIGNMENT_CENTER, 520)
     _text(Vector2(640,365), subtitle, 20, Color.WHITE, HORIZONTAL_ALIGNMENT_CENTER, 520)
     _button(rect, action)
+
+func _draw_countdown() -> void:
+    draw_rect(Rect2(390,210,500,310), Color(0.01,0.04,0.07,0.94), true)
+    draw_rect(Rect2(390,210,500,310), Color("f7d36a"), false, 5)
+    _text(Vector2(640,255), "[GET READY]", 18, Color("e8fbff"), HORIZONTAL_ALIGNMENT_CENTER, 460)
+    _text(Vector2(640,385), str(maxi(1, ceili(countdown_seconds))), 112, Color("f7d36a"), HORIZONTAL_ALIGNMENT_CENTER, 460)
+    _text(Vector2(640,455), "Level %03d begins soon" % level_number, 22, Color.WHITE, HORIZONTAL_ALIGNMENT_CENTER, 460)
+
+func _draw_failure() -> void:
+    draw_rect(Rect2(0,0,1280,720), Color(0.08,0.02,0.04,0.94), true)
+    var center := Vector2(640,295)
+    var splat := PackedVector2Array()
+    for index in range(24):
+        var angle := float(index) * TAU / 24.0
+        var radius := 170.0 if index % 2 == 0 else 115.0
+        if index % 6 == 0: radius = 235.0
+        splat.append(center + Vector2.from_angle(angle) * radius)
+    draw_colored_polygon(splat, Color("4f9b45"))
+    draw_circle(center, 132, Color("6fc75f"))
+    draw_circle(center + Vector2(-55,-82), 38, Color("173128"))
+    draw_circle(center + Vector2(55,-82), 38, Color("173128"))
+    draw_circle(center + Vector2(-55,-82), 30, Color("7ddb70"))
+    draw_circle(center + Vector2(55,-82), 30, Color("7ddb70"))
+    draw_line(center + Vector2(-68,-91), center + Vector2(-43,-72), Color("173128"), 7)
+    draw_line(center + Vector2(-43,-91), center + Vector2(-68,-72), Color("173128"), 7)
+    draw_line(center + Vector2(43,-91), center + Vector2(68,-72), Color("173128"), 7)
+    draw_line(center + Vector2(68,-91), center + Vector2(43,-72), Color("173128"), 7)
+    draw_arc(center + Vector2(0,35), 42, PI+0.25, TAU-0.25, 18, Color("173128"), 7)
+    _text(Vector2(640,72), "OH NO FRED!!!", 58, Color("fff0ae"), HORIZONTAL_ALIGNMENT_CENTER, 920)
+    _text(Vector2(640,445), "Five lives used. Ready for another marsh run?", 21, Color.WHITE, HORIZONTAL_ALIGNMENT_CENTER, 760)
+    _button(Rect2(365,500,250,64), "TRY AGAIN?")
+    _button(Rect2(665,500,250,64), "GO HOME?")
+    _text(Vector2(640,605), "Try Again restarts at Level 001  |  Home returns to the main menu", 16, Color("d9f4e2"), HORIZONTAL_ALIGNMENT_CENTER, 820)
+
+func _draw_leaderboard() -> void:
+    draw_rect(Rect2(0,0,1280,720), Color("03141f"), true)
+    draw_circle(Vector2(180,120), 110, Color(0.2,0.75,0.55,0.08))
+    draw_circle(Vector2(1100,600), 170, Color(0.5,0.3,0.8,0.07))
+    _text(Vector2(640,70), "LOCAL MARSH LEADERS", 42, Color("f7d36a"), HORIZONTAL_ALIGNMENT_CENTER, 850)
+    _text(Vector2(640,112), "Offline scores on this Windows owner build", 17, Color("d9f4e2"), HORIZONTAL_ALIGNMENT_CENTER, 760)
+    draw_rect(Rect2(260,145,760,450), Color(0.01,0.07,0.10,0.90), true)
+    draw_rect(Rect2(260,145,760,450), Color("70d6c2"), false, 3)
+    _text(Vector2(300,180), "RANK", 16, Color("b9f5c7"), HORIZONTAL_ALIGNMENT_LEFT, 90)
+    _text(Vector2(420,180), "PLAYER", 16, Color("b9f5c7"), HORIZONTAL_ALIGNMENT_LEFT, 250)
+    _text(Vector2(720,180), "LEVEL", 16, Color("b9f5c7"), HORIZONTAL_ALIGNMENT_LEFT, 100)
+    _text(Vector2(880,180), "SCORE", 16, Color("b9f5c7"), HORIZONTAL_ALIGNMENT_LEFT, 110)
+    var entries := leaderboard.load_entries()
+    if entries.is_empty():
+        _text(Vector2(640,350), "Complete a level to place Fred on the board!", 22, Color.WHITE, HORIZONTAL_ALIGNMENT_CENTER, 650)
+    else:
+        for index in mini(entries.size(), 8):
+            var entry: Dictionary = entries[index]
+            var y := 225.0 + float(index) * 43.0
+            draw_rect(Rect2(282,y-25,716,36), Color(0.2,0.7,0.6,0.06 if index % 2 == 0 else 0.11), true)
+            _text(Vector2(315,y), "#%d" % (index+1), 17, Color.WHITE, HORIZONTAL_ALIGNMENT_LEFT, 80)
+            _text(Vector2(420,y), str(entry.get("player","GUEST FROG")), 17, Color.WHITE, HORIZONTAL_ALIGNMENT_LEFT, 250)
+            _text(Vector2(740,y), "%03d" % int(entry.get("level",1)), 17, Color.WHITE, HORIZONTAL_ALIGNMENT_LEFT, 90)
+            _text(Vector2(875,y), str(entry.get("score",0)), 17, Color("fff0ae"), HORIZONTAL_ALIGNMENT_LEFT, 110)
+    _button(Rect2(490,620,300,55), "HOME")
+    _text(Vector2(640,704), "Secure shared/cloud leaderboards remain a later authenticated backend gate.", 13, Color("bfd8dc"), HORIZONTAL_ALIGNMENT_CENTER, 900)
 
 func _button(rect: Rect2, label: String) -> void:
     draw_rect(rect, Color("e9b949"), true); draw_rect(rect, Color("fff0ae"), false, 3)

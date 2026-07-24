@@ -66,6 +66,7 @@ func _run() -> void:
 	check(identity.state == FredPlayerIdentity.State.OFFLINE, "account setup remains skippable")
 
 	var game: Node2D = load("res://scripts/main.gd").new()
+	game.countdown_enabled = false
 	game.saver = FredSaveAdapter.new("user://m2_progression_test")
 	root.add_child(game)
 	await process_frame
