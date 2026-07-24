@@ -234,7 +234,7 @@ func _request_dive() -> bool:
     if accepted:
         _set_feedback("[DIVING] Hold your course while Fred descends.")
     elif depth.state == DepthTraversal.State.SURFACE and not allowed:
-        _set_feedback("[DIVE BLOCKED] Move away from a perch into open water.")
+        _set_feedback("[DIVE BLOCKED] Move into open water.")
     return accepted
 
 func _request_surface() -> bool:
