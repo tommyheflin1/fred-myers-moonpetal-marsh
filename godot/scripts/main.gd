@@ -51,6 +51,7 @@ var camera_follow: RefCounted = CameraFollow.new()
 var leaderboard := FredLocalLeaderboard.new()
 var menu_music: AudioStreamPlayer
 var chase_music: AudioStreamPlayer
+var audio_enabled := true
 var countdown_seconds := 0.0
 var countdown_enabled := true
 var fairy_collected := false
@@ -65,6 +66,54 @@ var touch_controls_visible := false
 var touch_contacts: Dictionary = {}
 var touch_movement := Vector2.ZERO
 var touch_boost := false
+var application_backgrounded := false
+
+func _notification(what: int) -> void:
+    match what:
+        NOTIFICATION_APPLICATION_PAUSED:
+            _handle_application_paused()
+        NOTIFICATION_APPLICATION_RESUMED:
+            _handle_application_resumed()
+        NOTIFICATION_WM_GO_BACK_REQUEST:
+            if _handle_back_request() == "quit" and get_tree() != null:
+                get_tree().quit()
+
+func _handle_application_paused() -> void:
+    if application_backgrounded:
+        return
+    application_backgrounded = true
+    touch_contacts.clear()
+    _refresh_touch_holds()
+    _fixed_accumulator = 0.0
+    if screen == Screen.PLAYING:
+        session.paused = true
+        _save("[PAUSED] Fred is safe while the app is in the background.")
+
+func _handle_application_resumed() -> void:
+    if not application_backgrounded:
+        return
+    application_backgrounded = false
+    touch_contacts.clear()
+    _refresh_touch_holds()
+    _fixed_accumulator = 0.0
+    if screen == Screen.PLAYING:
+        session.paused = true
+        _set_feedback("[PAUSED] Fred is safe. Tap RESUME when you are ready.")
+
+func _handle_back_request() -> String:
+    touch_contacts.clear()
+    _refresh_touch_holds()
+    if screen == Screen.PLAYING:
+        if session.paused:
+            _go_home()
+            return "home"
+        session.paused = true
+        _save("[PAUSED] Press Back again to return home.")
+        return "paused"
+    if screen == Screen.TITLE:
+        return "quit"
+    _go_home()
+    return "home"
 
 func _ready() -> void:
     if "--reduced-motion" in OS.get_cmdline_user_args():
@@ -84,8 +133,9 @@ func _ready() -> void:
     _set_feedback(FredSaveFeedback.load_message(result))
     menu_music = AudioStreamPlayer.new()
     chase_music = AudioStreamPlayer.new()
-    menu_music.stream = load("res://assets/audio/the_marshland_march.mp3")
-    chase_music.stream = load("res://assets/audio/marshland_chase.mp3")
+    if audio_enabled:
+        menu_music.stream = load("res://assets/audio/the_marshland_march.mp3")
+        chase_music.stream = load("res://assets/audio/marshland_chase.mp3")
     title_art = load("res://assets/art/moonpetal-title-fred-v2.png")
     gameplay_art = load("res://assets/art/moonpetal-gameplay-marsh-v1.png")
     menu_music.volume_db = -8.0
@@ -182,6 +232,10 @@ func _fixed_tick(delta: float) -> void:
 
 func _sync_music() -> void:
     if not is_instance_valid(menu_music) or not is_instance_valid(chase_music):
+        return
+    if not audio_enabled:
+        menu_music.stop()
+        chase_music.stop()
         return
     var wants_menu := screen in [Screen.TITLE, Screen.LEADERBOARD]
     if wants_menu:

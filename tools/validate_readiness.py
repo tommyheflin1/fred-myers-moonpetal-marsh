@@ -13,6 +13,7 @@ REQUIRED = [
     "docs/EVIDENCE_REPORT.md",
     "godot/CORE_VERSION",
     "godot/project.godot",
+    "godot/export_presets.cfg",
     "godot/scenes/main.tscn",
     "godot/scenes/fred_rig.tscn",
     "godot/scripts/adventure_session.gd",
@@ -35,11 +36,15 @@ REQUIRED = [
     "godot/tests/run_animation_coordinator.gd",
     "godot/tests/run_fred_rig.gd",
     "godot/tests/run_marsh_visual_uplift.gd",
+    "godot/tests/run_android_readiness.gd",
     "docs/M2_PROGRESSION_IDENTITY_FOUNDATION.md",
     "docs/M2_CAMERA_FOLLOW_REPORT.md",
     "docs/M2_LOCOMOTION_ANIMATION_REPORT.md",
     "docs/M2_AUTHORED_FRED_RIG_REPORT.md",
     "docs/M2_MARSH_VISUAL_UPLIFT_REPORT.md",
+    "docs/M2_ANDROID_DEVELOPMENT_EXPORT_REPORT.md",
+    "tools/validate_android_export.py",
+    "tools/inspect_android_apk.py",
 ]
 
 FIXTURES = {

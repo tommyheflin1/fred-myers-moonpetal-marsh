@@ -19,6 +19,7 @@ jobs:
         with:
           python-version: '3.13'
       - run: python tools/validate_readiness.py
+      - run: python tools/validate_android_export.py
       - name: Download official Godot 4.7.1
         run: |
           curl --fail --location --output godot.zip https://github.com/godotengine/godot/releases/download/4.7.1-stable/Godot_v4.7.1-stable_linux.x86_64.zip
@@ -56,6 +57,8 @@ jobs:
         run: ./Godot_v4.7.1-stable_linux.x86_64 --headless --path godot --script res://tests/run_fred_rig.gd
       - name: Run M2 marsh visual, tongue assist, life stacking and touch tests
         run: ./Godot_v4.7.1-stable_linux.x86_64 --headless --path godot --script res://tests/run_marsh_visual_uplift.gd
+      - name: Run Android lifecycle and touch readiness tests
+        run: ./Godot_v4.7.1-stable_linux.x86_64 --headless --path godot --script res://tests/run_android_readiness.gd
       - name: Verify exact Core agreement
         run: |
           test "$(cat godot/CORE_VERSION)" = "0.5.1"

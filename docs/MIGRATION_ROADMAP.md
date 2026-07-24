@@ -39,6 +39,14 @@ three starting lives with stackable tenth-level fairies through a bounded
 `InputEventScreenTouch` control routing. Save v1 and Core stay unchanged.
 Physical iOS/Android acceptance and final art remain future gates.
 
+The same local descendant now includes the development-only Android export
+and lifecycle contract documented in `M2_ANDROID_DEVELOPMENT_EXPORT_REPORT.md`.
+The APK identity, signing class, architectures, permissions and contents are
+verified, and all deterministic suites remain green. The isolated API 35
+SwiftShader emulator could launch the app but could not link Godot's built-in
+canvas shader, so mobile presentation and actual touch gameplay remain
+explicitly unverified. No platform-hardening score or M013 credit is awarded.
+
 ## M1 sequencing
 
 1. Expand the repository source tree and retain the legacy build under `legacy-web/` or a tagged legacy branch.

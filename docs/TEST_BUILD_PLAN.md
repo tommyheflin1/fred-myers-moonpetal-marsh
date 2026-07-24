@@ -33,3 +33,12 @@ Windows Phone has no current Microsoft mobile store target in this toolchain. Tr
 ## Current reproducibility
 
 The live browser prototype is publicly reproducible as a playable reference and the local Sites checkout has a locked JavaScript dependency graph, but GitHub currently stores it as a source zip rather than a normal source tree. The Godot target is not yet reproducible beyond parsing the minimal project scaffold because the Core add-on, main scene, tests, and export presets intentionally await implementation milestone 1.
+
+The local M2 candidate now has a reproducible development-only Android debug
+APK preset for arm64 and x86_64, static export checks, APK identity/security
+inspection, and lifecycle/touch regression coverage. The exact APK installs
+and launches on the isolated API 35 AVD, but the tested SwiftShader GLES3
+renderer cannot link Godot 4.7.1's built-in canvas shader. Treat Android
+presentation, actual touch gameplay, safe areas, performance, and lifecycle
+relaunch as unverified until repeated on a compatible emulator renderer or
+physical Android device. This does not change the physical-QA or release gate.
