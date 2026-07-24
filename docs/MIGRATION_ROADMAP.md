@@ -31,6 +31,14 @@ remains synthetic. This evidence does not change milestone percentages or
 replace owner physical-control acceptance. The review branches remain
 unpushed while the configured GitHub repository is reported public.
 
+An additional isolated descendant adds the evidence-backed in-play marsh
+uplift documented in `M2_MARSH_VISUAL_UPLIFT_REPORT.md`: dimensional
+environment/prey/predator presentation, a 96-pixel close-prey tongue assist,
+three starting lives with stackable tenth-level fairies through a bounded
+13-life campaign maximum, level-to-level life carryover, and real
+`InputEventScreenTouch` control routing. Save v1 and Core stay unchanged.
+Physical iOS/Android acceptance and final art remain future gates.
+
 ## M1 sequencing
 
 1. Expand the repository source tree and retain the legacy build under `legacy-web/` or a tagged legacy branch.
@@ -55,7 +63,13 @@ unpushed while the configured GitHub repository is reported public.
 
 ## Missing asset manifest
 
-Final Fred asset polish beyond the current authored vector rig; lily pads/reeds/pond banks/holes; underwater terrain; bugs/fireflies; Sunken Acorn and Moonpetal; heron, snake, pike, bass models/animations; water/underwater materials; UI icons/fonts; VFX; music; ambience; locomotion/eating/predator/UI audio; app/store icon and promotional art. Current environment canvas drawings and emoji are references, not shippable assets.
+Final Fred asset polish beyond the current authored vector rig and review-stage
+marsh background; production lily pads/reeds/pond banks/holes; underwater
+terrain; final bugs/fireflies; Sunken Acorn; final heron, snake, pike and bass
+models/animations; production water/underwater materials; UI icons/fonts; VFX;
+ambience; locomotion/eating/predator/UI audio; app/store icon and promotional
+art. Current generated background and Fred-owned vector drawings are improved
+owner-review assets, not a final-art claim.
 
 ## Readiness scoring
 

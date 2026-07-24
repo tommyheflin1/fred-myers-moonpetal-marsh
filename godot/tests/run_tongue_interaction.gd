@@ -73,6 +73,18 @@ func _run() -> void:
     selected = tongue.request(origin, Vector2.RIGHT, [candidate("bug:outside", outside_cone)])
     check(str(selected.outcome) == "miss", "target beyond cone boundary is a miss")
     tongue.advance(TongueTargeting.COOLDOWN_SECONDS)
+    selected = tongue.request(origin, Vector2.RIGHT, [candidate("bug:close-behind", origin + Vector2(-TongueTargeting.PROXIMITY_ASSIST_RANGE, 0))])
+    check(str(selected.target_id) == "bug:close-behind", "close prey at the assist boundary is captured regardless of aim cone")
+    tongue.advance(TongueTargeting.COOLDOWN_SECONDS)
+    selected = tongue.request(origin, Vector2.RIGHT, [candidate("bug:outside-assist", origin + Vector2(-TongueTargeting.PROXIMITY_ASSIST_RANGE - 0.1, 0))])
+    check(str(selected.outcome) == "miss", "prey behind Fred and beyond close assist still requires aiming")
+    tongue.advance(TongueTargeting.COOLDOWN_SECONDS)
+    selected = tongue.request(origin, Vector2.RIGHT, [
+        candidate("bug:aimed-far", origin + Vector2(160, 0)),
+        candidate("bug:close-side", origin + Vector2(0, 75)),
+    ])
+    check(str(selected.target_id) == "bug:close-side", "close assist consistently prioritizes nearby prey over a distant cone target")
+    tongue.advance(TongueTargeting.COOLDOWN_SECONDS)
     selected = tongue.request(origin, Vector2.RIGHT, [candidate("bug:max", origin + Vector2(TongueTargeting.MAX_RANGE, 0))])
     check(str(selected.target_id) == "bug:max", "maximum-range boundary remains eligible")
     tongue.advance(TongueTargeting.COOLDOWN_SECONDS)
@@ -181,18 +193,22 @@ func _run() -> void:
     game.session.health = 3
     game.fred = game._fairy_position() - Vector2(100, 0)
     game.tongue.reset()
-    var capped_fairy: Dictionary = game._request_tongue(Vector2.RIGHT)
-    check(str(capped_fairy.outcome) == "blocked" and str(capped_fairy.reason) == "life_cap", "fairy is ineligible at the three-life cap")
-    check(not game.fairy_collected and game.session.health == 3, "capped fairy is not consumed or duplicated")
-    game.tongue.advance(TongueTargeting.COOLDOWN_SECONDS)
-    game.session.health = 2
-    var fairy_hit: Dictionary = game._request_tongue(Vector2.RIGHT)
-    check(str(fairy_hit.target_kind) == "fairy" and game.fairy_collected, "level-ten fairy is eaten through the aimed tongue")
-    check(game.session.health == 3, "fairy tongue capture restores exactly one life capped at three")
+    var stacking_fairy: Dictionary = game._request_tongue(Vector2.RIGHT)
+    check(str(stacking_fairy.outcome) == "hit" and str(stacking_fairy.target_kind) == "fairy", "level-ten fairy remains eligible at three lives")
+    check(game.fairy_collected and game.session.health == 4, "level-ten fairy stacks a fourth life")
     check(game.save_feedback.begins_with("[FAIRY FEAST]"), "fairy capture has child-friendly explicit feedback")
     game.tongue.advance(TongueTargeting.COOLDOWN_SECONDS)
+    var fairy_hit: Dictionary = game._request_tongue(Vector2.RIGHT)
+    check(str(fairy_hit.outcome) == "miss" and game.fairy_collected, "collected fairy disappears from the tongue target list")
+    check(game.session.health == 4, "fairy tongue capture grants exactly one stacking life")
+    game.tongue.advance(TongueTargeting.COOLDOWN_SECONDS)
     var fairy_repeat: Dictionary = game._request_tongue(Vector2.RIGHT)
-    check(str(fairy_repeat.outcome) == "miss" and game.session.health == 3, "single-use fairy cannot grant a duplicate life")
+    check(str(fairy_repeat.outcome) == "miss" and game.session.health == 4, "single-use fairy cannot grant a duplicate life")
+    game.fairy_collected = false
+    game.session.health = AdventureSession.MAX_LIVES
+    game.tongue.reset()
+    var campaign_cap: Dictionary = game._request_tongue(Vector2.RIGHT)
+    check(str(campaign_cap.outcome) == "blocked" and str(campaign_cap.reason) == "campaign_life_limit", "only the bounded campaign maximum blocks a fairy")
 
     game.level_number = 1
     game.level_profile = FredLevelIntensity.profile(1)
@@ -221,6 +237,19 @@ func _run() -> void:
     check(FredInputIntent.event_to_intent(touch_event) == FredInputIntent.Intent.INTERACT, "synthetic touch action maps to interact intent")
     game._unhandled_input(touch_event)
     check(1 in game.collected, "synthetic touch adapter invokes the shared tongue mechanic")
+
+    game.tongue.reset()
+    game.collected.erase(1)
+    game.fred = game._bug_position(1) + Vector2(TongueTargeting.PROXIMITY_ASSIST_RANGE - 1.0, 0)
+    var screen_touch := InputEventScreenTouch.new()
+    screen_touch.index = 7
+    screen_touch.position = Vector2(1135,500)
+    screen_touch.pressed = true
+    game._unhandled_input(screen_touch)
+    check(1 in game.collected and game.touch_controls_visible, "real screen-touch MUNCH control uses close-range tongue assist")
+    screen_touch.pressed = false
+    game._unhandled_input(screen_touch)
+    check(game.touch_contacts.is_empty(), "screen-touch release clears held mobile input state")
 
     game.tongue.reset()
     game.fred = game._bug_position(2) - Vector2(100, 0)

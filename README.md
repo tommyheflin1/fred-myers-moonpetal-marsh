@@ -41,6 +41,7 @@ This repository owns Fred gameplay. Core owns only reusable, game-neutral servic
 - [M2 camera follow evidence](docs/M2_CAMERA_FOLLOW_REPORT.md)
 - [M2 locomotion animation evidence](docs/M2_LOCOMOTION_ANIMATION_REPORT.md)
 - [M2 authored Fred rig evidence](docs/M2_AUTHORED_FRED_RIG_REPORT.md)
+- [M2 marsh visual, tongue, lives, and touch evidence](docs/M2_MARSH_VISUAL_UPLIFT_REPORT.md)
 
 ## Godot M1 foundation
 

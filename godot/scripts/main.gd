@@ -55,15 +55,26 @@ var countdown_seconds := 0.0
 var countdown_enabled := true
 var fairy_collected := false
 var title_art: Texture2D
+var gameplay_art: Texture2D
 var tongue: RefCounted = TongueTargeting.new()
 var last_aim_direction := Vector2.RIGHT
 var boost: RefCounted = BoostLocomotion.new()
 var animation: RefCounted = AnimationCoordinator.new()
 var fred_rig: Node2D
+var touch_controls_visible := false
+var touch_contacts: Dictionary = {}
+var touch_movement := Vector2.ZERO
+var touch_boost := false
 
 func _ready() -> void:
     if "--reduced-motion" in OS.get_cmdline_user_args():
         reduced_motion = true
+    if DisplayServer.is_touchscreen_available() or "--show-touch-controls" in OS.get_cmdline_user_args():
+        touch_controls_visible = true
+    if "--owner-review-medium" in OS.get_cmdline_user_args():
+        get_window().title = "Fred Myers - Marsh Uplift 960 Review"
+    elif "--owner-review-build" in OS.get_cmdline_user_args():
+        get_window().title = "Fred Myers - Marsh Uplift Owner Review"
     fred_rig = FredRigScene.instantiate()
     add_child(fred_rig)
     if not fred_rig.validate_contract():
@@ -76,6 +87,7 @@ func _ready() -> void:
     menu_music.stream = load("res://assets/audio/the_marshland_march.mp3")
     chase_music.stream = load("res://assets/audio/marshland_chase.mp3")
     title_art = load("res://assets/art/moonpetal-title-fred-v2.png")
+    gameplay_art = load("res://assets/art/moonpetal-gameplay-marsh-v1.png")
     menu_music.volume_db = -8.0
     chase_music.volume_db = -7.0
     add_child(menu_music)
@@ -110,7 +122,7 @@ func _fixed_tick(delta: float) -> void:
             return
         _set_feedback("[GO!] Leap into the marsh!")
     tongue.advance(delta)
-    var direction := FredInputIntent.movement()
+    var direction := FredInputIntent.movement() + touch_movement
     if Input.is_key_pressed(KEY_A) or Input.is_key_pressed(KEY_LEFT): direction.x -= 1.0
     if Input.is_key_pressed(KEY_D) or Input.is_key_pressed(KEY_RIGHT): direction.x += 1.0
     if Input.is_key_pressed(KEY_W) or Input.is_key_pressed(KEY_UP): direction.y -= 1.0
@@ -125,7 +137,7 @@ func _fixed_tick(delta: float) -> void:
     var boost_allowed: bool = not depth.is_transitioning() and not tongue.is_busy() and leap.state != LeapTraversal.State.LANDING
     var boost_moving: bool = direction != Vector2.ZERO or leap.state == LeapTraversal.State.AIRBORNE
     var boost_step: Dictionary = boost.advance(
-        FredInputIntent.held(FredInputIntent.Intent.BOOST),
+        FredInputIntent.held(FredInputIntent.Intent.BOOST) or touch_boost,
         boost_moving,
         boost_allowed,
         session.boost_energy
@@ -201,8 +213,8 @@ func _tongue_candidates() -> Array[Dictionary]:
             "id": "fairy:%03d" % level_number,
             "kind": "fairy",
             "position": _fairy_position(),
-            "eligible": session.health < 3,
-            "blocked_reason": "life_cap",
+            "eligible": session.health < AdventureSession.MAX_LIVES,
+            "blocked_reason": "campaign_life_limit",
         })
     return candidates
 
@@ -234,12 +246,12 @@ func _request_tongue(requested_aim: Vector2) -> Dictionary:
                 tongue.blocked_reason = "stale_target"
                 _set_feedback("[TONGUE BLOCKED] That target already moved away.")
         "blocked":
-            if str(result.get("reason", "")) == "life_cap":
-                _set_feedback("[LIVES FULL] Fred already has all three lives.")
+            if str(result.get("reason", "")) == "campaign_life_limit":
+                _set_feedback("[LIVES FULL] Fred reached the campaign life limit.")
             else:
                 _set_feedback("[TONGUE BLOCKED] That target cannot be eaten now.")
         _:
-            _set_feedback("[TONGUE MISS] No edible target in Fred's aim cone.")
+            _set_feedback("[TONGUE MISS] Move within the glow or aim toward edible prey.")
     return result
 
 func _consume_tongue_target(target_id: String, target_kind: String) -> bool:
@@ -415,6 +427,12 @@ func _resolve_landing() -> bool:
     return false
 
 func _unhandled_input(event: InputEvent) -> void:
+    if event is InputEventScreenTouch:
+        _handle_touch(event.index, event.position, event.pressed)
+        return
+    if event is InputEventScreenDrag:
+        _move_touch(event.index, event.position)
+        return
     if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
         _handle_click(event.position)
     if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_RIGHT and event.pressed and screen == Screen.PLAYING:
@@ -452,6 +470,72 @@ func _unhandled_input(event: InputEvent) -> void:
                 if screen == Screen.TITLE: _start()
                 elif screen == Screen.COMPLETE: _advance_level()
 
+func _handle_touch(index: int, position: Vector2, pressed: bool) -> void:
+    touch_controls_visible = true
+    if not pressed:
+        touch_contacts.erase(index)
+        _refresh_touch_holds()
+        return
+    if screen != Screen.PLAYING:
+        _handle_click(position)
+        return
+    var action := _touch_action_at(position)
+    touch_contacts[index] = action
+    _refresh_touch_holds()
+    match action:
+        "tongue":
+            _request_tongue(last_aim_direction)
+        "leap":
+            _request_leap(touch_movement if touch_movement != Vector2.ZERO else last_aim_direction)
+        "depth":
+            if depth.state == DepthTraversal.State.SURFACE:
+                _request_dive()
+            else:
+                _request_surface()
+        "pause":
+            session.paused = not session.paused
+            _set_feedback("[PAUSED] Your last checkpoint is safe." if session.paused else "[PLAYING] Adventure resumed.")
+        "":
+            _request_leap(position - fred)
+
+func _move_touch(index: int, position: Vector2) -> void:
+    if not touch_contacts.has(index):
+        return
+    touch_contacts[index] = _touch_action_at(position)
+    _refresh_touch_holds()
+
+func _touch_action_at(position: Vector2) -> String:
+    if Rect2(1120,20,120,65).has_point(position):
+        return "pause"
+    if position.x < 340.0 and position.y > 410.0:
+        var delta := position - Vector2(170,565)
+        if delta.length() <= 150.0:
+            if absf(delta.x) > absf(delta.y):
+                return "right" if delta.x >= 0.0 else "left"
+            return "down" if delta.y >= 0.0 else "up"
+    var buttons := {
+        "tongue": Vector2(1135,500),
+        "leap": Vector2(1035,605),
+        "depth": Vector2(930,505),
+        "boost": Vector2(1175,625),
+    }
+    for action: String in buttons:
+        if position.distance_to(Vector2(buttons[action])) <= 64.0:
+            return action
+    return ""
+
+func _refresh_touch_holds() -> void:
+    touch_movement = Vector2.ZERO
+    touch_boost = false
+    for value: Variant in touch_contacts.values():
+        match str(value):
+            "left": touch_movement.x -= 1.0
+            "right": touch_movement.x += 1.0
+            "up": touch_movement.y -= 1.0
+            "down": touch_movement.y += 1.0
+            "boost": touch_boost = true
+    touch_movement = touch_movement.normalized()
+
 func _handle_click(position: Vector2) -> void:
     if screen == Screen.TITLE and Rect2(475,468,330,66).has_point(position): _start()
     elif screen == Screen.TITLE and Rect2(475,548,330,50).has_point(position):
@@ -479,6 +563,8 @@ func _start() -> void:
     tongue.reset()
     boost.reset()
     animation.reset()
+    touch_contacts.clear()
+    _refresh_touch_holds()
     _sync_music()
     fred = Vector2(630,390) if session.current_checkpoint == AdventureSession.CHECKPOINTS[1] else START
     _reset_camera()
@@ -495,6 +581,8 @@ func _retry() -> void:
     tongue.reset()
     boost.reset()
     animation.reset()
+    touch_contacts.clear()
+    _refresh_touch_holds()
     session.set_underwater(false)
     fred = START
     _reset_camera()
@@ -512,6 +600,8 @@ func _go_home() -> void:
     tongue.reset()
     boost.reset()
     animation.reset()
+    touch_contacts.clear()
+    _refresh_touch_holds()
     countdown_seconds = 0.0
     screen = Screen.TITLE
     _reset_camera()
@@ -519,9 +609,13 @@ func _go_home() -> void:
     _set_feedback("[HOME] Welcome back to Moonpetal Marsh.")
 
 func _advance_level() -> void:
+    var carried_lives := session.health
+    var carried_energy := session.boost_energy
     level_number = mini(FredLevelIntensity.MAX_LEVEL, level_number + 1)
     level_profile = FredLevelIntensity.profile(level_number)
     session = AdventureSession.new(1337 + level_number)
+    session.health = clampi(carried_lives, 1, AdventureSession.MAX_LIVES)
+    session.boost_energy = clampi(carried_energy, 0, 100)
     fred = START
     predator = PREDATOR_START + Vector2(-25.0 * float((level_number - 1) % 4), 0)
     collected.clear()
@@ -534,6 +628,8 @@ func _advance_level() -> void:
     tongue.reset()
     boost.reset()
     animation.reset()
+    touch_contacts.clear()
+    _refresh_touch_holds()
     fairy_collected = false
     countdown_seconds = 5.0 if countdown_enabled else 0.0
     _reset_camera()
@@ -686,10 +782,15 @@ func _draw_title_legacy() -> void:
 func _draw_level() -> void:
     var visual := FredVisualState.snapshot(visual_time, reduced_motion)
     var water := Color("075c78").lerp(Color("07334f"), float(depth.depth))
-    draw_rect(Rect2(26,76,1228,618), Color("03131c"), true)
-    draw_rect(Rect2(35,85,1210,600), water, true)
+    draw_rect(Rect2(22,72,1236,626), Color("020b12"), true)
+    if is_instance_valid(gameplay_art):
+        draw_texture_rect(gameplay_art, Rect2(35,85,1210,600), false)
+    else:
+        draw_rect(Rect2(35,85,1210,600), water, true)
+    draw_rect(Rect2(35,85,1210,600), Color(water, 0.15 + float(depth.depth) * 0.26), true)
     draw_rect(Rect2(35,85,1210,600), Color("8be8e1"), false, 3)
-    draw_rect(Rect2(35,85,1210,120), Color(0.2,0.75,0.85,0.08), true)
+    draw_rect(Rect2(39,89,1202,592), Color(0.01,0.08,0.11,0.20), false, 2)
+    draw_rect(Rect2(35,85,1210,118), Color(0.42,0.90,0.92,0.07), true)
     _draw_depth_cues()
     for glow in [Vector2(180,155), Vector2(530,260), Vector2(1020,420)]:
         draw_circle(glow, 95, Color(0.2,0.85,0.78,0.035))
@@ -706,28 +807,25 @@ func _draw_level() -> void:
         var pad: Vector2 = _pad_position(index)
         var pad_bob := FredVisualState.wave(visual_time, float(index) * 0.65, 3.0, reduced_motion)
         var drawn_pad: Vector2 = pad + Vector2(0,pad_bob)
-        draw_circle(drawn_pad + Vector2(0,5), 45, Color(0.01,0.12,0.12,0.3))
-        draw_circle(drawn_pad, 43, Color("3d9a5a")); draw_arc(drawn_pad, 43, 0, TAU, 32, Color("a7df78"), 2)
-        draw_line(drawn_pad, drawn_pad+Vector2(35,-18), Color("c4eb8b"), 5)
-        for vein_angle in [-0.55, 0.0, 0.55]:
-            draw_line(drawn_pad + Vector2(3,0), drawn_pad + Vector2.from_angle(vein_angle) * 28.0, Color(0.72,0.93,0.55,0.42), 2)
+        _draw_lily_pad(drawn_pad, index)
     var safe_radius := float(level_profile.safe_radius)
-    draw_circle(SAFE_LOCATION, safe_radius + 7, Color(0.02,0.08,0.08,0.35))
-    draw_circle(SAFE_LOCATION, safe_radius, Color("183f31"))
-    draw_arc(SAFE_LOCATION, safe_radius, 0, TAU, 32, Color("8fe5a2"), 2)
-    _text(SAFE_LOCATION+Vector2(0,7), "SAFE", 16, Color("b9f5c7"), HORIZONTAL_ALIGNMENT_CENTER, 100)
+    _draw_safe_island(SAFE_LOCATION, safe_radius)
     for index in BUGS.size():
         if index not in collected:
             _draw_bug(_bug_position(index), index, float(visual.wildlife_flutter))
     if _fairy_available():
         _draw_fairy(_fairy_position())
+    var assisted_target := _nearest_assisted_target()
+    if not assisted_target.is_empty() and tongue.is_ready():
+        var assisted_position := Vector2(assisted_target.position)
+        draw_arc(assisted_position, 29, 0, TAU, 24, Color("ffe980"), 3)
+        _text(assisted_position + Vector2(0,-35), "[F] MUNCH", 12, Color("fff5b0"), HORIZONTAL_ALIGNMENT_CENTER, 110)
     var predator_names := ["BASS", "PIKE", "HERON", "SNAKE", "MUSKIE"]
     var active_positions := _active_predator_positions()
     for index in active_positions.size():
         _draw_predator(active_positions[index], predator_names[index])
     var exit_radius := 45.0 * float(visual.exit_pulse)
-    draw_circle(EXIT, exit_radius + 5, Color(0.9,0.8,1.0,0.16)); draw_circle(EXIT, exit_radius, Color("d49cff"))
-    _text(EXIT+Vector2(0,6), "EXIT", 15, Color("321c45"), HORIZONTAL_ALIGNMENT_CENTER, 90)
+    _draw_moonpetal_exit(EXIT, exit_radius)
     var fred_draw_position := fred - Vector2(0,leap.visual_height)
     var animation_pose: Dictionary = animation.pose()
     fred_rig.apply_pose(animation_pose, float(depth.depth))
@@ -752,12 +850,101 @@ func _draw_level() -> void:
     _text(Vector2(890,75), "NEW: %s  |  THREATS %d" % [str(level_profile.new_twist).to_upper(), int(level_profile.predator_count)], 13, Color("fff0ae"), HORIZONTAL_ALIGNMENT_LEFT, 350)
     draw_rect(Rect2(330,10,560,52), Color("06151f"), true); draw_rect(Rect2(330,10,560,52), Color("e8fbff"), false, 2)
     _text(Vector2(350,43), "OBJECTIVE: " + ("Reach the moonpetal exit" if session.bug_count >= 3 else "Collect 3 marsh bugs"), 19, Color("e8fbff"), HORIZONTAL_ALIGNMENT_LEFT, 520)
-    _text(Vector2(45,710), "Bugs %d/3   Health %s   %s %d%%   %s   %s" % [session.bug_count, "♥".repeat(session.health), depth.cue(), roundi(float(depth.depth) * 100.0), tongue.cue(), boost.cue()], 17, Color.WHITE, HORIZONTAL_ALIGNMENT_LEFT, 850)
+    _text(Vector2(45,710), "BUGS %d/3   LIVES %d   %s %d%%   %s   %s" % [session.bug_count, session.health, depth.cue(), roundi(float(depth.depth) * 100.0), tongue.cue(), boost.cue()], 17, Color.WHITE, HORIZONTAL_ALIGNMENT_LEFT, 890)
     _draw_energy_meter()
-    _status_panel(Rect2(820,632,410,42), 16)
+    _status_panel(Rect2(355,632,470,42) if touch_controls_visible else Rect2(820,632,410,42), 16)
     _button(Rect2(1120,20,120,48), "PAUSE")
+    if touch_controls_visible:
+        _draw_touch_controls()
     if reduced_motion:
         _text(Vector2(1000,105), "[REDUCED MOTION]", 14, Color("e8fbff"), HORIZONTAL_ALIGNMENT_CENTER, 220)
+
+func _ellipse_points(center: Vector2, radii: Vector2, rotation: float, close: bool = false) -> PackedVector2Array:
+    var points := PackedVector2Array()
+    var count := 33 if close else 32
+    for step in range(count):
+        var angle := float(step % 32) * TAU / 32.0
+        points.append(center + Vector2(cos(angle) * radii.x, sin(angle) * radii.y).rotated(rotation))
+    return points
+
+func _draw_lily_pad(position: Vector2, index: int) -> void:
+    var rotation := sin(float(level_number * 7 + index * 19)) * 0.28
+    draw_colored_polygon(_ellipse_points(position + Vector2(7,10), Vector2(52,30), rotation), Color(0.005,0.025,0.035,0.52))
+    draw_arc(position + Vector2(2,7), 54, 0.18, PI - 0.18, 28, Color(0.55,0.92,0.93,0.18), 2)
+    draw_colored_polygon(_ellipse_points(position + Vector2(0,4), Vector2(48,29), rotation), Color("153f31"))
+    draw_colored_polygon(_ellipse_points(position, Vector2(48,29), rotation), Color("4ea85d"))
+    draw_colored_polygon(_ellipse_points(position + Vector2(-7,-5), Vector2(37,19), rotation), Color(0.55,0.88,0.45,0.20))
+    draw_polyline(_ellipse_points(position, Vector2(48,29), rotation, true), Color("a6df79"), 2.5, true)
+    var stem_direction := Vector2(42,-7).rotated(rotation)
+    draw_line(position, position + stem_direction, Color("c4eb8b"), 4)
+    for vein_angle in [-0.58, -0.28, 0.28, 0.58]:
+        var vein := Vector2(cos(rotation + vein_angle) * 32.0, sin(rotation + vein_angle) * 20.0)
+        draw_line(position + Vector2(2,0), position + vein, Color(0.82,0.96,0.63,0.50), 1.5)
+    draw_colored_polygon(PackedVector2Array([
+        position + Vector2(2,-1),
+        position + Vector2(51,-18).rotated(rotation),
+        position + Vector2(46,4).rotated(rotation),
+    ]), Color("123d3a"))
+    draw_circle(position + Vector2(-18,-8).rotated(rotation), 4, Color(0.86,0.98,0.68,0.52))
+    if index % 3 == 1:
+        for petal in range(6):
+            var petal_offset := Vector2.from_angle(float(petal) * TAU / 6.0) * 9.0
+            draw_circle(position + Vector2(-7,-8) + petal_offset, 7, Color("e4b7e8"))
+        draw_circle(position + Vector2(-7,-8), 6, Color("ffe17a"))
+
+func _draw_safe_island(position: Vector2, radius: float) -> void:
+    draw_colored_polygon(_ellipse_points(position + Vector2(5,9), Vector2(radius + 12, radius * 0.68), -0.08), Color(0.01,0.04,0.03,0.52))
+    draw_colored_polygon(_ellipse_points(position + Vector2(0,4), Vector2(radius + 7, radius * 0.65), -0.08), Color("3c4930"))
+    draw_colored_polygon(_ellipse_points(position, Vector2(radius, radius * 0.62), -0.08), Color("315d3b"))
+    draw_polyline(_ellipse_points(position, Vector2(radius, radius * 0.62), -0.08, true), Color("8fe5a2"), 2.5, true)
+    for tuft in range(5):
+        var base := position + Vector2(-radius * 0.62 + float(tuft) * radius * 0.31, 4)
+        draw_line(base, base + Vector2(-5,-18 - float(tuft % 2) * 6), Color("8abf67"), 3)
+        draw_line(base, base + Vector2(6,-21), Color("b1db79"), 2)
+    _text(position + Vector2(0,8), "SAFE PERCH", 13, Color("e7ffd8"), HORIZONTAL_ALIGNMENT_CENTER, 120)
+
+func _draw_moonpetal_exit(position: Vector2, radius: float) -> void:
+    draw_colored_polygon(_ellipse_points(position + Vector2(4,10), Vector2(radius + 10, (radius + 10) * 0.62), 0.0), Color(0.02,0.03,0.08,0.48))
+    draw_circle(position, radius + 8, Color(0.78,0.63,1.0,0.12))
+    for petal in range(8):
+        var angle := float(petal) * TAU / 8.0
+        var petal_center := position + Vector2.from_angle(angle) * radius * 0.48
+        draw_colored_polygon(_ellipse_points(petal_center, Vector2(radius * 0.47, radius * 0.20), angle), Color("d9b1ef"))
+        draw_polyline(_ellipse_points(petal_center, Vector2(radius * 0.47, radius * 0.20), angle, true), Color("f4ddff"), 1.5, true)
+    draw_circle(position, radius * 0.30, Color("ffe080"))
+    draw_circle(position + Vector2(-5,-5), radius * 0.10, Color("fff7c7"))
+    _text(position + Vector2(0,radius + 30), "MOONPETAL EXIT", 12, Color("f7e7ff"), HORIZONTAL_ALIGNMENT_CENTER, 150)
+
+func _nearest_assisted_target() -> Dictionary:
+    var nearest: Dictionary = {}
+    var nearest_distance := INF
+    for candidate: Dictionary in _tongue_candidates():
+        if not bool(candidate.get("eligible", true)):
+            continue
+        var position := Vector2(candidate.position)
+        var distance := fred.distance_to(position)
+        if distance <= TongueTargeting.PROXIMITY_ASSIST_RANGE and distance < nearest_distance:
+            nearest = candidate
+            nearest_distance = distance
+    return nearest
+
+func _draw_touch_controls() -> void:
+    var held: Array = touch_contacts.values()
+    var center := Vector2(170,565)
+    _draw_touch_button(center + Vector2(-60,0), 33, "<", "left" in held)
+    _draw_touch_button(center + Vector2(60,0), 33, ">", "right" in held)
+    _draw_touch_button(center + Vector2(0,-60), 33, "^", "up" in held)
+    _draw_touch_button(center + Vector2(0,60), 33, "v", "down" in held)
+    _draw_touch_button(Vector2(1135,500), 46, "MUNCH", "tongue" in held)
+    _draw_touch_button(Vector2(1035,605), 46, "LEAP", "leap" in held)
+    _draw_touch_button(Vector2(930,505), 43, "DEPTH", "depth" in held)
+    _draw_touch_button(Vector2(1175,625), 43, "BOOST", "boost" in held)
+
+func _draw_touch_button(center: Vector2, radius: float, label: String, active: bool) -> void:
+    var fill := Color(0.98,0.88,0.38,0.46) if active else Color(0.02,0.10,0.13,0.24)
+    draw_circle(center, radius, fill)
+    draw_arc(center, radius, 0, TAU, 28, Color(0.93,1.0,0.86,0.78), 2.0)
+    _text(center + Vector2(0,6), label, 12, Color("ffffff"), HORIZONTAL_ALIGNMENT_CENTER, radius * 1.8)
 
 func _draw_current_trails() -> void:
     if level_number < 2:
@@ -827,7 +1014,8 @@ func _draw_whirlpools() -> void:
         _text(center + Vector2(0,72), "WHIRLPOOL", 11, Color("cdefff"), HORIZONTAL_ALIGNMENT_CENTER, 110)
 
 func _draw_predator(position: Vector2, species: String) -> void:
-    draw_circle(position + Vector2(0,8), 44, Color(0.02,0.08,0.1,0.34))
+    draw_colored_polygon(_ellipse_points(position + Vector2(8,13), Vector2(55,22), 0.0), Color(0.005,0.025,0.035,0.48))
+    draw_arc(position + Vector2(0,7), 49, 0.2, PI - 0.2, 24, Color(0.60,0.90,0.94,0.16), 2)
     if species == "HERON":
         _draw_heron(position)
     elif species == "SNAKE":
@@ -856,12 +1044,17 @@ func _draw_fish(position: Vector2, species: String) -> void:
         position - Vector2(35.0 * facing, 0), position + Vector2(0, -27), nose,
         position + Vector2(0, 27)
     ]), body)
+    draw_colored_polygon(PackedVector2Array([
+        position - Vector2(26.0 * facing, 0), position + Vector2(-4.0 * facing, -20),
+        position + Vector2(25.0 * facing, -5), position + Vector2(15.0 * facing, 4)
+    ]), body.lightened(0.20))
     draw_arc(position, 27, 0, TAU, 28, Color("f2dfc7"), 2)
     for stripe in [-13.0, 0.0, 13.0]:
         draw_line(position + Vector2(stripe, -18), position + Vector2(stripe + 5, 18), body.darkened(0.28), 3)
     var eye := position + Vector2(22.0 * facing, -7)
     draw_circle(eye, 5, Color.WHITE)
     draw_circle(eye + Vector2(1.5 * facing, 0), 2.5, Color("172026"))
+    draw_line(position + Vector2(18.0 * facing,-18), position + Vector2(17.0 * facing,18), body.darkened(0.38), 2)
     draw_line(nose + Vector2(0, 7), nose - Vector2(9.0 * facing, -8), body.darkened(0.45), 2)
 
 func _draw_snake(position: Vector2) -> void:
@@ -871,6 +1064,7 @@ func _draw_snake(position: Vector2) -> void:
         var radius := 11.0 + sin(float(segment) * 0.6) * 1.5
         draw_circle(position + offset + Vector2(0,4), radius + 2.0, Color(0.03,0.08,0.05,0.32))
         draw_circle(position + offset, radius, body.darkened(float(segment % 2) * 0.12))
+        draw_arc(position + offset + Vector2(-2,-3), radius * 0.72, 3.4, 5.8, 8, Color(0.94,0.86,0.48,0.34), 2)
         draw_arc(position + offset, radius * 0.58, -2.7, -0.45, 8, Color("d6c36b"), 2)
         draw_circle(position + offset + Vector2(0,4), 2.5, Color("4f5f2d"))
     var head := position + Vector2(46, -4)
@@ -931,29 +1125,44 @@ func _draw_reeds(sway: float) -> void:
 
 func _draw_bug(position: Vector2, index: int, flutter: float) -> void:
     var wing := absf(flutter) + 5.0
-    draw_circle(position + Vector2(-9,-wing), 9, Color(0.92,0.98,1.0,0.56))
-    draw_circle(position + Vector2(9,-wing), 9, Color(0.92,0.98,1.0,0.56))
-    draw_circle(position + Vector2(-8,wing), 7, Color(0.92,0.98,1.0,0.45))
-    draw_circle(position + Vector2(8,wing), 7, Color(0.92,0.98,1.0,0.45))
-    draw_circle(position, 10, Color("eab23d"))
-    draw_circle(position + Vector2(0,-10), 6, Color("59401d"))
+    draw_colored_polygon(_ellipse_points(position + Vector2(7,20), Vector2(20,7), 0.0), Color(0.005,0.02,0.025,0.42))
+    draw_circle(position, 27, Color(0.98,0.82,0.28,0.055))
+    var left_wing := PackedVector2Array([
+        position + Vector2(-3,-4), position + Vector2(-23,-wing-7),
+        position + Vector2(-30,-wing+4), position + Vector2(-8,4),
+    ])
+    var right_wing := PackedVector2Array([
+        position + Vector2(3,-4), position + Vector2(23,-wing-7),
+        position + Vector2(30,-wing+4), position + Vector2(8,4),
+    ])
+    draw_colored_polygon(left_wing, Color(0.86,0.97,1.0,0.62))
+    draw_colored_polygon(right_wing, Color(0.86,0.97,1.0,0.62))
+    draw_polyline(PackedVector2Array([left_wing[0],left_wing[1],left_wing[2],left_wing[3],left_wing[0]]), Color(0.95,1.0,1.0,0.78), 1.5)
+    draw_polyline(PackedVector2Array([right_wing[0],right_wing[1],right_wing[2],right_wing[3],right_wing[0]]), Color(0.95,1.0,1.0,0.78), 1.5)
+    draw_line(position + Vector2(-5,-1), position + Vector2(-24,-wing+1), Color(0.63,0.82,0.85,0.56), 1)
+    draw_line(position + Vector2(5,-1), position + Vector2(24,-wing+1), Color(0.63,0.82,0.85,0.56), 1)
+    draw_colored_polygon(_ellipse_points(position + Vector2(0,4), Vector2(9,15), 0.0), Color("eab23d"))
+    draw_circle(position + Vector2(0,-10), 7, Color("59401d"))
+    draw_circle(position + Vector2(-2,-12), 2, Color("f9e7a6"))
     draw_line(position + Vector2(-3,-15), position + Vector2(-8,-22), Color("59401d"), 2)
     draw_line(position + Vector2(3,-15), position + Vector2(8,-22), Color("59401d"), 2)
-    draw_line(position + Vector2(-7,-2), position + Vector2(7,-2), Color("59401d"), 2)
-    draw_line(position + Vector2(-7,4), position + Vector2(7,4), Color("59401d"), 2)
+    for stripe_y in [-1.0, 5.0, 10.0]:
+        draw_line(position + Vector2(-7,stripe_y), position + Vector2(7,stripe_y), Color("59401d"), 2)
     _text(position+Vector2(0,30), "BUG %d" % (index + 1), 11, Color("fff7cb"), HORIZONTAL_ALIGNMENT_CENTER, 70)
 
 func _draw_fairy(position: Vector2) -> void:
     var flutter := 0.0 if reduced_motion else sin(visual_time * 5.0) * 5.0
-    draw_circle(position, 35, Color(0.92,0.84,1.0,0.10))
-    draw_circle(position, 24, Color(0.92,0.84,1.0,0.14))
-    draw_circle(position + Vector2(-15,-4-flutter), 13, Color(0.88,0.96,1.0,0.64))
-    draw_circle(position + Vector2(15,-4+flutter), 13, Color(0.88,0.96,1.0,0.64))
-    draw_circle(position, 9, Color("f8df67"))
+    draw_colored_polygon(_ellipse_points(position + Vector2(5,26), Vector2(25,8), 0.0), Color(0.01,0.02,0.05,0.36))
+    draw_circle(position, 44, Color(0.92,0.84,1.0,0.07))
+    draw_circle(position, 31, Color(0.92,0.84,1.0,0.12))
+    draw_colored_polygon(_ellipse_points(position + Vector2(-16,-5-flutter), Vector2(18,10), -0.55), Color(0.88,0.96,1.0,0.68))
+    draw_colored_polygon(_ellipse_points(position + Vector2(16,-5+flutter), Vector2(18,10), 0.55), Color(0.88,0.96,1.0,0.68))
+    draw_colored_polygon(_ellipse_points(position + Vector2(0,4), Vector2(8,16), 0.0), Color("f8df67"))
     draw_circle(position + Vector2(0,-11), 6, Color("fff4d5"))
+    draw_circle(position + Vector2(-2,-13), 2, Color("fffdf2"))
     draw_line(position + Vector2(0,8), position + Vector2(0,20), Color("f8df67"), 3)
     draw_line(position + Vector2(-8,11), position + Vector2(8,11), Color("f8df67"), 2)
-    _text(position+Vector2(0,46), "EXTRA LIFE FAIRY", 11, Color("fff0ae"), HORIZONTAL_ALIGNMENT_CENTER, 150)
+    _text(position+Vector2(0,50), "FAIRY  +1 STACKING LIFE", 11, Color("fff0ae"), HORIZONTAL_ALIGNMENT_CENTER, 190)
 
 func _draw_eating_effect(origin: Vector2, target: Vector2) -> void:
     var progress: float = 1.0 if reduced_motion else tongue.extension_ratio()

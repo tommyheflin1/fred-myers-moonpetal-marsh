@@ -4,6 +4,7 @@ extends RefCounted
 enum State { READY, EXTENDING, RECOVERING }
 
 const MAX_RANGE := 190.0
+const PROXIMITY_ASSIST_RANGE := 96.0
 const CONE_HALF_ANGLE_DEGREES := 42.0
 const CONE_COSINE := 0.7431448254773942
 const EXTEND_SECONDS := 0.16
@@ -100,6 +101,7 @@ func cue() -> String:
 
 func _select_target(origin: Vector2, aim: Vector2, candidates: Array[Dictionary]) -> Dictionary:
     var best: Dictionary = {}
+    var best_assisted := false
     var best_alignment := -2.0
     var best_distance := INF
     var best_id := ""
@@ -116,15 +118,43 @@ func _select_target(origin: Vector2, aim: Vector2, candidates: Array[Dictionary]
         if distance <= 0.001 or distance > MAX_RANGE + TIE_EPSILON:
             continue
         var alignment := aim.dot(offset / distance)
-        if alignment + TIE_EPSILON < CONE_COSINE:
+        var assisted := (
+            distance <= PROXIMITY_ASSIST_RANGE + TIE_EPSILON
+            and alignment + TIE_EPSILON < CONE_COSINE
+        )
+        if not assisted and alignment + TIE_EPSILON < CONE_COSINE:
             continue
         var wins := best.is_empty()
-        if not wins and alignment > best_alignment + TIE_EPSILON:
+        if not wins and assisted and not best_assisted:
             wins = true
-        elif not wins and is_equal_approx(alignment, best_alignment) and distance < best_distance - TIE_EPSILON:
+        elif not wins and assisted == best_assisted and assisted and distance < best_distance - TIE_EPSILON:
             wins = true
         elif (
             not wins
+            and assisted == best_assisted
+            and assisted
+            and is_equal_approx(distance, best_distance)
+            and alignment > best_alignment + TIE_EPSILON
+        ):
+            wins = true
+        elif (
+            not wins
+            and assisted == best_assisted
+            and not assisted
+            and alignment > best_alignment + TIE_EPSILON
+        ):
+            wins = true
+        elif (
+            not wins
+            and assisted == best_assisted
+            and not assisted
+            and is_equal_approx(alignment, best_alignment)
+            and distance < best_distance - TIE_EPSILON
+        ):
+            wins = true
+        elif (
+            not wins
+            and assisted == best_assisted
             and is_equal_approx(alignment, best_alignment)
             and is_equal_approx(distance, best_distance)
             and candidate_id < best_id
@@ -132,6 +162,7 @@ func _select_target(origin: Vector2, aim: Vector2, candidates: Array[Dictionary]
             wins = true
         if wins:
             best = candidate
+            best_assisted = assisted
             best_alignment = alignment
             best_distance = distance
             best_id = candidate_id

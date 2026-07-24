@@ -28,17 +28,17 @@ func _run() -> void:
 	remove_test_files()
 	var session := AdventureSession.new(77)
 	check(session.health == 3, "new Fred session starts with exactly three lives")
-	check(not session.gain_life() and session.health == 3, "fairy cannot exceed the three-life limit")
-	check(not session.damage(2) and session.health == 1, "damage consumes lives deterministically")
-	check(session.gain_life() and session.health == 2, "fairy restores one missing life")
-	check(session.gain_life() and session.health == 3, "second fairy restoration reaches the cap")
-	check(not session.gain_life() and session.health == 3, "three-life cap remains stable")
+	check(session.gain_life() and session.health == 4, "first fairy stacks a fourth life above the starting count")
+	check(not session.damage(2) and session.health == 2, "damage consumes stacked lives deterministically")
+	check(session.gain_life(3) and session.health == 5, "fairy life gains remain additive after damage")
+	check(session.gain_life(AdventureSession.MAX_LIVES) and session.health == AdventureSession.MAX_LIVES, "earned lives clamp only at the campaign maximum")
+	check(not session.gain_life() and session.health == AdventureSession.MAX_LIVES, "campaign life maximum remains bounded")
 	var legacy: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://tests/fixtures/new_game.json"))
 	var restored := AdventureSession.new()
 	check(restored.restore(legacy).get("ok") and restored.health == 3, "legacy three-life save remains readable")
 	legacy.player_state.health = 99
 	restored = AdventureSession.new()
-	check(restored.restore(legacy).get("ok") and restored.health == 3, "restored health is safely clamped to three")
+	check(restored.restore(legacy).get("ok") and restored.health == AdventureSession.MAX_LIVES, "corrupt restored health is safely clamped to the campaign maximum")
 
 	var board := Leaderboard.new(BOARD_PATH)
 	board.submit("Guest Frog", 2, 3, 4)
@@ -84,17 +84,20 @@ func _run() -> void:
 	check(schedule_is_exact, "fairy is available only on every tenth level")
 	game.level_number = 10
 	game.level_profile = FredLevelIntensity.profile(10)
-	game.session.health = 2
+	game.session.health = 3
 	game.fairy_collected = false
 	game.collected.assign([0, 1, 2])
 	game.fred = game._fairy_position() - Vector2(100, 0)
 	game.tongue.reset()
 	game._request_tongue(Vector2.RIGHT)
-	check(game.session.health == 3 and game.fairy_collected, "eating the level-ten fairy grants exactly one extra life")
+	check(game.session.health == 4 and game.fairy_collected, "eating the level-ten fairy stacks a fourth life")
 	check(game.eat_effect_seconds > 0.0 and game.eat_target == game._fairy_position(), "fairy pickup uses Fred's visible eating animation")
 	game.tongue.advance(1.0)
 	game._request_tongue(Vector2.RIGHT)
-	check(game.session.health == 3, "collected fairy cannot grant duplicate lives")
+	check(game.session.health == 4, "collected fairy cannot grant duplicate lives")
+	game.screen = game.Screen.COMPLETE
+	game._advance_level()
+	check(game.level_number == 11 and game.session.health == 4, "earned fourth life carries into the next level")
 	game.session.health = 1
 	game._apply_danger_hit("[DANGER] Test final life.")
 	check(game.screen == game.Screen.FAILED and game.session.health == 0, "using the final life opens the Fred failure screen")

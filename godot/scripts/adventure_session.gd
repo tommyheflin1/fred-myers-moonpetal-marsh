@@ -9,6 +9,10 @@ const LEVEL_ID := "lily_leap"
 const OBJECTIVE_REACH := "lily_leap_reach_exit"
 const OBJECTIVE_BUGS := "lily_leap_collect_bugs"
 const CHECKPOINTS := ["lily_leap_start", "lily_leap_midpoint", "lily_leap_complete"]
+const STARTING_LIVES := 3
+# A fresh run starts with three lives. One fairy is available on each tenth
+# level through level 100, so a perfect no-damage run can legitimately reach 13.
+const MAX_LIVES := 13
 
 var rng := RandomNumberGenerator.new()
 var current_campaign := CAMPAIGN_VERSION
@@ -21,7 +25,7 @@ var checkpoint_sequence := 0
 var player_state := "surface"
 var bug_count := 0
 var boost_energy := 100
-var health := 3
+var health := STARTING_LIVES
 var paused := false
 var completed := false
 var retrying := false
@@ -53,8 +57,8 @@ func damage(amount: int = 1, hidden: bool = false) -> bool:
     return health == 0
 
 func gain_life(amount: int = 1) -> bool:
-    if health >= 3 or amount <= 0 or completed: return false
-    health = mini(3, health + amount)
+    if health >= MAX_LIVES or amount <= 0 or completed: return false
+    health = mini(MAX_LIVES, health + amount)
     return true
 
 func reach_checkpoint(checkpoint_id: String, sequence: int) -> bool:
@@ -72,7 +76,7 @@ func complete_level() -> bool:
     return true
 
 func retry_from_checkpoint() -> void:
-    health = 3
+    health = STARTING_LIVES
     paused = false
     completed = false
     retrying = true
@@ -107,7 +111,7 @@ func restore(data: Dictionary) -> Dictionary:
     boost_energy = clampi(int(boost.get("energy", 100)), 0, 100)
     var player: Dictionary = data.get("player_state", {}) if data.get("player_state", {}) is Dictionary else {}
     player_state = str(player.get("mode", "surface")) if str(player.get("mode", "surface")) in ["surface", "underwater"] else "surface"
-    health = clampi(int(player.get("health", 3)), 1, 3)
+    health = clampi(int(player.get("health", STARTING_LIVES)), 1, MAX_LIVES)
     completed_levels = _strings(data.get("completed_level_ids", []), [LEVEL_ID])
     completed_objectives = _strings(data.get("completed_objective_ids", []), [OBJECTIVE_BUGS, OBJECTIVE_REACH])
     active_objective = str(data.get("current_objective_id", OBJECTIVE_BUGS))

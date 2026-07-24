@@ -34,10 +34,12 @@ REQUIRED = [
     "godot/tests/run_camera_follow.gd",
     "godot/tests/run_animation_coordinator.gd",
     "godot/tests/run_fred_rig.gd",
+    "godot/tests/run_marsh_visual_uplift.gd",
     "docs/M2_PROGRESSION_IDENTITY_FOUNDATION.md",
     "docs/M2_CAMERA_FOLLOW_REPORT.md",
     "docs/M2_LOCOMOTION_ANIMATION_REPORT.md",
     "docs/M2_AUTHORED_FRED_RIG_REPORT.md",
+    "docs/M2_MARSH_VISUAL_UPLIFT_REPORT.md",
 ]
 
 FIXTURES = {
