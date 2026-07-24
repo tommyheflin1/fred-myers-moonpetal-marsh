@@ -4,6 +4,7 @@ const LeapTraversal = preload("res://scripts/leap_traversal.gd")
 const DepthTraversal = preload("res://scripts/depth_traversal.gd")
 const TongueTargeting = preload("res://scripts/tongue_targeting.gd")
 const BoostLocomotion = preload("res://scripts/boost_locomotion.gd")
+const CameraFollow = preload("res://scripts/camera_follow.gd")
 
 enum Screen { TITLE, PLAYING, FAILED, COMPLETE, LEADERBOARD }
 const START := Vector2(135, 560)
@@ -43,6 +44,8 @@ var impact_burst_kind := "SPLASH"
 var leap: RefCounted = LeapTraversal.new()
 var depth: RefCounted = DepthTraversal.new()
 var camera_response_y := 0.0
+var camera_offset := Vector2.ZERO
+var camera_follow: RefCounted = CameraFollow.new()
 var leaderboard := FredLocalLeaderboard.new()
 var menu_music: AudioStreamPlayer
 var chase_music: AudioStreamPlayer
@@ -141,8 +144,7 @@ func _fixed_tick(delta: float) -> void:
             if depth.is_underwater_band():
                 speed *= DepthTraversal.UNDERWATER_BOOST_SCALE
         fred = (fred + (direction * speed + current) * delta).clamp(Vector2(55,105), Vector2(1225,665))
-    var boost_camera := -4.0 if bool(boost_step.active) else 0.0
-    camera_response_y = 0.0 if reduced_motion else (-minf(10.0, leap.visual_height * 0.18) + float(depth.depth) * 8.0 + boost_camera)
+    _update_camera(direction, bool(boost_step.active))
     predator.x += predator_direction * 110.0 * float(level_profile.predator_speed_scale) * delta
     if bool(level_profile.weaving_patrol):
         predator.y = PREDATOR_START.y + sin(visual_time * (0.8 + float(level_number) * 0.015)) * minf(115.0, 42.0 + float(level_number))
@@ -330,8 +332,8 @@ func _apply_danger_hit(message: String) -> void:
     tongue.reset()
     boost.cancel(session.boost_energy)
     session.set_underwater(false)
-    camera_response_y = 0.0
     fred = START
+    _reset_camera()
     danger_cooldown_seconds = 1.0
     _set_feedback(message)
     if session.damage():
@@ -467,6 +469,7 @@ func _start() -> void:
     boost.reset()
     _sync_music()
     fred = Vector2(630,390) if session.current_checkpoint == AdventureSession.CHECKPOINTS[1] else START
+    _reset_camera()
     collected.clear()
     for index in range(mini(session.bug_count, BUGS.size())): collected.append(index)
     queue_redraw()
@@ -480,8 +483,8 @@ func _retry() -> void:
     tongue.reset()
     boost.reset()
     session.set_underwater(false)
-    camera_response_y = 0.0
     fred = START
+    _reset_camera()
     predator = PREDATOR_START
     collected.clear()
     fairy_collected = false
@@ -497,6 +500,7 @@ func _go_home() -> void:
     boost.reset()
     countdown_seconds = 0.0
     screen = Screen.TITLE
+    _reset_camera()
     _sync_music()
     _set_feedback("[HOME] Welcome back to Moonpetal Marsh.")
 
@@ -517,7 +521,7 @@ func _advance_level() -> void:
     boost.reset()
     fairy_collected = false
     countdown_seconds = 5.0 if countdown_enabled else 0.0
-    camera_response_y = 0.0
+    _reset_camera()
     screen = Screen.PLAYING
     depth.reset(session.player_state)
     _sync_music()
@@ -543,6 +547,35 @@ func _apply_boost_event(event: String) -> void:
             _set_feedback("[BOOST EXHAUSTED] Release Shift and let Fred recover.")
         "ready":
             _set_feedback("[BOOST READY] Fred has full marsh energy.")
+
+func _update_camera(direction: Vector2, boost_active: bool) -> void:
+    var tongue_vector := Vector2.ZERO
+    if tongue.is_busy():
+        tongue_vector = tongue.target_point - fred
+    var boost_strength := 0.0
+    if boost_active:
+        boost_strength = 1.0 if boost.state == BoostLocomotion.State.BURST else 0.65
+    var viewport_size := Vector2i(1280,720)
+    if is_inside_tree():
+        viewport_size = get_window().size
+    var camera_step: Dictionary = camera_follow.advance(
+        fred,
+        direction,
+        leap.visual_height,
+        depth.depth,
+        boost_strength,
+        tongue_vector,
+        tongue.is_busy(),
+        reduced_motion,
+        viewport_size
+    )
+    camera_offset = Vector2(camera_step.offset)
+    camera_response_y = camera_offset.y
+
+func _reset_camera() -> void:
+    camera_follow.reset()
+    camera_offset = Vector2.ZERO
+    camera_response_y = 0.0
 
 func _tick_feedback(delta: float) -> void:
     if save_feedback_seconds <= 0.0:
@@ -629,7 +662,7 @@ func _draw_level() -> void:
     _draw_depth_cues()
     for glow in [Vector2(180,155), Vector2(530,260), Vector2(1020,420)]:
         draw_circle(glow, 95, Color(0.2,0.85,0.78,0.035))
-    draw_set_transform(Vector2(0,camera_response_y))
+    draw_set_transform(camera_offset)
     _draw_current_trails()
     for row in range(4):
         var ripple_y := 150.0 + row * 130.0

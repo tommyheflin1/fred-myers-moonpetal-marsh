@@ -15,6 +15,18 @@ Keep the legacy site online as a reference. Build the Godot version vertically, 
 | M6 Optional online | Auth/profile/cloud/verified competitive feature only if approved | Local backend security tests, offline degradation, privacy approval |
 | M7 Release candidate | Assets, policies, device matrix, signed builds/submissions with owner approval | Exact-SHA CI and owner-approved release checklist |
 
+## Active M2 branch evidence
+
+The local M2 branch now contains deterministic leap, depth, aimed tongue,
+boost and camera-follow slices. The camera slice is documented in
+`M2_CAMERA_FOLLOW_REPORT.md`: 184 focused checks and the complete twelve-suite
+1,362-check matrix pass, with normal, reduced-motion and 640x360 Windows
+framing evidence. Camera state remains transient, Core 0.5.1/save-v1 and owner
+save bytes are unchanged, and controller/touch evidence remains synthetic.
+This evidence does not change milestone percentages or replace owner
+physical-control acceptance. The branch remains unpushed while the configured
+GitHub repository is reported public.
+
 ## M1 sequencing
 
 1. Expand the repository source tree and retain the legacy build under `legacy-web/` or a tagged legacy branch.
