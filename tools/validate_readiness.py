@@ -22,6 +22,7 @@ REQUIRED = [
     "godot/scripts/level_intensity.gd",
     "godot/scripts/player_identity.gd",
     "godot/scripts/camera_follow.gd",
+    "godot/scripts/fred_animation_coordinator.gd",
     "godot/tests/run_tests.gd",
     "godot/tests/run_keyboard_regression.gd",
     "godot/tests/run_save_stress.gd",
@@ -29,8 +30,10 @@ REQUIRED = [
     "godot/tests/run_visual_clarity.gd",
     "godot/tests/run_m2_foundation.gd",
     "godot/tests/run_camera_follow.gd",
+    "godot/tests/run_animation_coordinator.gd",
     "docs/M2_PROGRESSION_IDENTITY_FOUNDATION.md",
     "docs/M2_CAMERA_FOLLOW_REPORT.md",
+    "docs/M2_LOCOMOTION_ANIMATION_REPORT.md",
 ]
 
 FIXTURES = {

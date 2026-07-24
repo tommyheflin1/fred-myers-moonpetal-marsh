@@ -5,6 +5,7 @@ const DepthTraversal = preload("res://scripts/depth_traversal.gd")
 const TongueTargeting = preload("res://scripts/tongue_targeting.gd")
 const BoostLocomotion = preload("res://scripts/boost_locomotion.gd")
 const CameraFollow = preload("res://scripts/camera_follow.gd")
+const AnimationCoordinator = preload("res://scripts/fred_animation_coordinator.gd")
 
 enum Screen { TITLE, PLAYING, FAILED, COMPLETE, LEADERBOARD }
 const START := Vector2(135, 560)
@@ -56,6 +57,7 @@ var title_art: Texture2D
 var tongue: RefCounted = TongueTargeting.new()
 var last_aim_direction := Vector2.RIGHT
 var boost: RefCounted = BoostLocomotion.new()
+var animation: RefCounted = AnimationCoordinator.new()
 
 func _ready() -> void:
     if "--reduced-motion" in OS.get_cmdline_user_args():
@@ -144,6 +146,7 @@ func _fixed_tick(delta: float) -> void:
             if depth.is_underwater_band():
                 speed *= DepthTraversal.UNDERWATER_BOOST_SCALE
         fred = (fred + (direction * speed + current) * delta).clamp(Vector2(55,105), Vector2(1225,665))
+    _update_animation(direction)
     _update_camera(direction, bool(boost_step.active))
     predator.x += predator_direction * 110.0 * float(level_profile.predator_speed_scale) * delta
     if bool(level_profile.weaving_patrol):
@@ -336,7 +339,9 @@ func _apply_danger_hit(message: String) -> void:
     _reset_camera()
     danger_cooldown_seconds = 1.0
     _set_feedback(message)
-    if session.damage():
+    var failed := session.damage()
+    animation.trigger_damage(failed)
+    if failed:
         screen = Screen.FAILED
 
 func direct_route_has_danger() -> bool:
@@ -467,6 +472,7 @@ func _start() -> void:
     fairy_collected = false
     tongue.reset()
     boost.reset()
+    animation.reset()
     _sync_music()
     fred = Vector2(630,390) if session.current_checkpoint == AdventureSession.CHECKPOINTS[1] else START
     _reset_camera()
@@ -482,6 +488,7 @@ func _retry() -> void:
     depth.reset("surface")
     tongue.reset()
     boost.reset()
+    animation.reset()
     session.set_underwater(false)
     fred = START
     _reset_camera()
@@ -498,6 +505,7 @@ func _go_home() -> void:
     depth.reset(session.player_state)
     tongue.reset()
     boost.reset()
+    animation.reset()
     countdown_seconds = 0.0
     screen = Screen.TITLE
     _reset_camera()
@@ -519,6 +527,7 @@ func _advance_level() -> void:
     depth.reset("surface")
     tongue.reset()
     boost.reset()
+    animation.reset()
     fairy_collected = false
     countdown_seconds = 5.0 if countdown_enabled else 0.0
     _reset_camera()
@@ -571,6 +580,22 @@ func _update_camera(direction: Vector2, boost_active: bool) -> void:
     )
     camera_offset = Vector2(camera_step.offset)
     camera_response_y = camera_offset.y
+
+func _update_animation(direction: Vector2) -> void:
+    animation.advance({
+        "movement": direction,
+        "moving": direction != Vector2.ZERO,
+        "on_perch": _is_valid_landing(fred),
+        "leap_state": leap.state,
+        "leap_elapsed": leap.elapsed,
+        "depth_state": depth.state,
+        "depth_amount": depth.depth,
+        "tongue_state": tongue.state,
+        "tongue_elapsed": tongue.elapsed,
+        "boost_state": boost.state,
+        "invulnerable": danger_cooldown_seconds > 0.0,
+        "failed": screen == Screen.FAILED,
+    }, false, reduced_motion)
 
 func _reset_camera() -> void:
     camera_follow.reset()
@@ -697,18 +722,19 @@ func _draw_level() -> void:
     var exit_radius := 45.0 * float(visual.exit_pulse)
     draw_circle(EXIT, exit_radius + 5, Color(0.9,0.8,1.0,0.16)); draw_circle(EXIT, exit_radius, Color("d49cff"))
     _text(EXIT+Vector2(0,6), "EXIT", 15, Color("321c45"), HORIZONTAL_ALIGNMENT_CENTER, 90)
-    if leap.state == LeapTraversal.State.GROUNDED:
-        _draw_fred(fred + Vector2(0,float(visual.fred_bob)))
-    else:
+    var fred_draw_position := fred - Vector2(0,leap.visual_height)
+    var animation_pose: Dictionary = animation.pose()
+    var animation_origin := fred_draw_position + Vector2(animation_pose.body_offset)
+    if leap.state != LeapTraversal.State.GROUNDED:
         draw_circle(fred + Vector2(0,10), 20.0 + leap.visual_height * 0.10, Color(0.01,0.05,0.08,0.28))
-        _draw_fred(fred + Vector2(0,float(visual.fred_bob) - leap.visual_height))
-        _text(fred + Vector2(0,-leap.visual_height-48), "[%s]" % leap.cue(), 13, Color("fff0ae"), HORIZONTAL_ALIGNMENT_CENTER, 120)
+    _draw_fred(fred_draw_position)
+    _text(animation_origin + Vector2(0,-78), "[%s]" % animation.cue(), 12, Color(animation_pose.accent), HORIZONTAL_ALIGNMENT_CENTER, 190)
     if tongue.is_ready() and leap.state == LeapTraversal.State.GROUNDED and depth.state == DepthTraversal.State.SURFACE:
-        _draw_tongue_aim(fred + Vector2(0,float(visual.fred_bob)))
+        _draw_tongue_aim(animation_origin)
     if tongue.is_busy():
-        _draw_eating_effect(fred + Vector2(0,float(visual.fred_bob)), tongue.target_point)
+        _draw_eating_effect(animation_origin, tongue.target_point)
     if boost.is_active():
-        _draw_boost_cues(fred + Vector2(0,float(visual.fred_bob)))
+        _draw_boost_cues(animation_origin)
     if impact_burst_seconds > 0.0:
         _draw_impact_burst()
     draw_set_transform(Vector2.ZERO)
@@ -920,49 +946,73 @@ func _draw_fairy(position: Vector2) -> void:
     draw_line(position + Vector2(-8,11), position + Vector2(8,11), Color("f8df67"), 2)
     _text(position+Vector2(0,46), "EXTRA LIFE FAIRY", 11, Color("fff0ae"), HORIZONTAL_ALIGNMENT_CENTER, 150)
 
+func _fred_pose_point(position: Vector2, local: Vector2, pose: Dictionary) -> Vector2:
+    var body_scale := Vector2(pose.get("body_scale", Vector2.ONE))
+    var facing := float(pose.get("facing", 1.0))
+    var tilt := float(pose.get("tilt", 0.0))
+    var transformed := Vector2(local.x * facing, local.y).rotated(tilt)
+    transformed = Vector2(transformed.x * body_scale.x, transformed.y * body_scale.y)
+    return position + Vector2(pose.get("body_offset", Vector2.ZERO)) + transformed
+
 func _draw_fred(position: Vector2) -> void:
+    var pose: Dictionary = animation.pose()
     var underwater_amount := float(depth.depth)
     var fred_color := Color("75e06f").lerp(Color("62b9d5"), underwater_amount)
-    var outline := Color("173128").lerp(Color("d8f7ff"), underwater_amount)
+    var outline := Color("173128").lerp(Color("d8f7ff"), underwater_amount).lerp(Color(pose.accent), 0.18)
+    var body_scale := Vector2(pose.body_scale)
+    var radius_scale := (body_scale.x + body_scale.y) * 0.5
+    var leg_extension := float(pose.leg_extension)
+    var eye_squint := float(pose.eye_squint)
+    var mouth_open := float(pose.mouth_open)
+    var left_foot := Vector2(-40.0 - leg_extension * 10.0, 32.0 + leg_extension * 7.0)
+    var right_foot := Vector2(40.0 + leg_extension * 10.0, 32.0 + leg_extension * 7.0)
     draw_colored_polygon(PackedVector2Array([
-        position+Vector2(-15,10), position+Vector2(-40,12), position+Vector2(-54,31),
-        position+Vector2(-34,37), position+Vector2(-13,27)
+        _fred_pose_point(position,Vector2(-15,10),pose), _fred_pose_point(position,Vector2(-40,12),pose), _fred_pose_point(position,Vector2(-54,31),pose),
+        _fred_pose_point(position,Vector2(-34,37),pose), _fred_pose_point(position,Vector2(-13,27),pose)
     ]), outline)
     draw_colored_polygon(PackedVector2Array([
-        position+Vector2(15,10), position+Vector2(40,12), position+Vector2(54,31),
-        position+Vector2(34,37), position+Vector2(13,27)
+        _fred_pose_point(position,Vector2(15,10),pose), _fred_pose_point(position,Vector2(40,12),pose), _fred_pose_point(position,Vector2(54,31),pose),
+        _fred_pose_point(position,Vector2(34,37),pose), _fred_pose_point(position,Vector2(13,27),pose)
     ]), outline)
     draw_colored_polygon(PackedVector2Array([
-        position+Vector2(-17,13), position+Vector2(-38,15), position+Vector2(-48,29),
-        position+Vector2(-32,31), position+Vector2(-12,24)
+        _fred_pose_point(position,Vector2(-17,13),pose), _fred_pose_point(position,Vector2(-38,15),pose), _fred_pose_point(position,Vector2(-48,29),pose),
+        _fred_pose_point(position,Vector2(-32,31),pose), _fred_pose_point(position,Vector2(-12,24),pose)
     ]), fred_color.darkened(0.08))
     draw_colored_polygon(PackedVector2Array([
-        position+Vector2(17,13), position+Vector2(38,15), position+Vector2(48,29),
-        position+Vector2(32,31), position+Vector2(12,24)
+        _fred_pose_point(position,Vector2(17,13),pose), _fred_pose_point(position,Vector2(38,15),pose), _fred_pose_point(position,Vector2(48,29),pose),
+        _fred_pose_point(position,Vector2(32,31),pose), _fred_pose_point(position,Vector2(12,24),pose)
     ]), fred_color.darkened(0.08))
-    draw_circle(position + Vector2(-22,18), 14, outline); draw_circle(position + Vector2(22,18), 14, outline)
-    draw_line(position+Vector2(-16,14), position+Vector2(-34,30), outline, 8)
-    draw_line(position+Vector2(16,14), position+Vector2(34,30), outline, 8)
-    draw_circle(position, 28, outline)
-    draw_circle(position, 24, fred_color)
-    draw_circle(position-Vector2(7,7), 8, Color(1,1,1,0.12))
-    draw_circle(position+Vector2(-12,-20), 13, outline); draw_circle(position+Vector2(12,-20), 13, outline)
-    draw_circle(position+Vector2(-12,-20), 10, fred_color); draw_circle(position+Vector2(12,-20), 10, fred_color)
-    draw_circle(position+Vector2(-12,-22), 4, Color("17252c")); draw_circle(position+Vector2(12,-22), 4, Color("17252c"))
-    draw_circle(position+Vector2(-4,-9), 2.2, outline)
-    draw_circle(position+Vector2(4,-9), 2.2, outline)
-    draw_circle(position+Vector2(-10,5), 3.0, fred_color.darkened(0.20))
-    draw_circle(position+Vector2(12,8), 2.5, fred_color.darkened(0.18))
-    draw_circle(position+Vector2(1,16), 3.5, fred_color.darkened(0.14))
-    draw_arc(position + Vector2(0,1), 10, 0.2, PI - 0.2, 10, outline, 2)
-    for side in [-1.0, 1.0]:
-        var foot := position + Vector2(40.0*side,32)
-        draw_line(foot, foot+Vector2(8.0*side,4), outline, 3)
-        draw_line(foot, foot+Vector2(6.0*side,9), outline, 3)
-        draw_line(foot, foot+Vector2(1.0*side,11), outline, 3)
+    draw_circle(_fred_pose_point(position,Vector2(-22,18),pose), 14 * radius_scale, outline); draw_circle(_fred_pose_point(position,Vector2(22,18),pose), 14 * radius_scale, outline)
+    draw_line(_fred_pose_point(position,Vector2(-16,14),pose), _fred_pose_point(position,left_foot + Vector2(6,-2),pose), outline, 8)
+    draw_line(_fred_pose_point(position,Vector2(16,14),pose), _fred_pose_point(position,right_foot + Vector2(-6,-2),pose), outline, 8)
+    draw_circle(_fred_pose_point(position,Vector2.ZERO,pose), 28 * radius_scale, outline)
+    draw_circle(_fred_pose_point(position,Vector2.ZERO,pose), 24 * radius_scale, fred_color)
+    draw_circle(_fred_pose_point(position,Vector2(-7,-7),pose), 8 * radius_scale, Color(1,1,1,0.12))
+    draw_circle(_fred_pose_point(position,Vector2(-12,-20),pose), 13 * radius_scale, outline); draw_circle(_fred_pose_point(position,Vector2(12,-20),pose), 13 * radius_scale, outline)
+    draw_circle(_fred_pose_point(position,Vector2(-12,-20),pose), 10 * radius_scale, fred_color); draw_circle(_fred_pose_point(position,Vector2(12,-20),pose), 10 * radius_scale, fred_color)
+    draw_circle(_fred_pose_point(position,Vector2(-12,-22 + eye_squint * 3.0),pose), 4.0 - eye_squint * 2.0, Color("17252c")); draw_circle(_fred_pose_point(position,Vector2(12,-22 + eye_squint * 3.0),pose), 4.0 - eye_squint * 2.0, Color("17252c"))
+    if eye_squint > 0.2:
+        draw_line(_fred_pose_point(position,Vector2(-18,-23),pose), _fred_pose_point(position,Vector2(-7,-20),pose), outline, 2)
+        draw_line(_fred_pose_point(position,Vector2(7,-20),pose), _fred_pose_point(position,Vector2(18,-23),pose), outline, 2)
+    draw_circle(_fred_pose_point(position,Vector2(-4,-9),pose), 2.2, outline)
+    draw_circle(_fred_pose_point(position,Vector2(4,-9),pose), 2.2, outline)
+    draw_circle(_fred_pose_point(position,Vector2(-10,5),pose), 3.0, fred_color.darkened(0.20))
+    draw_circle(_fred_pose_point(position,Vector2(12,8),pose), 2.5, fred_color.darkened(0.18))
+    draw_circle(_fred_pose_point(position,Vector2(1,16),pose), 3.5, fred_color.darkened(0.14))
+    if mouth_open > 0.1:
+        draw_circle(_fred_pose_point(position,Vector2(0,5),pose), 4.0 + mouth_open * 5.0, Color("401b2a"))
+        draw_arc(_fred_pose_point(position,Vector2(0,5),pose), 5.0 + mouth_open * 5.0, 0.0, PI, 10, Color(pose.accent), 2)
+    else:
+        draw_arc(_fred_pose_point(position,Vector2(0,1),pose), 10, 0.2, PI - 0.2, 10, outline, 2)
+    for foot_local: Vector2 in [left_foot, right_foot]:
+        var side := -1.0 if foot_local.x < 0.0 else 1.0
+        var foot := _fred_pose_point(position,foot_local,pose)
+        draw_line(foot, _fred_pose_point(position,foot_local+Vector2(8.0*side,4),pose), outline, 3)
+        draw_line(foot, _fred_pose_point(position,foot_local+Vector2(6.0*side,9),pose), outline, 3)
+        draw_line(foot, _fred_pose_point(position,foot_local+Vector2(1.0*side,11),pose), outline, 3)
     if underwater_amount > 0.65:
-        draw_circle(position + Vector2(30,-30), 5, Color(0.75,0.95,1.0,0.65), false, 2)
-        draw_circle(position + Vector2(42,-45), 3, Color(0.75,0.95,1.0,0.65), false, 2)
+        draw_circle(_fred_pose_point(position,Vector2(30,-30),pose), 5, Color(0.75,0.95,1.0,0.65), false, 2)
+        draw_circle(_fred_pose_point(position,Vector2(42,-45),pose), 3, Color(0.75,0.95,1.0,0.65), false, 2)
 
 func _draw_eating_effect(origin: Vector2, target: Vector2) -> void:
     var progress: float = 1.0 if reduced_motion else tongue.extension_ratio()

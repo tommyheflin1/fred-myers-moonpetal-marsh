@@ -38,6 +38,8 @@ This repository owns Fred gameplay. Core owns only reusable, game-neutral servic
 - [Migration and milestone roadmap](docs/MIGRATION_ROADMAP.md)
 - [Evidence report](docs/EVIDENCE_REPORT.md)
 - [Milestone M1 report](docs/MILESTONE_M1_REPORT.md)
+- [M2 camera follow evidence](docs/M2_CAMERA_FOLLOW_REPORT.md)
+- [M2 locomotion animation evidence](docs/M2_LOCOMOTION_ANIMATION_REPORT.md)
 
 ## Godot M1 foundation
 

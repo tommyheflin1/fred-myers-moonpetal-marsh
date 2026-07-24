@@ -17,15 +17,17 @@ Keep the legacy site online as a reference. Build the Godot version vertically, 
 
 ## Active M2 branch evidence
 
-The local M2 branch now contains deterministic leap, depth, aimed tongue,
-boost and camera-follow slices. The camera slice is documented in
-`M2_CAMERA_FOLLOW_REPORT.md`: 184 focused checks and the complete twelve-suite
-1,362-check matrix pass, with normal, reduced-motion and 640x360 Windows
-framing evidence. Camera state remains transient, Core 0.5.1/save-v1 and owner
-save bytes are unchanged, and controller/touch evidence remains synthetic.
-This evidence does not change milestone percentages or replace owner
-physical-control acceptance. The branch remains unpushed while the configured
-GitHub repository is reported public.
+The local M2 evidence branches now contain deterministic leap, depth, aimed
+tongue, boost and camera-follow slices. A separate isolated descendant adds
+the Fred-owned locomotion-animation coordinator documented in
+`M2_LOCOMOTION_ANIMATION_REPORT.md`. Its 238 focused checks bring the complete
+thirteen-suite matrix to 1,600/1,600, with state-to-pose coverage for ground,
+leap, depth, tongue, boost, damage, invulnerability, failure and reset.
+Animation and camera state remain transient; Core 0.5.1/save-v1 and owner save
+bytes are unchanged. Controller/touch evidence remains synthetic. This
+evidence does not change milestone percentages or replace owner
+physical-control acceptance. Both review branches remain unpushed while the
+configured GitHub repository is reported public.
 
 ## M1 sequencing
 
