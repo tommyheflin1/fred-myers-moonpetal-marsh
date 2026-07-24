@@ -3,6 +3,7 @@ extends Node2D
 const LeapTraversal = preload("res://scripts/leap_traversal.gd")
 const DepthTraversal = preload("res://scripts/depth_traversal.gd")
 const TongueTargeting = preload("res://scripts/tongue_targeting.gd")
+const BoostLocomotion = preload("res://scripts/boost_locomotion.gd")
 
 enum Screen { TITLE, PLAYING, FAILED, COMPLETE, LEADERBOARD }
 const START := Vector2(135, 560)
@@ -51,11 +52,13 @@ var fairy_collected := false
 var title_art: Texture2D
 var tongue: RefCounted = TongueTargeting.new()
 var last_aim_direction := Vector2.RIGHT
+var boost: RefCounted = BoostLocomotion.new()
 
 func _ready() -> void:
     if "--reduced-motion" in OS.get_cmdline_user_args():
         reduced_motion = true
     var result := saver.load_session(session)
+    boost.reset()
     _set_feedback(FredSaveFeedback.load_message(result))
     menu_music = AudioStreamPlayer.new()
     chase_music = AudioStreamPlayer.new()
@@ -108,6 +111,16 @@ func _fixed_tick(delta: float) -> void:
         _request_leap(direction)
     if FredInputIntent.pressed(FredInputIntent.Intent.INTERACT):
         _request_tongue(last_aim_direction)
+    var boost_allowed: bool = not depth.is_transitioning() and not tongue.is_busy() and leap.state != LeapTraversal.State.LANDING
+    var boost_moving: bool = direction != Vector2.ZERO or leap.state == LeapTraversal.State.AIRBORNE
+    var boost_step: Dictionary = boost.advance(
+        FredInputIntent.held(FredInputIntent.Intent.BOOST),
+        boost_moving,
+        boost_allowed,
+        session.boost_energy
+    )
+    session.boost_energy = int(boost_step.energy)
+    _apply_boost_event(str(boost_step.event))
     var depth_step: Dictionary = depth.advance(delta)
     if bool(depth_step.completed):
         session.set_underwater(str(depth_step.mode) == "underwater")
@@ -115,7 +128,7 @@ func _fixed_tick(delta: float) -> void:
     var current := _current_vector()
     if leap.state == LeapTraversal.State.AIRBORNE:
         var leap_step: Dictionary = leap.advance(delta)
-        fred = (fred + Vector2(leap_step.movement) + current * delta * 0.35).clamp(Vector2(55,105), Vector2(1225,665))
+        fred = (fred + Vector2(leap_step.movement) * float(boost_step.leap_multiplier) + current * delta * 0.35).clamp(Vector2(55,105), Vector2(1225,665))
         if bool(leap_step.landed):
             _resolve_landing()
     else:
@@ -123,11 +136,13 @@ func _fixed_tick(delta: float) -> void:
         var speed := 210.0 * float(depth.movement_scale())
         if depth.is_transitioning():
             speed *= 0.55
-        if FredInputIntent.held(FredInputIntent.Intent.BOOST) and session.use_boost(1):
-            speed = 380.0 * (DepthTraversal.UNDERWATER_BOOST_SCALE if depth.is_underwater_band() else 1.0)
-        elif direction == Vector2.ZERO: session.recharge_boost(1)
+        elif bool(boost_step.active):
+            speed = 210.0 * float(boost_step.speed_multiplier)
+            if depth.is_underwater_band():
+                speed *= DepthTraversal.UNDERWATER_BOOST_SCALE
         fred = (fred + (direction * speed + current) * delta).clamp(Vector2(55,105), Vector2(1225,665))
-    camera_response_y = 0.0 if reduced_motion else (-minf(10.0, leap.visual_height * 0.18) + float(depth.depth) * 8.0)
+    var boost_camera := -4.0 if bool(boost_step.active) else 0.0
+    camera_response_y = 0.0 if reduced_motion else (-minf(10.0, leap.visual_height * 0.18) + float(depth.depth) * 8.0 + boost_camera)
     predator.x += predator_direction * 110.0 * float(level_profile.predator_speed_scale) * delta
     if bool(level_profile.weaving_patrol):
         predator.y = PREDATOR_START.y + sin(visual_time * (0.8 + float(level_number) * 0.015)) * minf(115.0, 42.0 + float(level_number))
@@ -313,6 +328,7 @@ func _apply_danger_hit(message: String) -> void:
     leap.reset()
     depth.reset("surface")
     tongue.reset()
+    boost.cancel(session.boost_energy)
     session.set_underwater(false)
     camera_response_y = 0.0
     fred = START
@@ -353,6 +369,7 @@ func _request_dive() -> bool:
     var allowed := _can_dive_here(fred)
     var accepted: bool = depth.request_dive(allowed)
     if accepted:
+        boost.cancel(session.boost_energy)
         _set_feedback("[DIVING] Hold your course while Fred descends.")
     elif depth.state == DepthTraversal.State.SURFACE and not allowed:
         _set_feedback("[DIVE BLOCKED] Move into open water.")
@@ -363,6 +380,7 @@ func _request_surface() -> bool:
         return false
     var accepted: bool = depth.request_surface(true)
     if accepted:
+        boost.cancel(session.boost_energy)
         _set_feedback("[SURFACING] Fred is swimming toward the light.")
     return accepted
 
@@ -446,6 +464,7 @@ func _start() -> void:
     countdown_seconds = 5.0 if countdown_enabled else 0.0
     fairy_collected = false
     tongue.reset()
+    boost.reset()
     _sync_music()
     fred = Vector2(630,390) if session.current_checkpoint == AdventureSession.CHECKPOINTS[1] else START
     collected.clear()
@@ -459,6 +478,7 @@ func _retry() -> void:
     leap.reset()
     depth.reset("surface")
     tongue.reset()
+    boost.reset()
     session.set_underwater(false)
     camera_response_y = 0.0
     fred = START
@@ -474,6 +494,7 @@ func _go_home() -> void:
     leap.reset()
     depth.reset(session.player_state)
     tongue.reset()
+    boost.reset()
     countdown_seconds = 0.0
     screen = Screen.TITLE
     _sync_music()
@@ -493,6 +514,7 @@ func _advance_level() -> void:
     leap.reset()
     depth.reset("surface")
     tongue.reset()
+    boost.reset()
     fairy_collected = false
     countdown_seconds = 5.0 if countdown_enabled else 0.0
     camera_response_y = 0.0
@@ -510,6 +532,17 @@ func _set_feedback(message: String) -> void:
     save_feedback = message
     save_feedback_seconds = FredSaveFeedback.DISPLAY_SECONDS
     queue_redraw()
+
+func _apply_boost_event(event: String) -> void:
+    match event:
+        "started":
+            _set_feedback("[BOOST BURST] Fred surges forward!")
+        "sustain":
+            _set_feedback("[BOOST] Hold your course while energy drains.")
+        "exhausted":
+            _set_feedback("[BOOST EXHAUSTED] Release Shift and let Fred recover.")
+        "ready":
+            _set_feedback("[BOOST READY] Fred has full marsh energy.")
 
 func _tick_feedback(delta: float) -> void:
     if save_feedback_seconds <= 0.0:
@@ -641,6 +674,8 @@ func _draw_level() -> void:
         _draw_tongue_aim(fred + Vector2(0,float(visual.fred_bob)))
     if tongue.is_busy():
         _draw_eating_effect(fred + Vector2(0,float(visual.fred_bob)), tongue.target_point)
+    if boost.is_active():
+        _draw_boost_cues(fred + Vector2(0,float(visual.fred_bob)))
     if impact_burst_seconds > 0.0:
         _draw_impact_burst()
     draw_set_transform(Vector2.ZERO)
@@ -649,7 +684,8 @@ func _draw_level() -> void:
     _text(Vector2(890,75), "NEW: %s  |  THREATS %d" % [str(level_profile.new_twist).to_upper(), int(level_profile.predator_count)], 13, Color("fff0ae"), HORIZONTAL_ALIGNMENT_LEFT, 350)
     draw_rect(Rect2(330,10,560,52), Color("06151f"), true); draw_rect(Rect2(330,10,560,52), Color("e8fbff"), false, 2)
     _text(Vector2(350,43), "OBJECTIVE: " + ("Reach the moonpetal exit" if session.bug_count >= 3 else "Collect 3 marsh bugs"), 19, Color("e8fbff"), HORIZONTAL_ALIGNMENT_LEFT, 520)
-    _text(Vector2(45,710), "Bugs %d/3   Boost %d%%   Health %s   %s %d%%   %s" % [session.bug_count, session.boost_energy, "♥".repeat(session.health), depth.cue(), roundi(float(depth.depth) * 100.0), tongue.cue()], 19, Color.WHITE, HORIZONTAL_ALIGNMENT_LEFT, 990)
+    _text(Vector2(45,710), "Bugs %d/3   Health %s   %s %d%%   %s   %s" % [session.bug_count, "♥".repeat(session.health), depth.cue(), roundi(float(depth.depth) * 100.0), tongue.cue(), boost.cue()], 17, Color.WHITE, HORIZONTAL_ALIGNMENT_LEFT, 850)
+    _draw_energy_meter()
     _status_panel(Rect2(820,632,410,42), 16)
     _button(Rect2(1120,20,120,48), "PAUSE")
     if reduced_motion:
@@ -665,6 +701,29 @@ func _draw_current_trails() -> void:
             var point := Vector2(130 + column * 190, 210 + row * 145)
             var phase := 0.0 if reduced_motion else sin(visual_time * 1.4 + float(column + row)) * 10.0
             _text(point + Vector2(phase,0), arrow + arrow, 18, Color(0.65,0.95,1.0,0.36), HORIZONTAL_ALIGNMENT_CENTER, 54)
+
+func _draw_boost_cues(position: Vector2) -> void:
+    var aim := last_aim_direction.normalized()
+    if aim == Vector2.ZERO:
+        aim = Vector2.RIGHT
+    var backwards := -aim
+    for index in range(4):
+        var offset := backwards * (32.0 + float(index) * 15.0)
+        var side := aim.orthogonal() * (-8.0 + float(index % 3) * 8.0)
+        var start := position + offset + side
+        var length := 16.0 + float(index) * 4.0
+        draw_line(start, start + backwards * length, Color("fff0ae"), 3.0)
+    _text(position + Vector2(0,-62), "[%s]" % boost.cue(), 13, Color("fff0ae"), HORIZONTAL_ALIGNMENT_CENTER, 190)
+
+func _draw_energy_meter() -> void:
+    var meter := Rect2(1005,685,215,18)
+    draw_rect(meter, Color("06151f"), true)
+    var fill_width := (meter.size.x - 6.0) * float(session.boost_energy) / 100.0
+    draw_rect(Rect2(meter.position + Vector2(3,3), Vector2(fill_width, meter.size.y - 6.0)), Color("f7d36a"), true)
+    draw_rect(meter, Color("e8fbff"), false, 2)
+    var threshold_x := meter.position.x + meter.size.x * float(BoostLocomotion.START_THRESHOLD) / 100.0
+    draw_line(Vector2(threshold_x,meter.position.y), Vector2(threshold_x,meter.end.y), Color("ff8f70"), 3)
+    _text(Vector2(meter.position.x - 10,meter.position.y + 15), "ENERGY %d%%" % session.boost_energy, 11, Color("e8fbff"), HORIZONTAL_ALIGNMENT_RIGHT, 105)
 
 func _draw_depth_cues() -> void:
     var amount := float(depth.depth)
