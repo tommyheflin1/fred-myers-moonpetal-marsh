@@ -27,18 +27,18 @@ func _init() -> void:
 func _run() -> void:
 	remove_test_files()
 	var session := AdventureSession.new(77)
-	check(session.health == 5, "new Fred session starts with exactly five lives")
-	check(not session.gain_life() and session.health == 5, "fairy cannot exceed the five-life limit")
-	check(not session.damage(2) and session.health == 3, "damage consumes lives deterministically")
-	check(session.gain_life() and session.health == 4, "fairy restores one missing life")
-	check(session.gain_life() and session.health == 5, "second fairy restoration reaches the cap")
-	check(not session.gain_life() and session.health == 5, "five-life cap remains stable")
+	check(session.health == 3, "new Fred session starts with exactly three lives")
+	check(not session.gain_life() and session.health == 3, "fairy cannot exceed the three-life limit")
+	check(not session.damage(2) and session.health == 1, "damage consumes lives deterministically")
+	check(session.gain_life() and session.health == 2, "fairy restores one missing life")
+	check(session.gain_life() and session.health == 3, "second fairy restoration reaches the cap")
+	check(not session.gain_life() and session.health == 3, "three-life cap remains stable")
 	var legacy: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://tests/fixtures/new_game.json"))
 	var restored := AdventureSession.new()
 	check(restored.restore(legacy).get("ok") and restored.health == 3, "legacy three-life save remains readable")
 	legacy.player_state.health = 99
 	restored = AdventureSession.new()
-	check(restored.restore(legacy).get("ok") and restored.health == 5, "restored health is safely clamped to five")
+	check(restored.restore(legacy).get("ok") and restored.health == 3, "restored health is safely clamped to three")
 
 	var board := Leaderboard.new(BOARD_PATH)
 	board.submit("Guest Frog", 2, 3, 4)
@@ -75,12 +75,23 @@ func _run() -> void:
 	game._fixed_tick(1.0 / 60.0)
 	game._fixed_tick(1.0 / 60.0)
 	check(is_zero_approx(game.countdown_seconds), "countdown reaches GO deterministically")
-	game.session.health = 4
+	check(not game._fairy_available(), "level one never exposes the bonus fairy")
+	var schedule_is_exact := true
+	for level in range(1, 101):
+		game.level_number = level
+		game.fairy_collected = false
+		schedule_is_exact = schedule_is_exact and (game._fairy_available() == (level % 10 == 0))
+	check(schedule_is_exact, "fairy is available only on every tenth level")
+	game.level_number = 10
+	game.level_profile = FredLevelIntensity.profile(10)
+	game.session.health = 2
+	game.fairy_collected = false
 	game.fred = game._fairy_position()
 	game._fixed_tick(0.0)
-	check(game.session.health == 5 and game.fairy_collected, "touching the fairy grants exactly one extra life")
+	check(game.session.health == 3 and game.fairy_collected, "eating the level-ten fairy grants exactly one extra life")
+	check(game.eat_effect_seconds > 0.0 and game.eat_target == game._fairy_position(), "fairy pickup uses Fred's visible eating animation")
 	game._fixed_tick(0.0)
-	check(game.session.health == 5, "collected fairy cannot grant duplicate lives")
+	check(game.session.health == 3, "collected fairy cannot grant duplicate lives")
 	game.session.health = 1
 	game.predator = game.fred
 	game.hazards_enabled = true
@@ -88,7 +99,7 @@ func _run() -> void:
 	game._fixed_tick(0.0)
 	check(game.screen == game.Screen.FAILED and game.session.health == 0, "using the final life opens the Fred failure screen")
 	game._handle_click(Vector2(490,532))
-	check(game.screen == game.Screen.PLAYING and game.level_number == 1 and game.session.health == 5, "Try Again restarts at level one with five lives")
+	check(game.screen == game.Screen.PLAYING and game.level_number == 1 and game.session.health == 3, "Try Again restarts at level one with three lives")
 	game.screen = game.Screen.FAILED
 	game._handle_click(Vector2(790,532))
 	check(game.screen == game.Screen.TITLE and game.menu_music.playing, "Go Home returns to title and menu music")

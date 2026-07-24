@@ -113,7 +113,7 @@ func _run() -> void:
     game._fixed_tick(0.0)
     check(game.screen == game.Screen.FAILED and game.session.health == 0, "predator collision reaches accepted failure state")
     await tap_key(KEY_R)
-    check(game.screen == game.Screen.PLAYING and game.session.health == 5, "R keyboard event retries from failure")
+    check(game.screen == game.Screen.PLAYING and game.session.health == 3, "R keyboard event retries from failure")
 
     game.predator = Vector2(1200, 650)
     game.fred = Vector2(630, 390)

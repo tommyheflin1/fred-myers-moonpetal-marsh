@@ -15,7 +15,7 @@ func submit(profile_label: String, level: int, bugs: int, lives: int) -> Diction
 	var safe_label := _safe_label(profile_label)
 	var safe_level := clampi(level, 1, 100)
 	var safe_bugs := clampi(bugs, 0, 3)
-	var safe_lives := clampi(lives, 0, 5)
+	var safe_lives := clampi(lives, 0, 3)
 	var score := safe_level * 1000 + safe_bugs * 100 + safe_lives * 25
 	var entry := {
 		"player": safe_label,
@@ -50,7 +50,7 @@ func load_entries() -> Array[Dictionary]:
 					"player": _safe_label(str(item.player)),
 					"level": clampi(int(item.get("level", 1)), 1, 100),
 					"bugs": clampi(int(item.get("bugs", 0)), 0, 3),
-					"lives": clampi(int(item.get("lives", 0)), 0, 5),
+					"lives": clampi(int(item.get("lives", 0)), 0, 3),
 					"score": maxi(0, int(item.score)),
 				})
 	entries.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return int(a.score) > int(b.score))

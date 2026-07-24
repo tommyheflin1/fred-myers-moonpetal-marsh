@@ -47,6 +47,7 @@ var chase_music: AudioStreamPlayer
 var countdown_seconds := 0.0
 var countdown_enabled := true
 var fairy_collected := false
+var title_art: Texture2D
 
 func _ready() -> void:
     if "--reduced-motion" in OS.get_cmdline_user_args():
@@ -57,6 +58,7 @@ func _ready() -> void:
     chase_music = AudioStreamPlayer.new()
     menu_music.stream = load("res://assets/audio/the_marshland_march.mp3")
     chase_music.stream = load("res://assets/audio/marshland_chase.mp3")
+    title_art = load("res://assets/art/moonpetal-title-fred-v2.png")
     menu_music.volume_db = -8.0
     chase_music.volume_db = -7.0
     add_child(menu_music)
@@ -129,10 +131,12 @@ func _fixed_tick(delta: float) -> void:
             eat_target = bug_position
             eat_effect_seconds = 0.32
             collected.append(index); session.collect_bug(); _set_feedback("[MUNCH!] Fred ate a marsh bug.")
-    if not fairy_collected:
+    if _fairy_available():
         var fairy_position := _fairy_position()
         if fred.distance_to(fairy_position) < 38.0 and session.gain_life():
             fairy_collected = true
+            eat_target = fairy_position
+            eat_effect_seconds = 0.32
             _set_feedback("[FAIRY FEAST] Extra life! Fred has %d lives." % session.health)
     if fred.distance_to(_pad_position(3)) < 42 and session.checkpoint_sequence < 1:
         session.reach_checkpoint(AdventureSession.CHECKPOINTS[1], 1); _save("Midpoint is safe.")
@@ -155,6 +159,9 @@ func _sync_music() -> void:
 
 func _fairy_position() -> Vector2:
     return FAIRY_POSITIONS[(level_number - 1) % FAIRY_POSITIONS.size()]
+
+func _fairy_available() -> bool:
+    return level_number % 10 == 0 and not fairy_collected
 
 func _current_vector() -> Vector2:
     var strength := float(level_profile.current_strength)
@@ -336,8 +343,8 @@ func _unhandled_input(event: InputEvent) -> void:
                 elif screen == Screen.COMPLETE: _advance_level()
 
 func _handle_click(position: Vector2) -> void:
-    if screen == Screen.TITLE and Rect2(490,440,300,70).has_point(position): _start()
-    elif screen == Screen.TITLE and Rect2(490,525,300,52).has_point(position):
+    if screen == Screen.TITLE and Rect2(475,468,330,66).has_point(position): _start()
+    elif screen == Screen.TITLE and Rect2(475,548,330,50).has_point(position):
         screen = Screen.LEADERBOARD; _sync_music(); queue_redraw()
     elif screen == Screen.PLAYING and Rect2(1120,20,120,48).has_point(position):
         session.paused = not session.paused
@@ -440,6 +447,20 @@ func _draw() -> void:
     elif countdown_seconds > 0.0: _draw_countdown()
 
 func _draw_title() -> void:
+    draw_texture_rect(title_art, Rect2(0,0,1280,720), false)
+    draw_rect(Rect2(0,0,1280,125), Color(0.005,0.025,0.05,0.76), true)
+    draw_rect(Rect2(0,418,1280,302), Color(0.005,0.025,0.05,0.80), true)
+    draw_rect(Rect2(0,418,1280,3), Color("75d8c5"), true)
+    _text(Vector2(640,54), "FRED MYERS", 48, Color("ffe184"), HORIZONTAL_ALIGNMENT_CENTER, 820)
+    _text(Vector2(640,101), "and the Moonpetal Marsh", 28, Color("edfdf5"), HORIZONTAL_ALIGNMENT_CENTER, 820)
+    _text(Vector2(640,445), "LEAP  |  DIVE  |  MUNCH  |  SURVIVE", 16, Color("b9f5c7"), HORIZONTAL_ALIGNMENT_CENTER, 760)
+    _button(Rect2(475,468,330,66), "PLAY AGAIN" if session.completed else ("CONTINUE" if session.checkpoint_sequence > 0 else "START ADVENTURE"))
+    _button(Rect2(475,548,330,50), "LOCAL LEADERBOARD")
+    _status_panel(Rect2(260,612,760,42), 16)
+    _text(Vector2(640,680), "WASD / arrows move  |  Space leaps  |  Shift boosts  |  Q dive  |  E surface  |  P pause", 14, Color("d7edf0"), HORIZONTAL_ALIGNMENT_CENTER, 1120)
+    _text(Vector2(640,707), "NOW PLAYING: THE MARSHLAND MARCH  |  GUEST PLAY  |  ACCOUNT LINKING OPTIONAL", 12, Color("b9f5c7"), HORIZONTAL_ALIGNMENT_CENTER, 1000)
+
+func _draw_title_legacy() -> void:
     var visual := FredVisualState.snapshot(visual_time, reduced_motion)
     draw_rect(Rect2(0,0,1280,720), Color("03141f"), true)
     draw_circle(Vector2(1030,135), 96, Color(0.86,0.93,0.72,0.12))
@@ -518,7 +539,7 @@ func _draw_level() -> void:
     for index in BUGS.size():
         if index not in collected:
             _draw_bug(_bug_position(index), index, float(visual.wildlife_flutter))
-    if not fairy_collected:
+    if _fairy_available():
         _draw_fairy(_fairy_position())
     var predator_names := ["BASS", "PIKE", "HERON", "SNAKE", "MUSKIE"]
     var active_positions := _active_predator_positions()
@@ -726,6 +747,22 @@ func _draw_fred(position: Vector2) -> void:
     var underwater_amount := float(depth.depth)
     var fred_color := Color("75e06f").lerp(Color("62b9d5"), underwater_amount)
     var outline := Color("173128").lerp(Color("d8f7ff"), underwater_amount)
+    draw_colored_polygon(PackedVector2Array([
+        position+Vector2(-15,10), position+Vector2(-40,12), position+Vector2(-54,31),
+        position+Vector2(-34,37), position+Vector2(-13,27)
+    ]), outline)
+    draw_colored_polygon(PackedVector2Array([
+        position+Vector2(15,10), position+Vector2(40,12), position+Vector2(54,31),
+        position+Vector2(34,37), position+Vector2(13,27)
+    ]), outline)
+    draw_colored_polygon(PackedVector2Array([
+        position+Vector2(-17,13), position+Vector2(-38,15), position+Vector2(-48,29),
+        position+Vector2(-32,31), position+Vector2(-12,24)
+    ]), fred_color.darkened(0.08))
+    draw_colored_polygon(PackedVector2Array([
+        position+Vector2(17,13), position+Vector2(38,15), position+Vector2(48,29),
+        position+Vector2(32,31), position+Vector2(12,24)
+    ]), fred_color.darkened(0.08))
     draw_circle(position + Vector2(-22,18), 14, outline); draw_circle(position + Vector2(22,18), 14, outline)
     draw_line(position+Vector2(-16,14), position+Vector2(-34,30), outline, 8)
     draw_line(position+Vector2(16,14), position+Vector2(34,30), outline, 8)
@@ -735,7 +772,17 @@ func _draw_fred(position: Vector2) -> void:
     draw_circle(position+Vector2(-12,-20), 13, outline); draw_circle(position+Vector2(12,-20), 13, outline)
     draw_circle(position+Vector2(-12,-20), 10, fred_color); draw_circle(position+Vector2(12,-20), 10, fred_color)
     draw_circle(position+Vector2(-12,-22), 4, Color("17252c")); draw_circle(position+Vector2(12,-22), 4, Color("17252c"))
+    draw_circle(position+Vector2(-4,-9), 2.2, outline)
+    draw_circle(position+Vector2(4,-9), 2.2, outline)
+    draw_circle(position+Vector2(-10,5), 3.0, fred_color.darkened(0.20))
+    draw_circle(position+Vector2(12,8), 2.5, fred_color.darkened(0.18))
+    draw_circle(position+Vector2(1,16), 3.5, fred_color.darkened(0.14))
     draw_arc(position + Vector2(0,1), 10, 0.2, PI - 0.2, 10, outline, 2)
+    for side in [-1.0, 1.0]:
+        var foot := position + Vector2(40.0*side,32)
+        draw_line(foot, foot+Vector2(8.0*side,4), outline, 3)
+        draw_line(foot, foot+Vector2(6.0*side,9), outline, 3)
+        draw_line(foot, foot+Vector2(1.0*side,11), outline, 3)
     if underwater_amount > 0.65:
         draw_circle(position + Vector2(30,-30), 5, Color(0.75,0.95,1.0,0.65), false, 2)
         draw_circle(position + Vector2(42,-45), 3, Color(0.75,0.95,1.0,0.65), false, 2)
@@ -784,7 +831,7 @@ func _draw_failure() -> void:
     draw_line(center + Vector2(68,-91), center + Vector2(43,-72), Color("173128"), 7)
     draw_arc(center + Vector2(0,35), 42, PI+0.25, TAU-0.25, 18, Color("173128"), 7)
     _text(Vector2(640,72), "OH NO FRED!!!", 58, Color("fff0ae"), HORIZONTAL_ALIGNMENT_CENTER, 920)
-    _text(Vector2(640,445), "Five lives used. Ready for another marsh run?", 21, Color.WHITE, HORIZONTAL_ALIGNMENT_CENTER, 760)
+    _text(Vector2(640,445), "Three lives used. Ready for another marsh run?", 21, Color.WHITE, HORIZONTAL_ALIGNMENT_CENTER, 760)
     _button(Rect2(365,500,250,64), "TRY AGAIN?")
     _button(Rect2(665,500,250,64), "GO HOME?")
     _text(Vector2(640,605), "Try Again restarts at Level 001  |  Home returns to the main menu", 16, Color("d9f4e2"), HORIZONTAL_ALIGNMENT_CENTER, 820)
@@ -817,7 +864,11 @@ func _draw_leaderboard() -> void:
     _text(Vector2(640,704), "Secure shared/cloud leaderboards remain a later authenticated backend gate.", 13, Color("bfd8dc"), HORIZONTAL_ALIGNMENT_CENTER, 900)
 
 func _button(rect: Rect2, label: String) -> void:
-    draw_rect(rect, Color("e9b949"), true); draw_rect(rect, Color("fff0ae"), false, 3)
+    draw_rect(Rect2(rect.position+Vector2(0,6),rect.size), Color(0.0,0.02,0.03,0.55), true)
+    draw_rect(rect, Color("d99a2b"), true)
+    draw_rect(Rect2(rect.position+Vector2(3,3),rect.size-Vector2(6,9)), Color("f2c34e"), true)
+    draw_line(rect.position+Vector2(5,5), rect.position+Vector2(rect.size.x-5,5), Color("fff4bd"), 3)
+    draw_rect(rect, Color("fff0ae"), false, 3)
     _text(rect.position + Vector2(rect.size.x/2, rect.size.y/2+8), label, 20, Color("102935"), HORIZONTAL_ALIGNMENT_CENTER, rect.size.x)
 
 func _status_panel(rect: Rect2, size: int) -> void:

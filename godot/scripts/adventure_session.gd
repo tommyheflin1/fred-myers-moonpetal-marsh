@@ -21,7 +21,7 @@ var checkpoint_sequence := 0
 var player_state := "surface"
 var bug_count := 0
 var boost_energy := 100
-var health := 5
+var health := 3
 var paused := false
 var completed := false
 var retrying := false
@@ -53,8 +53,8 @@ func damage(amount: int = 1, hidden: bool = false) -> bool:
     return health == 0
 
 func gain_life(amount: int = 1) -> bool:
-    if health >= 5 or amount <= 0 or completed: return false
-    health = mini(5, health + amount)
+    if health >= 3 or amount <= 0 or completed: return false
+    health = mini(3, health + amount)
     return true
 
 func reach_checkpoint(checkpoint_id: String, sequence: int) -> bool:
@@ -72,7 +72,7 @@ func complete_level() -> bool:
     return true
 
 func retry_from_checkpoint() -> void:
-    health = 5
+    health = 3
     paused = false
     completed = false
     retrying = true
@@ -107,7 +107,7 @@ func restore(data: Dictionary) -> Dictionary:
     boost_energy = clampi(int(boost.get("energy", 100)), 0, 100)
     var player: Dictionary = data.get("player_state", {}) if data.get("player_state", {}) is Dictionary else {}
     player_state = str(player.get("mode", "surface")) if str(player.get("mode", "surface")) in ["surface", "underwater"] else "surface"
-    health = clampi(int(player.get("health", 5)), 1, 5)
+    health = clampi(int(player.get("health", 3)), 1, 3)
     completed_levels = _strings(data.get("completed_level_ids", []), [LEVEL_ID])
     completed_objectives = _strings(data.get("completed_objective_ids", []), [OBJECTIVE_BUGS, OBJECTIVE_REACH])
     active_objective = str(data.get("current_objective_id", OBJECTIVE_BUGS))
