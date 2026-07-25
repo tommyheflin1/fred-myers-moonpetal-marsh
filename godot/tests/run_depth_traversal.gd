@@ -125,7 +125,7 @@ func _run() -> void:
 	game.session.health = 2
 	game._apply_danger_hit("[DANGER] Test underwater predator.")
 	check(game.depth.state == DepthTraversal.State.SURFACE and game.session.player_state == "surface", "predator recovery resets canonical safe surface")
-	check(game.danger_cooldown_seconds == 1.0 and game.session.health == 1, "underwater predator preserves damage cooldown")
+	check(game.danger_cooldown_seconds == game.DAMAGE_GRACE_SECONDS and game.session.health == 1, "underwater predator preserves damage cooldown")
 	game.depth.reset("underwater")
 	game.session.set_underwater(true)
 	game.session.health = 1

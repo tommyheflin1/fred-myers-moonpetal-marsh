@@ -93,6 +93,7 @@ def main() -> None:
         'renderer/rendering_method.mobile="gl_compatibility"',
         'textures/vram_compression/import_etc2_astc=true',
         'window/stretch/mode="canvas_items"',
+        'window/stretch/aspect="keep"',
     )
     for line in required_project_lines:
         if line not in project:

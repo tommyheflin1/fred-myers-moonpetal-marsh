@@ -150,3 +150,17 @@ verified host/ANGLE renderer that meets Godot 4.7.1's GLES3 uniform limits, or
 an owner-approved physical Android debug-device session. That run must repeat
 the complete touch, lifecycle, safe-area, fairy/life, recovery, performance,
 and screenshot matrix before Android visual/device acceptance.
+
+## Post-review correction rebuild
+
+The later lives/routes/phone-layout correction was rebuilt through the same
+development-only preset. The current ignored APK is 76,684,765 bytes with
+SHA-256
+`2DCE71E33B321784AD2AEFBBE3E92D5E6B1582F34F1731266CF65A54EBAEC10A`.
+Package `com.flinsappvault.fredmyers.dev`, version `0.2.0-m2-dev` (`20001`),
+minimum SDK 24, target SDK 36, arm64-v8a plus x86_64, ZIP alignment, and v2/v3
+Godot debug signatures all revalidated. The 180-entry privacy scan found no
+tests, tools, evidence, source-control metadata, secret-like content, or
+private Windows paths, and `aapt2` reported no requested Android permissions.
+This refresh does not change the emulator-renderer blocker or create a release,
+store, signing, publication, or physical-device claim.

@@ -42,3 +42,10 @@ renderer cannot link Godot 4.7.1's built-in canvas shader. Treat Android
 presentation, actual touch gameplay, safe areas, performance, and lifecycle
 relaunch as unverified until repeated on a compatible emulator renderer or
 physical Android device. This does not change the physical-QA or release gate.
+
+The latest phone-layout contract preserves the 1280 by 720 landscape canvas,
+keeps objective/lives/Pause/energy/status regions separate, and shares exact
+geometry between touch rendering and hit tests. Desktop runtime review passed
+at 960 by 540 and constrained 640 by 360, and synthetic screen-touch checks
+cover every action. Repeat the same matrix on a compatible emulator or
+physical phone before awarding mobile presentation or touch acceptance.

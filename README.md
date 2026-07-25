@@ -43,6 +43,7 @@ This repository owns Fred gameplay. Core owns only reusable, game-neutral servic
 - [M2 authored Fred rig evidence](docs/M2_AUTHORED_FRED_RIG_REPORT.md)
 - [M2 marsh visual, tongue, lives, and touch evidence](docs/M2_MARSH_VISUAL_UPLIFT_REPORT.md)
 - [M2 Android development export evidence](docs/M2_ANDROID_DEVELOPMENT_EXPORT_REPORT.md)
+- [M2 lives, alternating routes, backgrounds, and phone layout evidence](docs/M2_LIVES_ROUTES_PHONE_LAYOUT_REPORT.md)
 
 ## Godot M1 foundation
 
@@ -53,6 +54,11 @@ arm64 and x86_64 validation. It adds no Android permissions or production
 signing. API 35 phone-emulator presentation remains blocked by the tested
 SwiftShader GLES3 uniform limit; see the Android evidence report. No Android
 release or physical-device acceptance is claimed.
+
+The current owner candidate also preserves the active level across nonfatal
+life loss, resumes from the midpoint checkpoint when reached, alternates
+left-to-right and right-to-left routes, cycles four marsh treatments, and uses
+one non-overlapping layout contract for the HUD and landscape touch controls.
 
 ## Legacy source
 

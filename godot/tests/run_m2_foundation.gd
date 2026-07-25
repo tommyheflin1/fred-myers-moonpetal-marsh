@@ -75,7 +75,7 @@ func _run() -> void:
 	check(game.level_number == 2 and game.screen == game.Screen.PLAYING, "completion flow enters level two without title")
 	check(float(game.level_profile.intensity) >= float(FredLevelIntensity.profile(1).intensity), "level two applies its increased intensity")
 	game.visual_time = 1.0
-	check(game._current_vector().x > 0.0, "level two current applies deterministic pressure")
+	check(game._current_vector().x < 0.0, "level two current supports its deterministic right-to-left route")
 	game._advance_level()
 	check(game.level_number == 3 and game.level_profile.weaving_patrol, "level three adds weaving patrol complexity")
 	check(game.direct_route_has_danger(), "straight-line route intersects a telegraphed hazard")

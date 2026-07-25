@@ -134,7 +134,7 @@ func _run() -> void:
         "new runtime restores midpoint save"
     )
     await tap_key(KEY_ENTER)
-    check(game.screen == game.Screen.PLAYING and game.fred == Vector2(630, 390), "Enter resumes at restored checkpoint")
+    check(game.screen == game.Screen.PLAYING and game.fred == game._pad_position(3), "Enter resumes at restored checkpoint")
 
     game.predator = Vector2(1200, 650)
     for index in game.BUGS.size():

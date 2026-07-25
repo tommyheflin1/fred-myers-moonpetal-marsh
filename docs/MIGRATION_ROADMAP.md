@@ -47,6 +47,14 @@ SwiftShader emulator could launch the app but could not link Godot's built-in
 canvas shader, so mobile presentation and actual touch gameplay remain
 explicitly unverified. No platform-hardening score or M013 credit is awarded.
 
+The review correction documented in
+`M2_LIVES_ROUTES_PHONE_LAYOUT_REPORT.md` keeps each nonfatal life loss on the
+active level, restores the reached midpoint checkpoint, mirrors odd/even
+routes, cycles four deterministic marsh treatments, and centralizes the HUD
+and touch geometry so essential controls remain separated at 960 by 540 and
+640 by 360. The full 17-suite matrix passes 2,188 checks. Physical-phone
+acceptance and milestone scores remain unchanged.
+
 ## M1 sequencing
 
 1. Expand the repository source tree and retain the legacy build under `legacy-web/` or a tagged legacy branch.

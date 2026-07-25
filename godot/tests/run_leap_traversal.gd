@@ -96,7 +96,7 @@ func _run() -> void:
 	game._handle_click(game.fred + Vector2(150, 0))
 	check(game.leap.is_airborne(), "mouse pond click launches toward the pointer")
 	game._apply_danger_hit("[DANGER] Test predator contact.")
-	check(game.leap.state == LeapTraversal.State.GROUNDED and game.danger_cooldown_seconds == 1.0, "predator contact cancels leap and preserves cooldown")
+	check(game.leap.state == LeapTraversal.State.GROUNDED and game.danger_cooldown_seconds == game.DAMAGE_GRACE_SECONDS, "predator contact cancels leap and preserves cooldown")
 
 	var save_snapshot: Dictionary = game.session.to_save("2000-01-01T00:00:00Z")
 	game.leap.request(Vector2.RIGHT)

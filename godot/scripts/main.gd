@@ -7,16 +7,19 @@ const BoostLocomotion = preload("res://scripts/boost_locomotion.gd")
 const CameraFollow = preload("res://scripts/camera_follow.gd")
 const AnimationCoordinator = preload("res://scripts/fred_animation_coordinator.gd")
 const FredRigScene = preload("res://scenes/fred_rig.tscn")
+const MarshRouteLayout = preload("res://scripts/marsh_route_layout.gd")
 
 enum Screen { TITLE, PLAYING, FAILED, COMPLETE, LEADERBOARD }
 const START := Vector2(135, 560)
-const EXIT := Vector2(1150, 120)
+const EXIT := Vector2(1150, 165)
 const PADS := [Vector2(220,500), Vector2(350,420), Vector2(490,500), Vector2(630,390), Vector2(760,300), Vector2(900,225), Vector2(1040,165)]
 const BUGS := [Vector2(350,390), Vector2(625,360), Vector2(900,195)]
 const SAFE_LOCATION := Vector2(720,570)
 const PREDATOR_START := Vector2(850,520)
 const WHIRLPOOLS := [Vector2(500,405), Vector2(790,315), Vector2(960,500)]
 const FAIRY_POSITIONS := [Vector2(455,205), Vector2(835,545), Vector2(1080,365)]
+const DAMAGE_GRACE_SECONDS := 1.75
+const RESPAWN_COUNTDOWN_SECONDS := 2.0
 
 var session := AdventureSession.new(1337)
 var saver := FredSaveAdapter.new()
@@ -219,14 +222,16 @@ func _fixed_tick(delta: float) -> void:
     predator.x += predator_direction * 110.0 * float(level_profile.predator_speed_scale) * delta
     if bool(level_profile.weaving_patrol):
         predator.y = PREDATOR_START.y + sin(visual_time * (0.8 + float(level_number) * 0.015)) * minf(115.0, 42.0 + float(level_number))
-    if predator.x > 1120 or predator.x < 760: predator_direction *= -1.0
+    var predator_bounds := Vector2(160.0,520.0) if MarshRouteLayout.is_reversed(level_number) else Vector2(760.0,1120.0)
+    if predator.x > predator_bounds.y or predator.x < predator_bounds.x:
+        predator_direction *= -1.0
     _update_secondary_predators()
-    in_safe_location = fred.distance_to(SAFE_LOCATION) < float(level_profile.safe_radius)
+    in_safe_location = fred.distance_to(_level_safe_position()) < float(level_profile.safe_radius)
     if fred.distance_to(_pad_position(3)) < 42 and session.checkpoint_sequence < 1:
         session.reach_checkpoint(AdventureSession.CHECKPOINTS[1], 1); _save("Midpoint is safe.")
     if _check_danger_collision():
         return
-    if fred.distance_to(EXIT) < 55 and session.complete_level():
+    if fred.distance_to(_level_exit_position()) < 55 and session.complete_level():
         leaderboard.submit(identity.profile_label, level_number, session.bug_count, session.health)
         screen = Screen.COMPLETE; _save("Lily Leap is complete.")
 
@@ -245,8 +250,31 @@ func _sync_music() -> void:
         if menu_music.playing: menu_music.stop()
         if not chase_music.playing: chase_music.play()
 
+func _route_point(point: Vector2) -> Vector2:
+    return MarshRouteLayout.route_point(point, level_number)
+
+func _level_start_position() -> Vector2:
+    return _route_point(START)
+
+func _level_exit_position() -> Vector2:
+    return _route_point(EXIT)
+
+func _level_safe_position() -> Vector2:
+    return _route_point(SAFE_LOCATION)
+
+func _whirlpool_position(index: int) -> Vector2:
+    return _route_point(WHIRLPOOLS[index])
+
+func _checkpoint_respawn_position() -> Vector2:
+    if (
+        session.checkpoint_sequence > 0
+        and session.current_checkpoint == AdventureSession.CHECKPOINTS[1]
+    ):
+        return _pad_position(3)
+    return _level_start_position()
+
 func _fairy_position() -> Vector2:
-    return FAIRY_POSITIONS[(level_number - 1) % FAIRY_POSITIONS.size()]
+    return _route_point(FAIRY_POSITIONS[(level_number - 1) % FAIRY_POSITIONS.size()])
 
 func _fairy_available() -> bool:
     return level_number % 10 == 0 and not fairy_collected
@@ -331,10 +359,11 @@ func _current_vector() -> Vector2:
     var strength := float(level_profile.current_strength)
     if is_zero_approx(strength):
         return Vector2.ZERO
-    var direction := 1.0
+    var route_direction := -1.0 if MarshRouteLayout.is_reversed(level_number) else 1.0
+    var direction := route_direction
     if bool(level_profile.reversing_current):
         var frequency := 0.65 if level_number < 8 else 1.05
-        direction = 1.0 if sin(visual_time * frequency) >= 0.0 else -1.0
+        direction = route_direction if sin(visual_time * frequency) >= 0.0 else -route_direction
     var vertical := 0.0
     if level_number >= 7 and depth.is_underwater_band():
         vertical = sin(visual_time * 0.9) * strength * 0.55
@@ -342,16 +371,17 @@ func _current_vector() -> Vector2:
 
 func _update_secondary_predators() -> void:
     var pressure := float(level_profile.predator_speed_scale)
-    secondary_predators[0] = Vector2(505 + sin(simulation_time * 1.15 * pressure) * 190, 250 + cos(simulation_time * 0.75) * 55)
-    secondary_predators[1] = Vector2(1030 + cos(simulation_time * 0.62 * pressure) * 105, 350 + sin(simulation_time * 0.94) * 125)
-    secondary_predators[2] = Vector2(770 + sin(simulation_time * 0.82) * 135, 175 + absf(sin(simulation_time * 1.28)) * 125)
-    secondary_predators[3] = Vector2(405 + cos(simulation_time * 1.05) * 150, 575 + sin(simulation_time * 0.65) * 55)
+    secondary_predators[0] = _route_point(Vector2(505 + sin(simulation_time * 1.15 * pressure) * 190, 250 + cos(simulation_time * 0.75) * 55))
+    secondary_predators[1] = _route_point(Vector2(1030 + cos(simulation_time * 0.62 * pressure) * 105, 350 + sin(simulation_time * 0.94) * 125))
+    secondary_predators[2] = _route_point(Vector2(770 + sin(simulation_time * 0.82) * 135, 175 + absf(sin(simulation_time * 1.28)) * 125))
+    secondary_predators[3] = _route_point(Vector2(405 + cos(simulation_time * 1.05) * 150, 575 + sin(simulation_time * 0.65) * 55))
 
 func _pad_position(index: int) -> Vector2:
-    var base: Vector2 = PADS[index]
+    var base: Vector2 = _route_point(PADS[index])
+    var route_sign := -1.0 if MarshRouteLayout.is_reversed(level_number) else 1.0
     var level_phase := float(level_number * 17 + index * 31)
     var level_offset := Vector2(
-        sin(level_phase * 0.19) * minf(34.0, 8.0 + float(level_number) * 0.28),
+        sin(level_phase * 0.19) * minf(34.0, 8.0 + float(level_number) * 0.28) * route_sign,
         cos(level_phase * 0.13) * minf(26.0, 6.0 + float(level_number) * 0.20)
     )
     var drift := float(level_profile.lily_drift)
@@ -359,17 +389,18 @@ func _pad_position(index: int) -> Vector2:
         sin(simulation_time * (0.22 + float(index % 3) * 0.035) + float(index)) * drift,
         cos(simulation_time * (0.18 + float(index % 2) * 0.04) + float(index) * 0.7) * drift * 0.55
     )
-    return (base + level_offset + motion).clamp(Vector2(100, 140), Vector2(1135, 620))
+    return (base + level_offset + motion).clamp(Vector2(90, 155), Vector2(1190, 590))
 
 func _bug_position(index: int) -> Vector2:
-    var base: Vector2 = BUGS[index]
+    var base: Vector2 = _route_point(BUGS[index])
+    var route_sign := -1.0 if MarshRouteLayout.is_reversed(level_number) else 1.0
     var radius := float(level_profile.bug_flight_radius)
     var speed := float(level_profile.bug_flight_speed)
     var level_phase := float(level_number * 23 + index * 41)
-    var level_offset := Vector2(sin(level_phase * 0.17) * 38.0, cos(level_phase * 0.11) * 25.0)
-    var angle := simulation_time * speed * (1.0 if index % 2 == 0 else -1.0) + float(index) * 2.1
+    var level_offset := Vector2(sin(level_phase * 0.17) * 38.0 * route_sign, cos(level_phase * 0.11) * 25.0)
+    var angle := simulation_time * speed * (1.0 if index % 2 == 0 else -1.0) * route_sign + float(index) * 2.1
     var flight := Vector2(cos(angle) * radius, sin(angle * 1.35) * radius * 0.72)
-    return (base + level_offset + flight).clamp(Vector2(90, 130), Vector2(1170, 620))
+    return (base + level_offset + flight).clamp(Vector2(80, 145), Vector2(1200, 585))
 
 func _active_predator_positions() -> Array[Vector2]:
     var positions: Array[Vector2] = [predator]
@@ -393,7 +424,7 @@ func _check_danger_collision() -> bool:
             _apply_danger_hit("[DANGER] A marsh predator caught Fred!")
             return true
     for index in range(mini(int(level_profile.whirlpool_count), WHIRLPOOLS.size())):
-        if fred.distance_to(WHIRLPOOLS[index]) < 50.0:
+        if fred.distance_to(_whirlpool_position(index)) < 50.0:
             _apply_danger_hit("[WHIRLPOOL] The current swept Fred back!")
             return true
     return false
@@ -407,20 +438,28 @@ func _apply_danger_hit(message: String) -> void:
     tongue.reset()
     boost.cancel(session.boost_energy)
     session.set_underwater(false)
-    fred = START
-    _reset_camera()
-    danger_cooldown_seconds = 1.0
-    _set_feedback(message)
     var failed := session.damage()
     animation.trigger_damage(failed)
     if failed:
+        danger_cooldown_seconds = 0.0
+        countdown_seconds = 0.0
+        touch_contacts.clear()
+        _refresh_touch_holds()
+        _set_feedback("[OUT OF LIVES] " + message)
         screen = Screen.FAILED
+        return
+    fred = _checkpoint_respawn_position()
+    _reset_camera()
+    danger_cooldown_seconds = DAMAGE_GRACE_SECONDS
+    countdown_seconds = RESPAWN_COUNTDOWN_SECONDS if countdown_enabled else 0.0
+    var recovery_point := "the midpoint checkpoint" if session.checkpoint_sequence > 0 else "this level's starting perch"
+    _save("[LIFE LOST] %d lives remain. Fred returns to %s." % [session.health, recovery_point])
 
 func direct_route_has_danger() -> bool:
     for step in range(1, 20):
-        var point := START.lerp(EXIT, float(step) / 20.0)
+        var point := _level_start_position().lerp(_level_exit_position(), float(step) / 20.0)
         for index in range(mini(int(level_profile.whirlpool_count), WHIRLPOOLS.size())):
-            if point.distance_to(WHIRLPOOLS[index]) < 58.0:
+            if point.distance_to(_whirlpool_position(index)) < 58.0:
                 return true
     return false
 
@@ -433,9 +472,9 @@ func _request_leap(requested_direction: Vector2) -> bool:
     return accepted
 
 func _can_dive_here(position: Vector2) -> bool:
-    if position.distance_to(START) < 62.0 or position.distance_to(SAFE_LOCATION) < float(level_profile.safe_radius) + 8.0:
+    if position.distance_to(_level_start_position()) < 62.0 or position.distance_to(_level_safe_position()) < float(level_profile.safe_radius) + 8.0:
         return false
-    if position.distance_to(EXIT) < 52.0:
+    if position.distance_to(_level_exit_position()) < 52.0:
         return false
     for index in PADS.size():
         if position.distance_to(_pad_position(index)) < 44.0:
@@ -464,9 +503,9 @@ func _request_surface() -> bool:
     return accepted
 
 func _is_valid_landing(position: Vector2) -> bool:
-    if position.distance_to(START) <= 78.0 or position.distance_to(SAFE_LOCATION) <= float(level_profile.safe_radius) + 16.0:
+    if position.distance_to(_level_start_position()) <= 78.0 or position.distance_to(_level_safe_position()) <= float(level_profile.safe_radius) + 16.0:
         return true
-    if position.distance_to(EXIT) <= 58.0:
+    if position.distance_to(_level_exit_position()) <= 58.0:
         return true
     for index in PADS.size():
         if position.distance_to(_pad_position(index)) <= 64.0:
@@ -559,24 +598,7 @@ func _move_touch(index: int, position: Vector2) -> void:
     _refresh_touch_holds()
 
 func _touch_action_at(position: Vector2) -> String:
-    if Rect2(1120,20,120,65).has_point(position):
-        return "pause"
-    if position.x < 340.0 and position.y > 410.0:
-        var delta := position - Vector2(170,565)
-        if delta.length() <= 150.0:
-            if absf(delta.x) > absf(delta.y):
-                return "right" if delta.x >= 0.0 else "left"
-            return "down" if delta.y >= 0.0 else "up"
-    var buttons := {
-        "tongue": Vector2(1135,500),
-        "leap": Vector2(1035,605),
-        "depth": Vector2(930,505),
-        "boost": Vector2(1175,625),
-    }
-    for action: String in buttons:
-        if position.distance_to(Vector2(buttons[action])) <= 64.0:
-            return action
-    return ""
+    return MarshRouteLayout.touch_action_at(position)
 
 func _refresh_touch_holds() -> void:
     touch_movement = Vector2.ZERO
@@ -594,7 +616,7 @@ func _handle_click(position: Vector2) -> void:
     if screen == Screen.TITLE and Rect2(475,468,330,66).has_point(position): _start()
     elif screen == Screen.TITLE and Rect2(475,548,330,50).has_point(position):
         screen = Screen.LEADERBOARD; _sync_music(); queue_redraw()
-    elif screen == Screen.PLAYING and Rect2(1120,20,120,48).has_point(position):
+    elif screen == Screen.PLAYING and MarshRouteLayout.PAUSE_RECT.has_point(position):
         session.paused = not session.paused
         _set_feedback("[PAUSED] Your last checkpoint is safe." if session.paused else "[PLAYING] Adventure resumed.")
     elif screen == Screen.PLAYING and session.paused and Rect2(490,410,300,65).has_point(position):
@@ -609,6 +631,8 @@ func _handle_click(position: Vector2) -> void:
 
 func _start() -> void:
     if session.completed:
+        level_number = 1
+        level_profile = FredLevelIntensity.profile(1)
         session = AdventureSession.new(1337)
         _set_feedback("[NEW GAME] A fresh Lily Leap run is ready.")
     screen = Screen.PLAYING
@@ -620,7 +644,8 @@ func _start() -> void:
     touch_contacts.clear()
     _refresh_touch_holds()
     _sync_music()
-    fred = Vector2(630,390) if session.current_checkpoint == AdventureSession.CHECKPOINTS[1] else START
+    fred = _checkpoint_respawn_position()
+    last_aim_direction = MarshRouteLayout.route_direction(level_number)
     _reset_camera()
     collected.clear()
     for index in range(mini(session.bug_count, BUGS.size())): collected.append(index)
@@ -638,9 +663,11 @@ func _retry() -> void:
     touch_contacts.clear()
     _refresh_touch_holds()
     session.set_underwater(false)
-    fred = START
+    fred = _level_start_position()
+    last_aim_direction = MarshRouteLayout.route_direction(level_number)
     _reset_camera()
-    predator = PREDATOR_START
+    predator = _route_point(PREDATOR_START)
+    predator_direction = -1.0 if MarshRouteLayout.is_reversed(level_number) else 1.0
     collected.clear()
     fairy_collected = false
     countdown_seconds = 5.0 if countdown_enabled else 0.0
@@ -670,8 +697,10 @@ func _advance_level() -> void:
     session = AdventureSession.new(1337 + level_number)
     session.health = clampi(carried_lives, 1, AdventureSession.MAX_LIVES)
     session.boost_energy = clampi(carried_energy, 0, 100)
-    fred = START
-    predator = PREDATOR_START + Vector2(-25.0 * float((level_number - 1) % 4), 0)
+    fred = _level_start_position()
+    last_aim_direction = MarshRouteLayout.route_direction(level_number)
+    predator = _route_point(PREDATOR_START + Vector2(-25.0 * float((level_number - 1) % 4), 0))
+    predator_direction = -1.0 if MarshRouteLayout.is_reversed(level_number) else 1.0
     collected.clear()
     eat_effect_seconds = 0.0
     simulation_time = 0.0
@@ -833,21 +862,38 @@ func _draw_title_legacy() -> void:
     if reduced_motion:
         _text(Vector2(640,706), "[REDUCED MOTION] All gameplay cues remain visible.", 13, Color("e8fbff"), HORIZONTAL_ALIGNMENT_CENTER, 700)
 
+func _draw_marsh_background(water: Color) -> void:
+    var playfield: Rect2 = MarshRouteLayout.PLAYFIELD_RECT
+    if is_instance_valid(gameplay_art):
+        if MarshRouteLayout.is_reversed(level_number):
+            draw_set_transform(Vector2(1280.0,0.0), 0.0, Vector2(-1.0,1.0))
+            draw_texture_rect(gameplay_art, playfield, false, MarshRouteLayout.background_tint(level_number))
+            draw_set_transform(Vector2.ZERO)
+        else:
+            draw_texture_rect(gameplay_art, playfield, false, MarshRouteLayout.background_tint(level_number))
+    else:
+        draw_rect(playfield, water, true)
+    draw_rect(playfield, MarshRouteLayout.background_overlay(level_number), true)
+    draw_rect(playfield, Color(water, 0.14 + float(depth.depth) * 0.26), true)
+    var variant := MarshRouteLayout.background_variant(level_number)
+    var accent_positions: Array[Vector2] = [
+        Vector2(165,165), Vector2(465,310), Vector2(790,195), Vector2(1090,445)
+    ]
+    for index in range(variant + 1):
+        var accent := _route_point(accent_positions[index])
+        draw_circle(accent, 70.0 + float(index) * 18.0, Color(0.72,0.93,1.0,0.028 + float(variant) * 0.006))
+    draw_rect(playfield, Color("8be8e1"), false, 3)
+    draw_rect(playfield.grow(-4.0), Color(0.01,0.08,0.11,0.20), false, 2)
+    draw_rect(Rect2(playfield.position, Vector2(playfield.size.x,96.0)), Color(0.42,0.90,0.92,0.06), true)
+
 func _draw_level() -> void:
     var visual := FredVisualState.snapshot(visual_time, reduced_motion)
     var water := Color("075c78").lerp(Color("07334f"), float(depth.depth))
-    draw_rect(Rect2(22,72,1236,626), Color("020b12"), true)
-    if is_instance_valid(gameplay_art):
-        draw_texture_rect(gameplay_art, Rect2(35,85,1210,600), false)
-    else:
-        draw_rect(Rect2(35,85,1210,600), water, true)
-    draw_rect(Rect2(35,85,1210,600), Color(water, 0.15 + float(depth.depth) * 0.26), true)
-    draw_rect(Rect2(35,85,1210,600), Color("8be8e1"), false, 3)
-    draw_rect(Rect2(39,89,1202,592), Color(0.01,0.08,0.11,0.20), false, 2)
-    draw_rect(Rect2(35,85,1210,118), Color(0.42,0.90,0.92,0.07), true)
+    draw_rect(MarshRouteLayout.PLAYFIELD_RECT.grow(7.0), Color("020b12"), true)
+    _draw_marsh_background(water)
     _draw_depth_cues()
-    for glow in [Vector2(180,155), Vector2(530,260), Vector2(1020,420)]:
-        draw_circle(glow, 95, Color(0.2,0.85,0.78,0.035))
+    for glow in [Vector2(180,170), Vector2(530,270), Vector2(1020,420)]:
+        draw_circle(_route_point(glow), 95, Color(0.2,0.85,0.78,0.035))
     draw_set_transform(camera_offset)
     _draw_current_trails()
     for row in range(4):
@@ -863,7 +909,7 @@ func _draw_level() -> void:
         var drawn_pad: Vector2 = pad + Vector2(0,pad_bob)
         _draw_lily_pad(drawn_pad, index)
     var safe_radius := float(level_profile.safe_radius)
-    _draw_safe_island(SAFE_LOCATION, safe_radius)
+    _draw_safe_island(_level_safe_position(), safe_radius)
     for index in BUGS.size():
         if index not in collected:
             _draw_bug(_bug_position(index), index, float(visual.wildlife_flutter))
@@ -879,7 +925,7 @@ func _draw_level() -> void:
     for index in active_positions.size():
         _draw_predator(active_positions[index], predator_names[index])
     var exit_radius := 45.0 * float(visual.exit_pulse)
-    _draw_moonpetal_exit(EXIT, exit_radius)
+    _draw_moonpetal_exit(_level_exit_position(), exit_radius)
     var fred_draw_position := fred - Vector2(0,leap.visual_height)
     var animation_pose: Dictionary = animation.pose()
     fred_rig.apply_pose(animation_pose, float(depth.depth))
@@ -899,19 +945,28 @@ func _draw_level() -> void:
     if impact_burst_seconds > 0.0:
         _draw_impact_burst()
     draw_set_transform(Vector2.ZERO)
-    _text(Vector2(45,38), "LILY LEAP", 28, Color("f7d36a"), HORIZONTAL_ALIGNMENT_LEFT, 300)
-    _text(Vector2(45,75), "LEVEL %03d  -  %s" % [level_profile.level, level_profile.label], 15, Color("d9f4e2"), HORIZONTAL_ALIGNMENT_LEFT, 280)
-    _text(Vector2(890,75), "NEW: %s  |  THREATS %d" % [str(level_profile.new_twist).to_upper(), int(level_profile.predator_count)], 13, Color("fff0ae"), HORIZONTAL_ALIGNMENT_LEFT, 350)
-    draw_rect(Rect2(330,10,560,52), Color("06151f"), true); draw_rect(Rect2(330,10,560,52), Color("e8fbff"), false, 2)
-    _text(Vector2(350,43), "OBJECTIVE: " + ("Reach the moonpetal exit" if session.bug_count >= 3 else "Collect 3 marsh bugs"), 19, Color("e8fbff"), HORIZONTAL_ALIGNMENT_LEFT, 520)
-    _text(Vector2(45,710), "BUGS %d/3   LIVES %d   %s %d%%   %s   %s" % [session.bug_count, session.health, depth.cue(), roundi(float(depth.depth) * 100.0), tongue.cue(), boost.cue()], 17, Color.WHITE, HORIZONTAL_ALIGNMENT_LEFT, 890)
+    _text(Vector2(25,42), "LILY LEAP", 27, Color("f7d36a"), HORIZONTAL_ALIGNMENT_LEFT, 270)
+    _text(Vector2(25,76), "LEVEL %03d  -  %s" % [level_profile.level, level_profile.label], 14, Color("d9f4e2"), HORIZONTAL_ALIGNMENT_LEFT, 270)
+    var route_summary := "ROUTE: %s  |  %s  |  NEW: %s" % [
+        MarshRouteLayout.route_label(level_number),
+        MarshRouteLayout.background_label(level_number).to_upper(),
+        str(level_profile.new_twist).to_upper(),
+    ]
+    if reduced_motion:
+        route_summary += "  |  STEADY VIEW"
+    _text(Vector2(25,98), route_summary, 12, Color("fff0ae"), HORIZONTAL_ALIGNMENT_LEFT, 830)
+    draw_rect(MarshRouteLayout.OBJECTIVE_RECT, Color("06151f"), true)
+    draw_rect(MarshRouteLayout.OBJECTIVE_RECT, Color("e8fbff"), false, 2)
+    _text(Vector2(320,49), "OBJECTIVE: " + ("Reach the moonpetal exit" if session.bug_count >= 3 else "Collect 3 marsh bugs"), 18, Color("e8fbff"), HORIZONTAL_ALIGNMENT_LEFT, 510)
+    draw_rect(MarshRouteLayout.LIVES_RECT, Color("06151f"), true)
+    draw_rect(MarshRouteLayout.LIVES_RECT, Color("f7d36a"), false, 3)
+    _text(Vector2(MarshRouteLayout.LIVES_RECT.get_center().x,49), "LIVES %d  |  THREATS %d" % [session.health, int(level_profile.predator_count)], 16, Color("fff0ae"), HORIZONTAL_ALIGNMENT_CENTER, MarshRouteLayout.LIVES_RECT.size.x - 12.0)
+    _text(MarshRouteLayout.TELEMETRY_ANCHOR, "BUGS %d/3   %s %d%%   %s   %s" % [session.bug_count, depth.cue(), roundi(float(depth.depth) * 100.0), tongue.cue(), boost.cue()], 15, Color.WHITE, HORIZONTAL_ALIGNMENT_LEFT, 810)
     _draw_energy_meter()
-    _status_panel(Rect2(355,632,470,42) if touch_controls_visible else Rect2(820,632,410,42), 16)
-    _button(Rect2(1120,20,120,48), "PAUSE")
+    _status_panel(MarshRouteLayout.status_rect(touch_controls_visible), 15)
+    _button(MarshRouteLayout.PAUSE_RECT, "PAUSE")
     if touch_controls_visible:
         _draw_touch_controls()
-    if reduced_motion:
-        _text(Vector2(1000,105), "[REDUCED MOTION]", 14, Color("e8fbff"), HORIZONTAL_ALIGNMENT_CENTER, 220)
 
 func _ellipse_points(center: Vector2, radii: Vector2, rotation: float, close: bool = false) -> PackedVector2Array:
     var points := PackedVector2Array()
@@ -984,15 +1039,19 @@ func _nearest_assisted_target() -> Dictionary:
 
 func _draw_touch_controls() -> void:
     var held: Array = touch_contacts.values()
-    var center := Vector2(170,565)
-    _draw_touch_button(center + Vector2(-60,0), 33, "<", "left" in held)
-    _draw_touch_button(center + Vector2(60,0), 33, ">", "right" in held)
-    _draw_touch_button(center + Vector2(0,-60), 33, "^", "up" in held)
-    _draw_touch_button(center + Vector2(0,60), 33, "v", "down" in held)
-    _draw_touch_button(Vector2(1135,500), 46, "MUNCH", "tongue" in held)
-    _draw_touch_button(Vector2(1035,605), 46, "LEAP", "leap" in held)
-    _draw_touch_button(Vector2(930,505), 43, "DEPTH", "depth" in held)
-    _draw_touch_button(Vector2(1175,625), 43, "BOOST", "boost" in held)
+    var center := MarshRouteLayout.DPAD_CENTER
+    var offset := MarshRouteLayout.DPAD_OFFSET
+    var dpad_radius := MarshRouteLayout.DPAD_RADIUS
+    _draw_touch_button(center + Vector2(-offset,0), dpad_radius, "<", "left" in held)
+    _draw_touch_button(center + Vector2(offset,0), dpad_radius, ">", "right" in held)
+    _draw_touch_button(center + Vector2(0,-offset), dpad_radius, "^", "up" in held)
+    _draw_touch_button(center + Vector2(0,offset), dpad_radius, "v", "down" in held)
+    var centers := MarshRouteLayout.touch_centers()
+    var radii := MarshRouteLayout.touch_radii()
+    _draw_touch_button(Vector2(centers.tongue), float(radii.tongue), "MUNCH", "tongue" in held)
+    _draw_touch_button(Vector2(centers.leap), float(radii.leap), "LEAP", "leap" in held)
+    _draw_touch_button(Vector2(centers.depth), float(radii.depth), "DEPTH", "depth" in held)
+    _draw_touch_button(Vector2(centers.boost), float(radii.boost), "BOOST", "boost" in held)
 
 func _draw_touch_button(center: Vector2, radius: float, label: String, active: bool) -> void:
     var fill := Color(0.98,0.88,0.38,0.46) if active else Color(0.02,0.10,0.13,0.24)
@@ -1025,20 +1084,20 @@ func _draw_boost_cues(position: Vector2) -> void:
     _text(position + Vector2(0,-62), "[%s]" % boost.cue(), 13, Color("fff0ae"), HORIZONTAL_ALIGNMENT_CENTER, 190)
 
 func _draw_energy_meter() -> void:
-    var meter := Rect2(1005,685,215,18)
+    var meter := MarshRouteLayout.ENERGY_RECT
     draw_rect(meter, Color("06151f"), true)
     var fill_width := (meter.size.x - 6.0) * float(session.boost_energy) / 100.0
     draw_rect(Rect2(meter.position + Vector2(3,3), Vector2(fill_width, meter.size.y - 6.0)), Color("f7d36a"), true)
     draw_rect(meter, Color("e8fbff"), false, 2)
     var threshold_x := meter.position.x + meter.size.x * float(BoostLocomotion.START_THRESHOLD) / 100.0
     draw_line(Vector2(threshold_x,meter.position.y), Vector2(threshold_x,meter.end.y), Color("ff8f70"), 3)
-    _text(Vector2(meter.position.x - 10,meter.position.y + 15), "ENERGY %d%%" % session.boost_energy, 11, Color("e8fbff"), HORIZONTAL_ALIGNMENT_RIGHT, 105)
+    _text(Vector2(meter.get_center().x,meter.position.y + 14), "ENERGY %d%%" % session.boost_energy, 11, Color("102935"), HORIZONTAL_ALIGNMENT_CENTER, meter.size.x - 12.0)
 
 func _draw_depth_cues() -> void:
     var amount := float(depth.depth)
     if amount <= 0.001:
         return
-    draw_rect(Rect2(35,85,1210,600), Color(0.01,0.07,0.16,0.20 * amount), true)
+    draw_rect(MarshRouteLayout.PLAYFIELD_RECT, Color(0.01,0.07,0.16,0.20 * amount), true)
     for index in range(14):
         var phase := 0.0 if reduced_motion else fmod(visual_time * (18.0 + float(index % 3) * 3.0), 150.0)
         var bubble := Vector2(90 + index * 84, 620 - fmod(float(index * 47) + phase, 470.0))
@@ -1047,7 +1106,7 @@ func _draw_depth_cues() -> void:
 
 func _draw_whirlpools() -> void:
     for index in range(mini(int(level_profile.whirlpool_count), WHIRLPOOLS.size())):
-        var center: Vector2 = WHIRLPOOLS[index]
+        var center: Vector2 = _whirlpool_position(index)
         var rotation := 0.0 if reduced_motion else visual_time * (1.1 + float(index) * 0.2)
         draw_circle(center + Vector2(0,5), 62, Color(0.01,0.06,0.12,0.45))
         draw_circle(center, 58, Color(0.02,0.20,0.31,0.72))
@@ -1275,7 +1334,7 @@ func _draw_failure() -> void:
     draw_line(center + Vector2(68,-91), center + Vector2(43,-72), Color("173128"), 7)
     draw_arc(center + Vector2(0,35), 42, PI+0.25, TAU-0.25, 18, Color("173128"), 7)
     _text(Vector2(640,72), "OH NO FRED!!!", 58, Color("fff0ae"), HORIZONTAL_ALIGNMENT_CENTER, 920)
-    _text(Vector2(640,445), "Three lives used. Ready for another marsh run?", 21, Color.WHITE, HORIZONTAL_ALIGNMENT_CENTER, 760)
+    _text(Vector2(640,445), "All lives used. Ready for another marsh run?", 21, Color.WHITE, HORIZONTAL_ALIGNMENT_CENTER, 760)
     _button(Rect2(365,500,250,64), "TRY AGAIN?")
     _button(Rect2(665,500,250,64), "GO HOME?")
     _text(Vector2(640,605), "Try Again restarts at Level 001  |  Home returns to the main menu", 16, Color("d9f4e2"), HORIZONTAL_ALIGNMENT_CENTER, 820)

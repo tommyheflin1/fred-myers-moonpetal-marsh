@@ -59,6 +59,8 @@ jobs:
         run: ./Godot_v4.7.1-stable_linux.x86_64 --headless --path godot --script res://tests/run_marsh_visual_uplift.gd
       - name: Run Android lifecycle and touch readiness tests
         run: ./Godot_v4.7.1-stable_linux.x86_64 --headless --path godot --script res://tests/run_android_readiness.gd
+      - name: Run lives, alternating routes, background and phone-layout tests
+        run: ./Godot_v4.7.1-stable_linux.x86_64 --headless --path godot --script res://tests/run_lives_routes_phone_layout.gd
       - name: Verify exact Core agreement
         run: |
           test "$(cat godot/CORE_VERSION)" = "0.5.1"
