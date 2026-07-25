@@ -55,6 +55,14 @@ and touch geometry so essential controls remain separated at 960 by 540 and
 640 by 360. The full 17-suite matrix passes 2,188 checks. Physical-phone
 acceptance and milestone scores remain unchanged.
 
+The hash-guarded owner workflow in
+`M2_PHYSICAL_ANDROID_OWNER_HANDOFF.md` now makes the next physical-phone gate
+reproducible without claiming it early. Default execution found zero devices
+and returned `DEVICE_NOT_CONNECTED / UNVERIFIED`; 60/60 fictional safety checks
+prove fail-closed hash, package, device-state, API/ABI, ambiguity, and explicit
+serial behavior. No install or device capture occurred, and milestone scores
+remain unchanged.
+
 ## M1 sequencing
 
 1. Expand the repository source tree and retain the legacy build under `legacy-web/` or a tagged legacy branch.

@@ -49,3 +49,11 @@ geometry between touch rendering and hit tests. Desktop runtime review passed
 at 960 by 540 and constrained 640 by 360, and synthetic screen-touch checks
 cover every action. Repeat the same matrix on a compatible emulator or
 physical phone before awarding mobile presentation or touch acceptance.
+
+Use `tools/validate_physical_android_device.ps1` for the physical Android
+handoff. Its default mode is read-only and returns machine-readable
+`UNVERIFIED` results. A future install/launch requires the exact guarded APK,
+one explicit physical serial, an API/ABI/storage preflight, and separate
+owner-device/save-risk acknowledgements. Never uninstall, clear data,
+downgrade, grant permissions, root, or collect broad device logs for this
+test.

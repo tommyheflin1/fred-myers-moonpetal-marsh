@@ -164,3 +164,20 @@ tests, tools, evidence, source-control metadata, secret-like content, or
 private Windows paths, and `aapt2` reported no requested Android permissions.
 This refresh does not change the emulator-renderer blocker or create a release,
 store, signing, publication, or physical-device claim.
+
+## Physical-phone owner handoff
+
+The later handoff adds a read-only-by-default, hash-guarded physical-device
+preflight without changing the APK. The executed command found zero devices
+and returned `DEVICE_NOT_CONNECTED / UNVERIFIED`, with the expected APK hash,
+package, candidate source SHA, explicit owner next action, and
+`mutation_performed=false`. Fictional safety fixtures passed 60/60 for absent,
+unauthorized, offline, emulator-only, ambiguous, wrong-hash, wrong-package,
+unsupported API/ABI, unprovable installed-version, downgrade, and
+explicit-serial cases.
+
+Install, launch, and redacted app-scoped diagnostics are coded behind explicit
+serial and acknowledgement gates but were not executed. See
+`M2_PHYSICAL_ANDROID_OWNER_HANDOFF.md` for the exact commands and two-run owner
+matrix. Physical-device acceptance remains unverified and scores remain
+unchanged.

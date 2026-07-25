@@ -44,6 +44,7 @@ This repository owns Fred gameplay. Core owns only reusable, game-neutral servic
 - [M2 marsh visual, tongue, lives, and touch evidence](docs/M2_MARSH_VISUAL_UPLIFT_REPORT.md)
 - [M2 Android development export evidence](docs/M2_ANDROID_DEVELOPMENT_EXPORT_REPORT.md)
 - [M2 lives, alternating routes, backgrounds, and phone layout evidence](docs/M2_LIVES_ROUTES_PHONE_LAYOUT_REPORT.md)
+- [M2 physical Android owner-acceptance handoff](docs/M2_PHYSICAL_ANDROID_OWNER_HANDOFF.md)
 
 ## Godot M1 foundation
 
@@ -59,6 +60,11 @@ The current owner candidate also preserves the active level across nonfatal
 life loss, resumes from the midpoint checkpoint when reached, alternates
 left-to-right and right-to-left routes, cycles four marsh treatments, and uses
 one non-overlapping layout contract for the HUD and landscape touch controls.
+
+The physical-phone handoff is hash guarded and read-only by default. With no
+authorized phone connected it returns `DEVICE_NOT_CONNECTED / UNVERIFIED`;
+install, launch, and bounded Fred-only diagnostics require an explicit physical
+serial plus owner/save acknowledgements.
 
 ## Legacy source
 
