@@ -139,7 +139,7 @@ func _ready() -> void:
     if audio_enabled:
         menu_music.stream = load("res://assets/audio/the_marshland_march.mp3")
         chase_music.stream = load("res://assets/audio/marshland_chase.mp3")
-    title_art = load("res://assets/art/moonpetal-title-fred-v2.png")
+    title_art = load("res://assets/art/moonpetal-title-fred-v3.png")
     gameplay_art = load("res://assets/art/moonpetal-gameplay-marsh-v1.png")
     menu_music.volume_db = -8.0
     chase_music.volume_db = -7.0

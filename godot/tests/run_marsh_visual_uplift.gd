@@ -38,6 +38,8 @@ func _run() -> void:
 	game.set_process(false)
 	game._start()
 
+	check(is_instance_valid(game.title_art), "realistic ballerina Fred title art loads as a Godot texture")
+	check(game.title_art.resource_path.ends_with("moonpetal-title-fred-v3.png"), "title screen uses the entertaining versioned Fred artwork")
 	check(is_instance_valid(game.gameplay_art), "authored marsh background loads as a Godot texture")
 	check(game.gameplay_art.resource_path.ends_with("moonpetal-gameplay-marsh-v1.png"), "gameplay uses the committed marsh art asset")
 	check(game._ellipse_points(Vector2.ZERO, Vector2(10,5), 0.0).size() == 32, "dimensional ellipse fill has a stable vertex contract")
