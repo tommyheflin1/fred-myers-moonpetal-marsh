@@ -2,26 +2,31 @@
 
 Date: 2026-08-02
 
-Fred now has a dedicated, playful application icon aligned with the upgraded
-title screen. The square master shows the same realistic ballerina-inspired
-bullfrog leaping above a luminous lily pad, framed by the Moonpetal Marsh moon,
-fireflies, reeds, and glowing flower. The close mascot crop, bright eyes, bold
-silhouette, and green/teal/gold contrast remain readable at small sizes.
+Fred now has a dedicated game-app icon aligned with the upgraded title screen.
+The v2 square master replaces the photographic poster treatment with a compact,
+stylized 3D mascot emblem: Fred dances above a luminous lily pad inside a
+rounded moonlit-marsh frame. Large eyes, simplified forms, saturated
+green/teal/gold color, and a bold silhouette remain readable at small sizes.
+
+The v2 anatomy correction is explicit: Fred has exactly four visible limbs--
+two front arms, one raised rear leg, and one supporting rear leg. The extra
+bent rear leg present in the v1 source is not present in the active icon.
 
 ## Assets and use
 
-- `godot/assets/art/fred-app-icon-v1.png`: 1,254 by 1,254 square master for
+- `godot/assets/art/fred-app-icon-v2.png`: 1,254 by 1,254 square master for
   Godot and future Android/iOS development builds.
-- `godot/assets/art/fred-app-icon-v1.ico`: Windows package containing 16, 24,
+- `godot/assets/art/fred-app-icon-v2.ico`: Windows package containing 16, 24,
   32, 48, 64, 96, 128, and 256-pixel icon sizes.
+- The v1 files remain tracked as rollback evidence but are no longer active.
 - `godot/project.godot` now uses the square PNG as the project icon.
 - The single `Fred Myers Owner Test.lnk` uses the multi-size ICO directly.
 
-The built-in image-generation workflow used the v3 title art as the character
-and brand reference. Final prompt intent: create a square professional mobile
-game icon with the same realistic Fred in a joyful mid-leap dance pose, strong
-small-size silhouette, safe rounded-mask padding, moonlit marsh colors, no
-text, watermark, extra frog, or human anatomy.
+The built-in image-generation workflow used the v1 icon as the character and
+brand reference. Final prompt intent: redesign Fred as a professional square
+mobile/PC game mascot emblem with simplified sculpted forms, safe rounded-mask
+padding, moonlit marsh colors, no text, and exactly two front arms plus two
+rear legs--never a fifth appendage.
 
 This source configuration prepares the new identity for later phone builds,
 but the existing Android APK is not rebuilt or claimed here. Signing, App

@@ -88,7 +88,7 @@ def main() -> None:
 
     project = PROJECT_PATH.read_text(encoding="utf-8")
     required_project_lines = (
-        'config/icon="res://assets/art/fred-app-icon-v1.png"',
+        'config/icon="res://assets/art/fred-app-icon-v2.png"',
         'window/handheld/orientation=0',
         'renderer/rendering_method.mobile="gl_compatibility"',
         'textures/vram_compression/import_etc2_astc=true',

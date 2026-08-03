@@ -7,7 +7,7 @@ param(
 $ErrorActionPreference = "Stop"
 $projectRoot = Split-Path -Parent $PSScriptRoot
 $launcher = Join-Path $PSScriptRoot "launch_desktop_owner_test.ps1"
-$icon = Join-Path $projectRoot "godot\assets\art\fred-app-icon-v1.ico"
+$icon = Join-Path $projectRoot "godot\assets\art\fred-app-icon-v2.ico"
 $git = Get-Command "git.exe" -ErrorAction Stop
 
 if (-not (Test-Path -LiteralPath $launcher -PathType Leaf)) {

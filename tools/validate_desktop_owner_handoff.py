@@ -17,8 +17,8 @@ launcher_path = ROOT / "tools" / "launch_desktop_owner_test.ps1"
 installer_path = ROOT / "tools" / "install_desktop_owner_shortcut.ps1"
 handoff_path = ROOT / "docs" / "DESKTOP_OWNER_TEST.md"
 legacy_path = ROOT / "docs" / "M1_OWNER_TEST.md"
-icon_png_path = ROOT / "godot" / "assets" / "art" / "fred-app-icon-v1.png"
-icon_ico_path = ROOT / "godot" / "assets" / "art" / "fred-app-icon-v1.ico"
+icon_png_path = ROOT / "godot" / "assets" / "art" / "fred-app-icon-v2.png"
+icon_ico_path = ROOT / "godot" / "assets" / "art" / "fred-app-icon-v2.ico"
 
 for path in (launcher_path, installer_path, handoff_path, legacy_path):
     check(path.is_file(), f"missing {path.relative_to(ROOT)}")
@@ -45,7 +45,7 @@ check("$fredShortcuts.Count -ne 1" in installer, "installer must fail closed on 
 check("ExpectedCommit" in installer, "installer must pin the clean candidate")
 check("status --porcelain=v1" in installer, "installer must reject a dirty checkout")
 check("git.Source -C $projectRoot ls-files" in installer, "installer must inventory tracked candidate files")
-check("fred-app-icon-v1.ico" in installer, "installer must use the Fred-branded Windows icon")
+check("fred-app-icon-v2.ico" in installer, "installer must use the corrected game-style Fred icon")
 check("$shortcut.IconLocation" in installer, "installer must set the shortcut icon explicitly")
 check("three lives" in handoff.lower(), "owner life acceptance path is missing")
 check("same level" in handoff.lower(), "nonfatal life recovery acceptance is missing")
@@ -71,7 +71,7 @@ check(
     f"unexpected Windows icon sizes: {sorted(ico_sizes)}",
 )
 project = (ROOT / "godot" / "project.godot").read_text(encoding="utf-8")
-check('config/icon="res://assets/art/fred-app-icon-v1.png"' in project, "Godot project icon is not Fred branded")
+check('config/icon="res://assets/art/fred-app-icon-v2.png"' in project, "Godot project icon is not the corrected game-style Fred icon")
 
 for forbidden in ("git push", "gh pr create", "Export-PfxCertificate", "signtool"):
     check(forbidden.lower() not in launcher.lower(), f"launcher contains protected action {forbidden}")
