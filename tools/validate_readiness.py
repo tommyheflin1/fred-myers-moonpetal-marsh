@@ -47,11 +47,16 @@ REQUIRED = [
     "docs/M2_ANDROID_DEVELOPMENT_EXPORT_REPORT.md",
     "docs/M2_LIVES_ROUTES_PHONE_LAYOUT_REPORT.md",
     "docs/M2_PHYSICAL_ANDROID_OWNER_HANDOFF.md",
+    "docs/DESKTOP_OWNER_TEST.md",
+    "docs/M2_DESKTOP_OWNER_HANDOFF.md",
     "tools/validate_android_export.py",
     "tools/inspect_android_apk.py",
     "tools/validate_physical_android_device.ps1",
     "tools/tests/test_physical_android_preflight.ps1",
     "tools/validate_physical_android_preflight.py",
+    "tools/launch_desktop_owner_test.ps1",
+    "tools/install_desktop_owner_shortcut.ps1",
+    "tools/validate_desktop_owner_handoff.py",
 ]
 
 FIXTURES = {

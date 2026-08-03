@@ -19,6 +19,7 @@ jobs:
         with:
           python-version: '3.13'
       - run: python tools/validate_readiness.py
+      - run: python tools/validate_desktop_owner_handoff.py
       - run: python tools/validate_android_export.py
       - run: python tools/validate_physical_android_preflight.py
       - name: Download official Godot 4.7.1

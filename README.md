@@ -4,7 +4,13 @@ Fred Myers is a story-driven frog adventure currently playable as a five-level b
 
 ## Current milestone
 
-Milestone M1's playable greybox foundation is complete at its evidence gate on branch `milestone/m1-greybox-foundation` and is open for review against `main` in [draft PR #3](https://github.com/tommyheflin1/fred-myers-moonpetal-marsh/pull/3). The browser prototype remains the five-level reference; the Godot build now proves Lily Leap, deterministic session logic, input intents, save/recovery, and offline startup. No merge, mobile build, or production release is claimed.
+Milestone M1 is accepted on `main`; the current local M2 owner candidate adds
+the deterministic Fred rig, leap/swim/depth/tongue/boost/camera traversal,
+100-level progression foundation, stackable fairy lives, alternating routes,
+marsh presentation, responsive desktop/touch layout, and a development-only
+Android debug artifact. The branch remains local because the configured GitHub
+repository is public. No M2 push, production build, signing, deployment, store
+submission, or release is claimed.
 
 - Play: https://fred-myers-moonpetal-marsh.tommyheflin.chatgpt.site/
 - Current repository: https://github.com/tommyheflin1/fred-myers-moonpetal-marsh
@@ -45,10 +51,19 @@ This repository owns Fred gameplay. Core owns only reusable, game-neutral servic
 - [M2 Android development export evidence](docs/M2_ANDROID_DEVELOPMENT_EXPORT_REPORT.md)
 - [M2 lives, alternating routes, backgrounds, and phone layout evidence](docs/M2_LIVES_ROUTES_PHONE_LAYOUT_REPORT.md)
 - [M2 physical Android owner-acceptance handoff](docs/M2_PHYSICAL_ANDROID_OWNER_HANDOFF.md)
+- [Current desktop owner-test handoff](docs/DESKTOP_OWNER_TEST.md)
+- [Desktop handoff evidence](docs/M2_DESKTOP_OWNER_HANDOFF.md)
 
-## Godot M1 foundation
+## Godot desktop owner candidate
 
-`godot/project.godot` launches the Lily Leap greybox. The exact Core 0.5.1 add-on is vendored under `godot/addons/mobile_game_core` and remains unchanged; Fred-owned code lives under `godot/scripts`. Run `Godot --headless --path godot --script res://tests/run_tests.gd` for the deterministic suite. Export presets, signing, and production distribution remain deferred.
+`godot/project.godot` launches the current Fred owner candidate. The exact Core
+0.5.1 add-on is vendored under `godot/addons/mobile_game_core` and remains
+unchanged; Fred-owned code lives under `godot/scripts`. The single desktop
+shortcut `Fred Myers Owner Test` is pinned to an exact clean commit plus a
+tracked-file SHA-256 manifest and verifies Godot, Core, project, and save
+boundaries before launch. Run
+`python tools/validate_desktop_owner_handoff.py` for its static safety contract
+and see the desktop handoff for the owner acceptance route.
 
 The local `Android Development` preset now produces an ignored debug APK for
 arm64 and x86_64 validation. It adds no Android permissions or production

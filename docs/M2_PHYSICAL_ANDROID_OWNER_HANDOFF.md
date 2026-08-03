@@ -188,8 +188,8 @@ byte- and timestamp-identical:
   `89056C555969729AB89E17B78E82B0F632F55AA9FFF375B83DCBEC03C9793C76`.
 
 Exactly one desktop shortcut remains:
-`%OneDrive%\Desktop\Fred Myers M1 Owner Test.lnk`, targeting this worktree's
-existing launcher. No shortcut was created or changed. The configured GitHub
+`%OneDrive%\Desktop\Fred Myers Owner Test.lnk`, targeting this worktree's
+exact-candidate desktop launcher. The configured GitHub
 repository remains public; no push or PR is permitted.
 
 M012 remains 99.3%, M013 remains 0%, and TASK-002 remains 19.9%. Tooling and a
