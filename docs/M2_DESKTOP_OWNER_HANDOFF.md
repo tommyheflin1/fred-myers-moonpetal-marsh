@@ -35,7 +35,7 @@ The Godot gameplay/content tree is unchanged by this handoff.
 
 - Godot 4.7.1 headless import: passed.
 - Complete 17-suite matrix: 2,188 passed, 0 failed.
-- Desktop owner-handoff static contract: 26 passed, 0 failed.
+- Desktop owner-handoff static contract: 29 passed, 0 failed.
 - Readiness inventory: 54 artifacts, eight fixtures, Core 0.5.1, Godot 4.7.
 - Android export static contract and physical-device preflight static contract:
   passed; no device action occurred.
