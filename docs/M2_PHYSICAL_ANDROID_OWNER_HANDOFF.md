@@ -195,3 +195,14 @@ repository remains public; no push or PR is permitted.
 M012 remains 99.3%, M013 remains 0%, and TASK-002 remains 19.9%. Tooling and a
 no-device result do not earn physical-device, platform-hardening, or milestone
 credit.
+
+## App Build 1 replacement artifact
+
+For the 2026-08-03 owner-authorized App Build 1 phase, the guarded workflow now
+targets `builds/android/fred-myers-app-build-1-debug.apk` from exact source
+`9e4091fa9c8822395d27c0ebe689c7da50552d31`. Its SHA-256 is
+`E57242793EED3FBF83570299346EB6236BC37BCF3C40EBA2742136D747C73316`,
+size is 81,973,530 bytes, package remains
+`com.flinsappvault.fredmyers.dev`, and version is
+`0.2.1-app-build-1` (`20101`). The executed default preflight again returned
+`DEVICE_NOT_CONNECTED / UNVERIFIED` and performed no mutation.

@@ -181,3 +181,13 @@ serial and acknowledgement gates but were not executed. See
 `M2_PHYSICAL_ANDROID_OWNER_HANDOFF.md` for the exact commands and two-run owner
 matrix. Physical-device acceptance remains unverified and scores remain
 unchanged.
+
+## App Build 1 successor
+
+The owner-authorized local App Build 1 successor is documented in
+`APP_BUILD_1_TEST_REPORT.md`. It supersedes the older ignored APK for future
+phone testing with version `0.2.1-app-build-1` (`20101`), exact source commit
+`9e4091fa9c8822395d27c0ebe689c7da50552d31`, artifact SHA-256
+`E57242793EED3FBF83570299346EB6236BC37BCF3C40EBA2742136D747C73316`,
+and size 81,973,530 bytes. The earlier artifact remains historical evidence;
+no release, store, production-signing, or physical-phone claim is added.

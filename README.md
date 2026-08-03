@@ -60,6 +60,7 @@ This repository owns Fred gameplay. Core owns only reusable, game-neutral servic
 - [Desktop handoff evidence](docs/M2_DESKTOP_OWNER_HANDOFF.md)
 - [Entertaining realistic Fred title-art uplift](docs/M2_TITLE_ART_UPLIFT.md)
 - [Fred application-icon uplift](docs/M2_APP_ICON_UPLIFT.md)
+- [App Build 1 local test evidence](docs/APP_BUILD_1_TEST_REPORT.md)
 
 ## Godot desktop owner candidate
 

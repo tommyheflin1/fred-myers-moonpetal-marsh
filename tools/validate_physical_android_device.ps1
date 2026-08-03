@@ -17,11 +17,11 @@ param(
 $ErrorActionPreference = "Stop"
 $ProgressPreference = "SilentlyContinue"
 
-$CandidateSourceSha = "1ae3b28fc89a38de616af126c0e08fdbb8f624a8"
-$ExpectedApkSha256 = "2DCE71E33B321784AD2AEFBBE3E92D5E6B1582F34F1731266CF65A54EBAEC10A"
-$ExpectedApkBytes = 76684765
+$CandidateSourceSha = "9e4091fa9c8822395d27c0ebe689c7da50552d31"
+$ExpectedApkSha256 = "E57242793EED3FBF83570299346EB6236BC37BCF3C40EBA2742136D747C73316"
+$ExpectedApkBytes = 81973530
 $ExpectedPackage = "com.flinsappvault.fredmyers.dev"
-$ExpectedVersionCode = 20001
+$ExpectedVersionCode = 20101
 $MinimumDeviceApi = 24
 $SupportedAbis = @("arm64-v8a", "x86_64")
 $MinimumFreeStorageKb = 524288
@@ -29,7 +29,7 @@ $MinimumFreeStorageKb = 524288
 $RepoRoot = Split-Path -Parent $PSScriptRoot
 $AppVaultRoot = Split-Path -Parent $RepoRoot
 if ([string]::IsNullOrWhiteSpace($ApkPath)) {
-    $ApkPath = Join-Path $RepoRoot "builds\android\fred-myers-debug.apk"
+    $ApkPath = Join-Path $RepoRoot "builds\android\fred-myers-app-build-1-debug.apk"
 }
 if ([string]::IsNullOrWhiteSpace($AdbPath)) {
     $AdbPath = Join-Path $AppVaultRoot "work\toolchain\android-sdk\platform-tools\adb.exe"

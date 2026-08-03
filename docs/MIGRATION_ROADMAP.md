@@ -63,6 +63,13 @@ prove fail-closed hash, package, device-state, API/ABI, ambiguity, and explicit
 serial behavior. No install or device capture occurred, and milestone scores
 remain unchanged.
 
+Owner direction on 2026-08-03 starts the local App Build 1 testing phase. The
+exact latest desktop/icon candidate is packaged as a newer debug-only Android
+artifact, version `0.2.1-app-build-1` (`20101`), with the existing development
+package identity, zero requested permissions, and a refreshed source/artifact
+hash guard. Package creation and automated checks do not substitute for
+physical-phone acceptance and do not unlock production or store actions.
+
 ## M1 sequencing
 
 1. Expand the repository source tree and retain the legacy build under `legacy-web/` or a tagged legacy branch.

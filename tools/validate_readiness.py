@@ -51,6 +51,7 @@ REQUIRED = [
     "docs/M2_DESKTOP_OWNER_HANDOFF.md",
     "docs/M2_TITLE_ART_UPLIFT.md",
     "docs/M2_APP_ICON_UPLIFT.md",
+    "docs/APP_BUILD_1_TEST_REPORT.md",
     "godot/assets/art/fred-app-icon-v2.png",
     "godot/assets/art/fred-app-icon-v2.ico",
     "godot/assets/art/fred-app-icon-v2.png.import",
