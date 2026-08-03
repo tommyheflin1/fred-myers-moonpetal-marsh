@@ -94,7 +94,7 @@ try {
         save_mode = if ($IsolatedReview) { "isolated-fictional" } else { "owner-progress" }
         reduced_motion = [bool]$ReducedMotion
         launch_performed = $false
-        app_build_1_started = $false
+        app_build_1_started = $true
     }
 
     if ($PreflightOnly) {
@@ -143,7 +143,7 @@ catch {
             status = "BLOCKED"
             reason = $_.Exception.Message
             launch_performed = $false
-            app_build_1_started = $false
+            app_build_1_started = $true
         } | ConvertTo-Json -Compress
     }
     exit 1

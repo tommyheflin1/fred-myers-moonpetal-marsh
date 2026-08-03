@@ -104,5 +104,5 @@ if ($verified.TargetPath -ne $powerShell -or $verified.Arguments -notlike "*$lau
     candidate_manifest_sha256 = $manifestHash
     candidate_file_count = @($fileEntries).Count
     shortcut_count = $fredShortcuts.Count
-    app_build_1_started = $false
+    app_build_1_started = $true
 } | ConvertTo-Json -Compress

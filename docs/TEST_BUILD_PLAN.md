@@ -39,6 +39,12 @@ inventory, exact-candidate desktop launcher, and development-only Android debug
 artifact. Human desktop acceptance, compatible physical-phone acceptance,
 signing, store preparation, and release remain separate gates.
 
+Owner direction dated 2026-08-03 unlocks App Build 1 as a local testing
+artifact. Its Android version code must be newer than the earlier M2 debug APK,
+retain the development package identity for safe update testing, remain debug
+signed with zero requested permissions, and be guarded by its exact source and
+artifact hashes. This authorization does not include a store or release build.
+
 The local M2 candidate now has a reproducible development-only Android debug
 APK preset for arm64 and x86_64, static export checks, APK identity/security
 inspection, and lifecycle/touch regression coverage. The exact APK installs

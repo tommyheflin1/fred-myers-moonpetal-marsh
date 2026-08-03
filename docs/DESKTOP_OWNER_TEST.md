@@ -11,8 +11,9 @@ launcher verifies the manifest hash, candidate commit, candidate file hashes,
 Godot 4.7.1, Mobile Game Core 0.5.1 tree, project entry point, and save-v1
 boundary. If a pinned file or the manifest has changed, the launcher stops and
 asks for a refreshed owner link.
-It does not export, sign, publish, deploy, connect an account, or begin App
-Build 1.
+It does not sign for production, publish, deploy, or connect an account. App
+Build 1 is now active as a separate local Android debug-testing phase; the
+desktop shortcut remains the exact-candidate Windows owner-review path.
 
 ## Controls
 
@@ -58,6 +59,6 @@ Build 1.
 
 This shortcut is the desktop owner-review candidate. Automated keyboard and
 synthetic touch coverage support it, but owner control feel remains your human
-acceptance. The local Android debug APK and guarded phone preflight remain
-separate evidence; neither is a physical-phone pass. App Build 1 begins only
-after you accept this desktop candidate and explicitly direct that next step.
+acceptance. The local App Build 1 Android debug APK and guarded phone preflight
+remain separate evidence; neither is a physical-phone pass. Store packaging,
+signing, publication, and physical-device acceptance remain protected gates.

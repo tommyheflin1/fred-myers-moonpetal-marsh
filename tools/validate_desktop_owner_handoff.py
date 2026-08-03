@@ -37,7 +37,7 @@ check("288d87420c5694f80c071f00aa71a0b581f9f60c" in launcher, "Core tree guard i
 check("Godot_v4.7.1-stable_win64.exe" in launcher, "Godot runtime pin is missing")
 check("Godot_v4.7.1-stable_win64_console.exe" in launcher, "Godot version preflight is missing")
 check("IsolatedReview" in launcher and "fred-desktop-owner-review-" in launcher, "isolated fictional review mode is missing")
-check("app_build_1_started = $false" in launcher, "launcher must identify the pre-Build-1 boundary")
+check("app_build_1_started = $true" in launcher, "launcher must identify the App Build 1 test phase")
 check("Fred Myers Owner Test.lnk" in installer, "canonical shortcut name is missing")
 check("Fred Myers M1 Owner Test.lnk" in installer, "legacy shortcut migration is missing")
 check("Move-Item -LiteralPath" in installer, "installer must rename the existing link in place")

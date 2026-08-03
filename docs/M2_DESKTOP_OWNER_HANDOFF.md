@@ -58,3 +58,10 @@ pushed and no pull request is opened. Milestone percentages do not move for
 handoff tooling. The owner should now test through the single pinned shortcut
 and report any desktop defects. App Build 1 begins only after that owner review
 and a separate explicit instruction.
+
+## 2026-08-03 gate update
+
+The owner subsequently issued the explicit next-phase instruction. App Build 1
+is therefore unlocked as a local debug-testing phase. This does not
+retroactively convert desktop evidence into physical-phone acceptance and does
+not authorize production signing, publication, deployment, or store submission.

@@ -12,6 +12,11 @@ Android debug artifact. The branch remains local because the configured GitHub
 repository is public. No M2 push, production build, signing, deployment, store
 submission, or release is claimed.
 
+Owner direction on 2026-08-03 starts **App Build 1** as a local testing phase.
+It packages the exact validated candidate under the existing development-only
+Android identity. App Build 1 is not a production build, store submission,
+release, deployment, or physical-device acceptance claim.
+
 - Play: https://fred-myers-moonpetal-marsh.tommyheflin.chatgpt.site/
 - Current repository: https://github.com/tommyheflin1/fred-myers-moonpetal-marsh
 - Preferred future name: `tommyheflin1/fred-myers-adventure` (rename only with owner approval and after link-impact review)
