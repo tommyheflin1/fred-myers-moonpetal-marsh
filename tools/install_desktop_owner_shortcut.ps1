@@ -7,10 +7,14 @@ param(
 $ErrorActionPreference = "Stop"
 $projectRoot = Split-Path -Parent $PSScriptRoot
 $launcher = Join-Path $PSScriptRoot "launch_desktop_owner_test.ps1"
+$icon = Join-Path $projectRoot "godot\assets\art\fred-app-icon-v1.ico"
 $git = Get-Command "git.exe" -ErrorAction Stop
 
 if (-not (Test-Path -LiteralPath $launcher -PathType Leaf)) {
     throw "Fred owner launcher is missing: $launcher"
+}
+if (-not (Test-Path -LiteralPath $icon -PathType Leaf)) {
+    throw "Fred owner icon is missing: $icon"
 }
 
 $head = (& $git.Source -C $projectRoot rev-parse HEAD).Trim().ToLowerInvariant()
@@ -81,6 +85,7 @@ $shortcut.TargetPath = $powerShell
 $shortcut.Arguments = "-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File `"$launcher`" -ExpectedCommit $ExpectedCommit -ExpectedManifestHash $manifestHash"
 $shortcut.WorkingDirectory = $projectRoot
 $shortcut.Description = "Fred Myers exact-candidate desktop owner test - Godot 4.7.1"
+$shortcut.IconLocation = "$icon,0"
 $shortcut.Save()
 
 $verified = $shell.CreateShortcut($shortcutPath)
@@ -88,7 +93,7 @@ $fredShortcuts = @(Get-ChildItem -LiteralPath $desktop -Filter "Fred Myers*Owner
 if ($fredShortcuts.Count -ne 1) {
     throw "Expected exactly one Fred owner-test shortcut, found $($fredShortcuts.Count)."
 }
-if ($verified.TargetPath -ne $powerShell -or $verified.Arguments -notlike "*$launcher*" -or $verified.Arguments -notlike "*$ExpectedCommit*" -or $verified.Arguments -notlike "*$manifestHash*") {
+if ($verified.TargetPath -ne $powerShell -or $verified.Arguments -notlike "*$launcher*" -or $verified.Arguments -notlike "*$ExpectedCommit*" -or $verified.Arguments -notlike "*$manifestHash*" -or $verified.IconLocation -notlike "*$icon*") {
     throw "Desktop shortcut verification failed."
 }
 
