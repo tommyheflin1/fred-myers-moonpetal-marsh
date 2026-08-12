@@ -9,6 +9,7 @@ $projectRoot = Split-Path -Parent $PSScriptRoot
 $launcher = Join-Path $PSScriptRoot "launch_desktop_owner_test.ps1"
 $icon = Join-Path $projectRoot "godot\assets\art\fred-app-icon-v3.ico"
 $git = Get-Command "git.exe" -ErrorAction Stop
+$gitRepoArgs = @("-c", "safe.directory=$projectRoot", "-C", $projectRoot)
 
 if (-not (Test-Path -LiteralPath $launcher -PathType Leaf)) {
     throw "Fred owner launcher is missing: $launcher"
@@ -17,11 +18,11 @@ if (-not (Test-Path -LiteralPath $icon -PathType Leaf)) {
     throw "Fred owner icon is missing: $icon"
 }
 
-$head = (& $git.Source -C $projectRoot rev-parse HEAD).Trim().ToLowerInvariant()
-$tree = (& $git.Source -C $projectRoot rev-parse "HEAD^{tree}").Trim().ToLowerInvariant()
-$branch = (& $git.Source -C $projectRoot branch --show-current).Trim()
-$coreTree = (& $git.Source -C $projectRoot rev-parse "HEAD:godot/addons/mobile_game_core").Trim().ToLowerInvariant()
-$statusLines = @(& $git.Source -C $projectRoot status --porcelain=v1 --untracked-files=normal)
+$head = (& $git.Source @gitRepoArgs rev-parse HEAD).Trim().ToLowerInvariant()
+$tree = (& $git.Source @gitRepoArgs rev-parse "HEAD^{tree}").Trim().ToLowerInvariant()
+$branch = (& $git.Source @gitRepoArgs branch --show-current).Trim()
+$coreTree = (& $git.Source @gitRepoArgs rev-parse "HEAD:godot/addons/mobile_game_core").Trim().ToLowerInvariant()
+$statusLines = @(& $git.Source @gitRepoArgs status --porcelain=v1 --untracked-files=normal)
 if ($statusLines.Count -ne 0) {
     throw "The Fred owner-test checkout must be clean before the desktop link is updated."
 }
@@ -32,7 +33,7 @@ elseif ($ExpectedCommit.ToLowerInvariant() -ne $head) {
     throw "Expected commit does not match the clean Fred checkout."
 }
 
-$trackedFiles = @(& $git.Source -C $projectRoot ls-files)
+$trackedFiles = @(& $git.Source @gitRepoArgs ls-files)
 if ($LASTEXITCODE -ne 0 -or $trackedFiles.Count -eq 0) {
     throw "The Fred tracked-file inventory could not be read."
 }
