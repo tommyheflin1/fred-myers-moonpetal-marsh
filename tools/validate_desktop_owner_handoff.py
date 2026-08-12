@@ -17,12 +17,14 @@ launcher_path = ROOT / "tools" / "launch_desktop_owner_test.ps1"
 installer_path = ROOT / "tools" / "install_desktop_owner_shortcut.ps1"
 handoff_path = ROOT / "docs" / "DESKTOP_OWNER_TEST.md"
 legacy_path = ROOT / "docs" / "M1_OWNER_TEST.md"
-icon_png_path = ROOT / "godot" / "assets" / "art" / "fred-app-icon-v2.png"
-icon_ico_path = ROOT / "godot" / "assets" / "art" / "fred-app-icon-v2.ico"
+icon_crest_path = ROOT / "godot" / "assets" / "art" / "fred-moonpetal-crest-v3.png"
+icon_platform_path = ROOT / "godot" / "assets" / "art" / "fred-app-icon-v3-platform.png"
+icon_ico_path = ROOT / "godot" / "assets" / "art" / "fred-app-icon-v3.ico"
 
 for path in (launcher_path, installer_path, handoff_path, legacy_path):
     check(path.is_file(), f"missing {path.relative_to(ROOT)}")
-check(icon_png_path.is_file(), "square Fred icon master is missing")
+check(icon_crest_path.is_file(), "transparent Moonpetal Crest is missing")
+check(icon_platform_path.is_file(), "square Fred platform icon master is missing")
 check(icon_ico_path.is_file(), "multi-size Windows Fred icon is missing")
 
 launcher = launcher_path.read_text(encoding="utf-8")
@@ -45,7 +47,7 @@ check("$fredShortcuts.Count -ne 1" in installer, "installer must fail closed on 
 check("ExpectedCommit" in installer, "installer must pin the clean candidate")
 check("status --porcelain=v1" in installer, "installer must reject a dirty checkout")
 check("git.Source -C $projectRoot ls-files" in installer, "installer must inventory tracked candidate files")
-check("fred-app-icon-v2.ico" in installer, "installer must use the corrected game-style Fred icon")
+check("fred-app-icon-v3.ico" in installer, "installer must use the Moonpetal Crest game icon")
 check("$shortcut.IconLocation" in installer, "installer must set the shortcut icon explicitly")
 check("three lives" in handoff.lower(), "owner life acceptance path is missing")
 check("same level" in handoff.lower(), "nonfatal life recovery acceptance is missing")
@@ -54,10 +56,16 @@ check("right to left" in handoff.lower(), "alternating route acceptance is missi
 check("app build 1" in handoff.lower(), "Build 1 boundary is missing")
 check("DESKTOP_OWNER_TEST.md" in legacy, "legacy owner document must point to the canonical handoff")
 
-png = icon_png_path.read_bytes()
-check(png[:8] == b"\x89PNG\r\n\x1a\n", "Fred icon master is not a PNG")
-width, height = struct.unpack(">II", png[16:24])
-check(width == height and width >= 1024, "Fred icon master must be square and at least 1024 pixels")
+crest = icon_crest_path.read_bytes()
+check(crest[:8] == b"\x89PNG\r\n\x1a\n", "Moonpetal Crest is not a PNG")
+crest_width, crest_height = struct.unpack(">II", crest[16:24])
+check(crest_width == crest_height == 1024, "Moonpetal Crest must be 1024 by 1024")
+check(crest[25] == 6, "Moonpetal Crest must retain RGBA transparency for a non-square silhouette")
+
+platform = icon_platform_path.read_bytes()
+check(platform[:8] == b"\x89PNG\r\n\x1a\n", "Fred platform icon master is not a PNG")
+platform_width, platform_height = struct.unpack(">II", platform[16:24])
+check(platform_width == platform_height == 1024, "Fred platform master must be 1024 by 1024")
 
 ico = icon_ico_path.read_bytes()
 reserved, icon_type, icon_count = struct.unpack("<HHH", ico[:6])
@@ -71,7 +79,7 @@ check(
     f"unexpected Windows icon sizes: {sorted(ico_sizes)}",
 )
 project = (ROOT / "godot" / "project.godot").read_text(encoding="utf-8")
-check('config/icon="res://assets/art/fred-app-icon-v2.png"' in project, "Godot project icon is not the corrected game-style Fred icon")
+check('config/icon="res://assets/art/fred-app-icon-v3-platform.png"' in project, "Godot project icon is not the v3 platform-safe Moonpetal Crest")
 
 for forbidden in ("git push", "gh pr create", "Export-PfxCertificate", "signtool"):
     check(forbidden.lower() not in launcher.lower(), f"launcher contains protected action {forbidden}")

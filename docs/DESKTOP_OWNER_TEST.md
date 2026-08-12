@@ -2,8 +2,10 @@
 
 Use the single Windows desktop shortcut named `Fred Myers Owner Test`.
 
-Its icon is the same playful, realistic Fred ballerina-frog mascot used by the
-game's current Moonpetal Marsh branding, packaged at standard Windows sizes.
+Its icon is the unique Moonpetal Crest: Fred's two-eyed frog face, moonpetal
+crown, crescent moon, teal water curl, and gold-edged notched lily-pad shield.
+The transparent outer silhouette is deliberately organic rather than a square
+photo, while the linked platform master remains safe for future store masking.
 
 The shortcut is pinned to one exact clean Git commit and a SHA-256 candidate
 manifest created from every tracked file. Before it opens the game, the

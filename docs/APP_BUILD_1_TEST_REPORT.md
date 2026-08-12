@@ -51,7 +51,9 @@ application icon in this exact source.
 ## Validation
 
 - Godot headless import: passed.
-- Complete deterministic matrix: 17 suites, 2,190 passed, 0 failed.
+- Complete deterministic matrix: 17 suites, 2,158 passed, 0 failed. This is
+  the direct sum of the 17 Godot suite result lines; earlier 2,190 wording
+  overcounted 32 and is not carried forward.
 - App Build 1 export contract: passed.
 - Physical-device safety fixtures: 60 passed, 0 failed.
 - Physical-device static safety contract: passed.

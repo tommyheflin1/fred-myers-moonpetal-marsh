@@ -15,8 +15,8 @@ EXPECTED = {
     "exclude_filter": '"tests/**,tools/**,docs/evidence/**"',
     "package/unique_name": '"com.flinsappvault.fredmyers.dev"',
     "package/name": '"Fred Myers App Build 1"',
-    "version/code": "20101",
-    "version/name": '"0.2.1-app-build-1"',
+    "version/code": "20102",
+    "version/name": '"0.2.1-app-build-1-r2"',
     "gradle_build/min_sdk": '""',
     "gradle_build/target_sdk": '""',
     "architectures/arm64-v8a": "true",
@@ -27,6 +27,7 @@ EXPECTED = {
     "screen/edge_to_edge": "false",
     "user_data_backup/allow": "false",
     "permissions/custom_permissions": "PackedStringArray()",
+    "launcher_icons/main_192x192": '"res://assets/art/fred-app-icon-v3-platform.png"',
 }
 
 
@@ -88,7 +89,7 @@ def main() -> None:
 
     project = PROJECT_PATH.read_text(encoding="utf-8")
     required_project_lines = (
-        'config/icon="res://assets/art/fred-app-icon-v2.png"',
+        'config/icon="res://assets/art/fred-app-icon-v3-platform.png"',
         'window/handheld/orientation=0',
         'renderer/rendering_method.mobile="gl_compatibility"',
         'textures/vram_compression/import_etc2_astc=true',
@@ -116,7 +117,7 @@ def main() -> None:
 
     print(
         "Android export validation passed: "
-        "com.flinsappvault.fredmyers.dev, version 0.2.1-app-build-1 (20101), "
+        "com.flinsappvault.fredmyers.dev, version 0.2.1-app-build-1-r2 (20102), "
         "landscape, built-in-template SDK policy, arm64+x86_64, "
         "no requested permissions"
     )

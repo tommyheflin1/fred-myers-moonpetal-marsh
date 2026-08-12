@@ -1,44 +1,49 @@
 # M2 Fred application-icon uplift
 
-Date: 2026-08-02
+Updated: 2026-08-12
 
-Fred now has a dedicated game-app icon aligned with the upgraded title screen.
-The v2 square master replaces the photographic poster treatment with a compact,
-stylized 3D mascot emblem: Fred dances above a luminous lily pad inside a
-rounded moonlit-marsh frame. Large eyes, simplified forms, saturated
-green/teal/gold color, and a bold silhouette remain readable at small sizes.
+Fred now uses the unique **Moonpetal Crest**, a purpose-built game identity
+rather than a framed frog picture. Fred's readable two-eyed frog face sits
+inside a gold-edged, notched lily-pad shield with a moonpetal crown, crescent
+moon, teal water curl, and firefly sparks. The crest has only two visible front
+hands and no ambiguous extra rear limbs.
 
-The v2 anatomy correction is explicit: Fred has exactly four visible limbs--
-two front arms, one raised rear leg, and one supporting rear leg. The extra
-bent rear leg present in the v1 source is not present in the active icon.
+The outer Windows silhouette is transparent and organic, so the desktop icon
+does not read as a square photograph. Apple, Android, and Godot still require
+a square source canvas for their own masking and launcher processing, so a
+linked full-bleed platform master preserves the same crest over a moonlit navy
+and teal field. No rounded-square mask is baked into that source.
 
 ## Assets and use
 
-- `godot/assets/art/fred-app-icon-v2.png`: 1,254 by 1,254 square master for
-  Godot and future Android/iOS development builds.
-- `godot/assets/art/fred-app-icon-v2.ico`: Windows package containing 16, 24,
-  32, 48, 64, 96, 128, and 256-pixel icon sizes.
-- The v1 files remain tracked as rollback evidence but are no longer active.
-- `godot/project.godot` now uses the square PNG as the project icon.
-- The single `Fred Myers Owner Test.lnk` uses the multi-size ICO directly.
+- `godot/assets/art/fred-moonpetal-crest-v3.png`: 1024 by 1024 RGBA crest with
+  a transparent, non-square outer silhouette for desktop and future icon layers.
+- `godot/assets/art/fred-app-icon-v3-platform.png`: 1024 by 1024 full-bleed
+  platform master for Godot, Android, and future Apple Icon Composer work.
+- `godot/assets/art/fred-app-icon-v3.ico`: Windows package containing 16, 24,
+  32, 48, 64, 96, 128, and 256-pixel sizes derived from the transparent crest.
+- Earlier icon versions remain tracked as rollback evidence but are inactive.
+- `godot/project.godot` and the Android Development preset use the platform
+  master; the single `Fred Myers Owner Test.lnk` uses the transparent ICO.
 
-The built-in image-generation workflow used the v1 icon as the character and
-brand reference. Final prompt intent: redesign Fred as a professional square
-mobile/PC game mascot emblem with simplified sculpted forms, safe rounded-mask
-padding, moonlit marsh colors, no text, and exactly two front arms plus two
-rear legs--never a fifth appendage.
+The built-in image-generation workflow was directed to create an original,
+premium mobile-game emblem: a friendly anatomically credible frog face inside
+an asymmetrical notched lily-pad crest, crescent moon, luminous moonpetal,
+water curl, emerald/teal/gold palette, no text, no photographic frame, no
+rounded-square container, and no duplicate or extra limbs. A second pass
+created the linked full-bleed platform master without changing the crest.
 
-This source configuration prepares the new identity for later phone builds,
-but the existing Android APK is not rebuilt or claimed here. Signing, App
-Build 1, store packaging, and physical-device acceptance remain separate.
+This configuration prepares one consistent identity for Windows, Android, and
+future Apple work. Apple Icon Composer layers, dark/tinted appearances, Mac
+inspection, signing, store packaging, and physical-device acceptance remain
+separate gates.
 
 ## Validation
 
-- Godot 4.7.1 imported the square master successfully.
-- Complete gameplay matrix: 17 suites, 2,190 passed, 0 failed.
-- Readiness inventory: 61 artifacts, eight fixtures, Core 0.5.1.
-- The 38-check desktop handoff validator confirms the PNG dimensions, ICO
-  directory, all eight standard icon sizes, project icon reference, and
-  shortcut wiring.
-- Android development configuration still validates its identity, landscape
-  orientation, arm64/x86_64 policy, SDK policy, and zero requested permissions.
+- Godot 4.7.1 import, complete gameplay regression, readiness inventory, and
+  exact App Build 1 r2 package results are recorded in
+  `APP_BUILD_1_TEST_REPORT.md`.
+- The desktop handoff validator checks both 1024-pixel sources, RGBA crest,
+  eight ICO sizes, project reference, and one-shortcut wiring.
+- The Android export contract explicitly binds the v3 platform master and
+  preserves landscape, arm64/x86_64, SDK, and zero-permission policy.

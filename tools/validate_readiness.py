@@ -52,9 +52,13 @@ REQUIRED = [
     "docs/M2_TITLE_ART_UPLIFT.md",
     "docs/M2_APP_ICON_UPLIFT.md",
     "docs/APP_BUILD_1_TEST_REPORT.md",
-    "godot/assets/art/fred-app-icon-v2.png",
-    "godot/assets/art/fred-app-icon-v2.ico",
-    "godot/assets/art/fred-app-icon-v2.png.import",
+    "docs/APP_GENERATION_ENGINE_APPLE_READINESS_STATUS.md",
+    "docs/IOS_HANDOFF_PLAN.md",
+    "godot/assets/art/fred-moonpetal-crest-v3.png",
+    "godot/assets/art/fred-moonpetal-crest-v3.png.import",
+    "godot/assets/art/fred-app-icon-v3-platform.png",
+    "godot/assets/art/fred-app-icon-v3-platform.png.import",
+    "godot/assets/art/fred-app-icon-v3.ico",
     "godot/assets/art/moonpetal-title-fred-v3.png",
     "godot/assets/art/moonpetal-title-fred-v3.png.import",
     "tools/validate_android_export.py",
@@ -65,6 +69,8 @@ REQUIRED = [
     "tools/launch_desktop_owner_test.ps1",
     "tools/install_desktop_owner_shortcut.ps1",
     "tools/validate_desktop_owner_handoff.py",
+    "tools/audit_apple_readiness.py",
+    "tools/tests/test_apple_readiness_audit.py",
 ]
 
 FIXTURES = {

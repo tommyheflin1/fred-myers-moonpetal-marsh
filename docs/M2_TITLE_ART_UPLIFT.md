@@ -25,7 +25,8 @@ and App Build 1 boundaries are unchanged.
   `0B7576422DDFD5DD295113DE1B32E8E4EBFBE0127A059B3658ABAF6A9CC510C6`.
 - Godot 4.7.1 headless import passed.
 - Two focused checks prove the v3 asset loads and is the title-screen texture.
-- Complete matrix: 17 suites, 2,190 passed, 0 failed.
+- Complete matrix: 17 suites, 2,158 passed, 0 failed. This is the direct sum
+  of the 17 Godot suite result lines; earlier 2,190 wording overcounted 32.
 - Readiness: 57 artifacts, eight fixtures, exact Core 0.5.1 tree unchanged.
 - Android development identity, orientation, ABIs, SDK policy, and zero
   requested permissions remain unchanged; no new Android artifact was claimed.
