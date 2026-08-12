@@ -206,3 +206,26 @@ size is 81,973,530 bytes, package remains
 `com.flinsappvault.fredmyers.dev`, and version is
 `0.2.1-app-build-1` (`20101`). The executed default preflight again returned
 `DEVICE_NOT_CONNECTED / UNVERIFIED` and performed no mutation.
+
+## Moonpetal Crest App Build 1 revision 2
+
+The current guarded successor was rebuilt from exact source
+`ac73eb84b651ae5b78ee761dcac300be15b16dcf` after the Moonpetal Crest and
+Apple-readiness audit were committed. The only accepted phone target is now:
+
+- artifact: `builds/android/fred-myers-app-build-1-debug.apk`;
+- SHA-256: `85BE1F46711863AD994F243B711EBBD3CD5136C0B18EB615105AAE06B328CBA8`;
+- size: 82,916,171 bytes;
+- package: `com.flinsappvault.fredmyers.dev`;
+- version: `0.2.1-app-build-1-r2` (`20102`);
+- SDK: minimum 24, target/compile 36;
+- ABI: arm64-v8a and x86_64;
+- permissions: zero requested;
+- signing: local Godot debug certificate only, APK Signature Schemes v2/v3.
+
+The same fail-closed command and owner acknowledgement boundary apply. No real
+device install, control, diagnostic capture, signing change, store action, or
+physical acceptance is claimed by this refresh.
+The executed default revision-2 preflight returned
+`DEVICE_NOT_CONNECTED / UNVERIFIED`, selected no device, and performed no
+mutation.

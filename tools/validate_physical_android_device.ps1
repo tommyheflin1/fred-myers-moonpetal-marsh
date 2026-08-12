@@ -17,11 +17,11 @@ param(
 $ErrorActionPreference = "Stop"
 $ProgressPreference = "SilentlyContinue"
 
-$CandidateSourceSha = "9e4091fa9c8822395d27c0ebe689c7da50552d31"
-$ExpectedApkSha256 = "E57242793EED3FBF83570299346EB6236BC37BCF3C40EBA2742136D747C73316"
-$ExpectedApkBytes = 81973530
+$CandidateSourceSha = "ac73eb84b651ae5b78ee761dcac300be15b16dcf"
+$ExpectedApkSha256 = "85BE1F46711863AD994F243B711EBBD3CD5136C0B18EB615105AAE06B328CBA8"
+$ExpectedApkBytes = 82916171
 $ExpectedPackage = "com.flinsappvault.fredmyers.dev"
-$ExpectedVersionCode = 20101
+$ExpectedVersionCode = 20102
 $MinimumDeviceApi = 24
 $SupportedAbis = @("arm64-v8a", "x86_64")
 $MinimumFreeStorageKb = 524288
@@ -74,13 +74,16 @@ function Get-Sha256 {
 }
 
 function Find-Python {
-    $python = Get-Command "python.exe" -ErrorAction SilentlyContinue
-    if ($null -ne $python) {
-        return $python.Source
-    }
     $bundled = Join-Path $env:USERPROFILE ".cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe"
     if (Test-Path -LiteralPath $bundled) {
         return $bundled
+    }
+    $python = Get-Command "python.exe" -ErrorAction SilentlyContinue
+    if ($null -ne $python) {
+        $probe = Invoke-NativeCapture $python.Source @("--version")
+        if ($probe.exit_code -eq 0) {
+            return $python.Source
+        }
     }
     return ""
 }

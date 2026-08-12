@@ -185,9 +185,11 @@ unchanged.
 ## App Build 1 successor
 
 The owner-authorized local App Build 1 successor is documented in
-`APP_BUILD_1_TEST_REPORT.md`. It supersedes the older ignored APK for future
-phone testing with version `0.2.1-app-build-1` (`20101`), exact source commit
-`9e4091fa9c8822395d27c0ebe689c7da50552d31`, artifact SHA-256
-`E57242793EED3FBF83570299346EB6236BC37BCF3C40EBA2742136D747C73316`,
-and size 81,973,530 bytes. The earlier artifact remains historical evidence;
+`APP_BUILD_1_TEST_REPORT.md`. The current revision 2 artifact supersedes older
+ignored APKs for future phone testing with version
+`0.2.1-app-build-1-r2` (`20102`), exact source commit
+`ac73eb84b651ae5b78ee761dcac300be15b16dcf`, artifact SHA-256
+`85BE1F46711863AD994F243B711EBBD3CD5136C0B18EB615105AAE06B328CBA8`,
+and size 82,916,171 bytes. It carries the Moonpetal Crest through the explicit
+Android launcher-icon setting. Earlier artifacts remain historical evidence;
 no release, store, production-signing, or physical-phone claim is added.

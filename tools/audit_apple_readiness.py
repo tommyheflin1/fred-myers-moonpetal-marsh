@@ -17,7 +17,7 @@ def read(path: Path) -> str:
 
 def git(*args: str) -> str:
     result = subprocess.run(
-        ["git", "-C", str(ROOT), *args],
+        ["git", "-c", f"safe.directory={ROOT}", "-C", str(ROOT), *args],
         check=True,
         capture_output=True,
         text=True,

@@ -1,14 +1,16 @@
 # Fred App Build 1 test report
 
-Date: 2026-08-03
+Updated: 2026-08-12
 
 ## Scope and authorization
 
 The owner's explicit next-phase instruction starts App Build 1 as a local
-testing phase. The exact gameplay and presentation source is commit
-`9e4091fa9c8822395d27c0ebe689c7da50552d31` on local branch
-`codex/app-build-1`, descended from the validated desktop/icon candidate
-`7c64c360f70068685a65ca1f5f0a73339d20f0bf`.
+testing phase. Revision 2 refreshes the app identity and guarded phone package
+from exact source commit
+`ac73eb84b651ae5b78ee761dcac300be15b16dcf` on local branch
+`codex/app-build-1`. The source commit adds the Moonpetal Crest and the
+App Generation Engine/Apple readiness audit without changing gameplay, Core,
+or saves.
 
 This build is not a production build, release, deployment, store submission,
 or physical-device acceptance result. It remains local and unpushed because
@@ -17,11 +19,11 @@ the configured GitHub repository is public.
 ## Artifact identity
 
 - Local artifact: `builds/android/fred-myers-app-build-1-debug.apk`
-- SHA-256: `E57242793EED3FBF83570299346EB6236BC37BCF3C40EBA2742136D747C73316`
-- Size: 81,973,530 bytes
+- SHA-256: `85BE1F46711863AD994F243B711EBBD3CD5136C0B18EB615105AAE06B328CBA8`
+- Size: 82,916,171 bytes
 - Package: `com.flinsappvault.fredmyers.dev`
 - Label: `Fred Myers App Build 1`
-- Version: `0.2.1-app-build-1` (`20101`)
+- Version: `0.2.1-app-build-1-r2` (`20102`)
 - Minimum/target/compile SDK: 24/36/36
 - Architectures: `arm64-v8a` and `x86_64`
 - Orientation: landscape
@@ -30,10 +32,12 @@ the configured GitHub repository is public.
   Schemes v2 and v3; no production keystore or release signing
 - ZIP alignment: passed with 16 KiB page alignment validation
 
-The newer version code preserves the existing development package identity so
-an authorized owner phone can test an update without a downgrade or a second
-Fred application identity. The corrected v2 game icon is the active Godot
-application icon in this exact source.
+The monotonic version code preserves the existing development package identity
+so an authorized owner phone can test an update without a downgrade or a
+second Fred application. The 1024-pixel v3 platform master is the active Godot
+and Android icon; the matching transparent Moonpetal Crest drives the one
+Windows owner shortcut. The rebuilt xxxhdpi APK launcher icon was extracted
+and visually inspected after packaging.
 
 ## Toolchain and package inspection
 
@@ -41,7 +45,7 @@ application icon in this exact source.
 - JDK: Eclipse Temurin/OpenJDK `17.0.19`
 - Android build tools: `36.0.0`; `aapt2` 2.20-13193326
 - ADB: 1.0.41, platform tools 37.0.0-14910828
-- APK entries: 188
+- APK entries: 193
 - Content scan: 63 text entries; no tests, tools, evidence, source-control
   metadata, signing material, credentials, private Windows paths, or secret-like
   content
@@ -51,20 +55,32 @@ application icon in this exact source.
 ## Validation
 
 - Godot headless import: passed.
-- Complete deterministic matrix: 17 suites, 2,158 passed, 0 failed. This is
-  the direct sum of the 17 Godot suite result lines; earlier 2,190 wording
-  overcounted 32 and is not carried forward.
+- Complete deterministic matrix: 17 suites, 2,158 passed, 0 failed, using
+  isolated temporary AppData. This is the direct sum of the 17 Godot suite
+  result lines; earlier 2,190 wording overcounted 32 and is not carried forward.
+- Readiness: 68 artifacts, eight save fixtures, Core 0.5.1, Godot 4.7.
+- Desktop/icon handoff: 42 checks passed.
+- App Generation Engine/Apple readiness audit: 25 checks passed; all ten
+  reusable foundation controls are present and Apple remains
+  `APPLE_PREPARATION_REQUIRED`.
 - App Build 1 export contract: passed.
 - Physical-device safety fixtures: 60 passed, 0 failed.
 - Physical-device static safety contract: passed.
 - Live read-only preflight: `DEVICE_NOT_CONNECTED / UNVERIFIED`, zero devices,
   no selected serial, and `mutation_performed=false`.
+- Preflight tooling now prefers the verified bundled Python runtime and rejects
+  the nonfunctional Microsoft Store execution alias uncovered during this run.
 - Mobile Game Core remains version 0.5.1 at tree
   `288d87420c5694f80c071f00aa71a0b581f9f60c`.
 - `fred_save` remains schema v1.
 
 No phone was installed to, controlled, or captured. Emulator shader limits
 from the earlier M2 run are not relabeled as App Build 1 phone acceptance.
+
+The owner primary and backup saves remained byte- and timestamp-identical:
+
+- primary: 592 bytes, `20DE8645123BFECD973D3A1A1F82A4BE4F9731B3A015246C64908A07B40F1318`;
+- backup: 592 bytes, `89056C555969729AB89E17B78E82B0F632F55AA9FFF375B83DCBEC03C9793C76`.
 
 ## Owner gate
 
@@ -74,6 +90,8 @@ result, and separately approve install/launch. The guarded workflow forbids
 implicit target selection, uninstall, clear-data, downgrade, root, permission
 grant, bootloader, or broad log capture.
 
-Milestone percentages do not increase for packaging alone. M3 story work,
-production signing, store preparation, iOS export, publication, and release
-remain separate future gates.
+Milestone percentages do not increase for packaging or planning alone. The
+next Apple engineering action is a local unsigned iOS preset plus exact
+macOS/Xcode handoff; production signing, Game Center/provider activation,
+TestFlight, submission, publication, and release remain separate protected
+future gates.

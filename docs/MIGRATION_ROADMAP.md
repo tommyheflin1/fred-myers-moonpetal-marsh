@@ -52,7 +52,8 @@ The review correction documented in
 active level, restores the reached midpoint checkpoint, mirrors odd/even
 routes, cycles four deterministic marsh treatments, and centralizes the HUD
 and touch geometry so essential controls remain separated at 960 by 540 and
-640 by 360. The full 17-suite matrix passes 2,188 checks. Physical-phone
+640 by 360. The current full 17-suite matrix passes 2,158 checks. This count
+is the direct sum of the suite result lines. Physical-phone
 acceptance and milestone scores remain unchanged.
 
 The hash-guarded owner workflow in
@@ -65,7 +66,8 @@ remain unchanged.
 
 Owner direction on 2026-08-03 starts the local App Build 1 testing phase. The
 exact latest desktop/icon candidate is packaged as a newer debug-only Android
-artifact, version `0.2.1-app-build-1` (`20101`), with the existing development
+artifact, now refreshed as revision 2 version `0.2.1-app-build-1-r2`
+(`20102`), with the existing development
 package identity, zero requested permissions, and a refreshed source/artifact
 hash guard. Package creation and automated checks do not substitute for
 physical-phone acceptance and do not unlock production or store actions.
