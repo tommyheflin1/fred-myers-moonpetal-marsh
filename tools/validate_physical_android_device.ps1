@@ -17,7 +17,7 @@ param(
 $ErrorActionPreference = "Stop"
 $ProgressPreference = "SilentlyContinue"
 
-$CandidateSourceSha = "ac73eb84b651ae5b78ee761dcac300be15b16dcf"
+$CandidateSourceSha = "c0495dcc4c67afc3f0818230e8d2b63c33a15fd4"
 $ExpectedApkSha256 = "C9FB181368524592918600235F1AE7B8083F5850CA5511BA61E6B0999F7CEB1B"
 $ExpectedApkBytes = 84841877
 $ExpectedPackage = "com.flinsappvault.fredmyers.dev"

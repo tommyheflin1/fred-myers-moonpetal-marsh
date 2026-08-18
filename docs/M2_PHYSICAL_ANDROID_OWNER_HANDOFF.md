@@ -207,15 +207,16 @@ size is 81,973,530 bytes, package remains
 `0.2.1-app-build-1` (`20101`). The executed default preflight again returned
 `DEVICE_NOT_CONNECTED / UNVERIFIED` and performed no mutation.
 
-## Moonpetal Crest App Build 1 revision 2
+## Mobile-first App Build 1 revision 3
 
 The current guarded successor was rebuilt from exact source
-`ac73eb84b651ae5b78ee761dcac300be15b16dcf` after the Moonpetal Crest and
-Apple-readiness audit were committed. The only accepted phone target is now:
+`c0495dcc4c67afc3f0818230e8d2b63c33a15fd4` after the mobile-first product,
+visual, cosmetics and scoring-adapter uplift was committed. The only accepted
+phone target is now:
 
 - artifact: `builds/android/fred-myers-app-build-1-debug.apk`;
 - SHA-256: `C9FB181368524592918600235F1AE7B8083F5850CA5511BA61E6B0999F7CEB1B`;
-- size: 82,916,171 bytes;
+- size: 84,841,877 bytes;
 - package: `com.flinsappvault.fredmyers.dev`;
 - version: `0.2.1-app-build-1-r3` (`20103`);
 - SDK: minimum 24, target/compile 36;

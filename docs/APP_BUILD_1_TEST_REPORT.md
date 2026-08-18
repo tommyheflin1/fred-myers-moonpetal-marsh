@@ -9,8 +9,8 @@ testing phase. Revision 3 packages the mobile-first product and presentation
 uplift on local branch `codex/app-build-1`: sporty Fred art, six full-screen
 formations/backgrounds, coin-backed cosmetics, a fresh-run Exit contract,
 non-overlapping phone controls, richer wildlife and the dormant Apple Game
-Center scoring adapter. The final exact source commit is recorded after the
-local candidate checkpoint; Core and save v1 remain unchanged.
+Center scoring adapter. The exact product source checkpoint is
+`c0495dcc4c67afc3f0818230e8d2b63c33a15fd4`; Core and save v1 remain unchanged.
 
 This build is not a production build, release, deployment, store submission,
 or physical-device acceptance result. It remains local and unpushed because
