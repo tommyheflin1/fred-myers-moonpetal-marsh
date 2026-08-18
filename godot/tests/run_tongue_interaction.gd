@@ -129,7 +129,7 @@ func _run() -> void:
     var first_hit: Dictionary = game._request_tongue(Vector2.RIGHT)
     check(str(first_hit.outcome) == "hit" and str(first_hit.target_id) == "bug:000", "aimed surface tongue captures the intended bug")
     check(game.session.bug_count == 1 and 0 in game.collected, "successful bug hit advances the existing objective once")
-    check(game.save_feedback.begins_with("[TONGUE HIT]"), "successful capture has non-color readable feedback")
+    check(game.save_feedback.begins_with("[MUNCH!]"), "successful capture has non-color readable feedback")
     check(game.eat_effect_seconds > 0.0 and game.eat_target == bug_zero, "successful capture retains Fred's eating presentation")
     var serial_after_hit: int = game.tongue.shot_serial
     var count_after_hit: int = game.session.bug_count

@@ -1,6 +1,6 @@
 # App Generation Engine adoption and Apple readiness status
 
-Date: 2026-08-12
+Date: 2026-08-18
 
 ## Decision
 
@@ -8,7 +8,10 @@ Fred has used the App Generation Engine reference efficiently for the reusable
 parts of the product. The independent repository, immutable Core pin,
 deterministic gameplay, offline-first atomic save/recovery, provider-neutral
 identity boundary, device-neutral input path, platform-separated evidence, and
-hash-guarded owner handoffs are all present. The executable audit reports
+hash-guarded owner handoffs are all present. The new Fred-owned scoring adapter
+also uses the Engine's platform-neutral event boundary, bounded offline queue,
+and server-verification requirement without pretending Windows can activate
+Game Center. The executable audit reports
 `STRONG_REUSE` for all ten foundation controls.
 
 Fred is not yet an Apple test candidate. The current Apple execution status is
@@ -31,12 +34,12 @@ python tools/audit_apple_readiness.py
 | Immutable Mobile Game Core | Core 0.5.1; exact vendored tree `288d87420c5694f80c071f00aa71a0b581f9f60c` | PASS |
 | Pinned toolchain | Godot 4.7.1 project/import/test contract | PASS |
 | Offline-first durable progress | `fred_save` v1, atomic writes, backup recovery, corrupt/future-schema fixtures | PASS |
-| Deterministic product rules | 17 Godot suites and fixed-tick traversal/session contracts | PASS |
-| Portable controls | Keyboard, pointer, real screen-touch events, and synthetic adapter tests share intent contracts | PASS |
+| Deterministic product rules | 18 Godot suites and fixed-tick traversal/session contracts | PASS |
+| Portable controls | Desktop, pointer, real screen-touch events, and synthetic adapter tests share intent contracts; the player UI is device-neutral | PASS |
 | Optional platform identity | Guest-first interface includes Apple Game Center and Sign in with Apple provider slots | PASS, adapter only |
 | Evidence-gate separation | Desktop, Android artifact, emulator, physical device, human review, signing, and release are not conflated | PASS |
 | Exact owner handoffs | One SHA/manifest-guarded desktop shortcut and a hash-guarded Android preflight | PASS |
-| Shared online architecture | Core/player identity/leaderboard boundaries exist, but no production provider or backend is activated | PARTIAL, intentionally deferred |
+| Shared online architecture | Core/player identity/local leaderboard plus `FredAppleGameScoring` emit a platform-neutral verified-score envelope; no production provider or backend is activated | PARTIAL, intentionally deferred |
 
 This is the right form of reuse: Fred inherits infrastructure and release
 discipline while retaining Fred-specific traversal, lives, fairies, predators,
@@ -72,8 +75,10 @@ levels, story, audio, and art.
 6. Run iPhone and iPad Simulator matrices, then representative physical
    iPhone/iPad touch, safe-area, lifecycle, audio, save, performance, battery,
    and thermal testing.
-7. Activate Game Center or Sign in with Apple only if the owner approves the
-   entitlement/App ID/provider effects; preserve guest/offline play.
+7. Map `fred_marsh_adventure_progress` to an owner-created Game Center
+   leaderboard identifier on macOS, inject the native bridge, and activate Game
+   Center or Sign in with Apple only after the owner approves the entitlement,
+   App ID, and provider effects; preserve guest/offline play.
 8. Prepare App Store Connect privacy answers, privacy-policy/support URLs,
    metadata, screenshots, age rating, test information, and release notes from
    the exact build.

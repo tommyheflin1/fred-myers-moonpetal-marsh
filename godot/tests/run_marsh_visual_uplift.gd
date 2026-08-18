@@ -3,6 +3,7 @@ extends SceneTree
 const Main = preload("res://scripts/main.gd")
 const TongueTargeting = preload("res://scripts/tongue_targeting.gd")
 const DepthTraversal = preload("res://scripts/depth_traversal.gd")
+const MarshRouteLayout = preload("res://scripts/marsh_route_layout.gd")
 
 const SAVE_PREFIX := "user://m2_marsh_uplift_test"
 const BOARD_PATH := "user://m2_marsh_uplift_board.json"
@@ -38,8 +39,8 @@ func _run() -> void:
 	game.set_process(false)
 	game._start()
 
-	check(is_instance_valid(game.title_art), "realistic ballerina Fred title art loads as a Godot texture")
-	check(game.title_art.resource_path.ends_with("moonpetal-title-fred-v3.png"), "title screen uses the entertaining versioned Fred artwork")
+	check(is_instance_valid(game.title_art), "sporty Fred title art loads as a Godot texture")
+	check(game.title_art.resource_path.ends_with("moonpetal-title-fred-v4-sport.png"), "title screen uses the game-ready sporty Fred artwork")
 	check(is_instance_valid(game.gameplay_art), "authored marsh background loads as a Godot texture")
 	check(game.gameplay_art.resource_path.ends_with("moonpetal-gameplay-marsh-v1.png"), "gameplay uses the committed marsh art asset")
 	check(game._ellipse_points(Vector2.ZERO, Vector2(10,5), 0.0).size() == 32, "dimensional ellipse fill has a stable vertex contract")
@@ -52,7 +53,7 @@ func _run() -> void:
 
 	var move_touch := InputEventScreenTouch.new()
 	move_touch.index = 1
-	move_touch.position = Vector2(248,565)
+	move_touch.position = MarshRouteLayout.DPAD_CENTER + Vector2(MarshRouteLayout.DPAD_OFFSET,0)
 	move_touch.pressed = true
 	game._unhandled_input(move_touch)
 	check(game.touch_controls_visible and game.touch_movement == Vector2.RIGHT, "real screen touch holds the mobile movement control")
@@ -62,7 +63,7 @@ func _run() -> void:
 
 	var boost_touch := InputEventScreenTouch.new()
 	boost_touch.index = 2
-	boost_touch.position = Vector2(1175,625)
+	boost_touch.position = Vector2(MarshRouteLayout.touch_centers().boost)
 	boost_touch.pressed = true
 	game._unhandled_input(boost_touch)
 	check(game.touch_boost, "real screen touch holds the shared boost intent")
@@ -73,7 +74,7 @@ func _run() -> void:
 	game.fred = Vector2(550,300)
 	var depth_touch := InputEventScreenTouch.new()
 	depth_touch.index = 3
-	depth_touch.position = Vector2(930,505)
+	depth_touch.position = Vector2(MarshRouteLayout.touch_centers().depth)
 	depth_touch.pressed = true
 	game._unhandled_input(depth_touch)
 	check(game.depth.state == DepthTraversal.State.DIVING, "real screen touch invokes the shared dive transition")

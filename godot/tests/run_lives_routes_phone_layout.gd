@@ -104,16 +104,19 @@ func _run() -> void:
 	check(game._current_vector().x < 0.0, "even-level marsh current initially supports the reversed route")
 
 	var labels: Array[String] = []
-	for level in range(1, 5):
+	for level in range(1, 7):
 		labels.append(Layout.background_label(level))
-	check(labels.duplicate().size() == 4 and labels[0] != labels[1] and labels[1] != labels[2] and labels[2] != labels[3], "four consecutive levels expose distinct deterministic background treatments")
-	check(Layout.background_variant(5) == Layout.background_variant(1), "background variety cycles deterministically after four levels")
+	var unique_labels: Dictionary = {}
+	for label in labels: unique_labels[label] = true
+	check(unique_labels.size() == 6, "six consecutive levels expose distinct deterministic background treatments")
+	check(Layout.background_variant(7) == Layout.background_variant(1), "background variety cycles deterministically after six levels")
 
 	var hud := Layout.essential_rects(true)
 	for key: String in hud:
 		check(Layout.rect_inside_canvas(Rect2(hud[key]), 10.0), "%s stays inside the phone-safe logical canvas" % key)
 	check(not Rect2(hud.objective).intersects(Rect2(hud.lives)), "objective and lives panels do not overlap")
 	check(not Rect2(hud.lives).intersects(Rect2(hud.pause)), "lives and Pause panels do not overlap")
+	check(not Rect2(hud.pause).intersects(Rect2(hud.home)), "Pause and Exit panels do not overlap")
 	check(not Rect2(hud.energy).intersects(Rect2(hud.status)), "energy and status panels remain separated")
 
 	var centers := Layout.touch_centers()

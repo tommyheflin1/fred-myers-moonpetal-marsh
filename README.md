@@ -6,9 +6,10 @@ Fred Myers is a story-driven frog adventure currently playable as a five-level b
 
 Milestone M1 is accepted on `main`; the current local M2 owner candidate adds
 the deterministic Fred rig, leap/swim/depth/tongue/boost/camera traversal,
-100-level progression foundation, stackable fairy lives, alternating routes,
-marsh presentation, responsive desktop/touch layout, and a development-only
-Android debug artifact. The branch remains local because the configured GitHub
+100-level progression foundation, stackable fairy lives, six rotating route
+formations and marsh treatments, coin-backed Fred customization, sport-character
+and wildlife presentation, mobile-first UI, an Apple Game Center scoring adapter,
+and a development-only Android debug artifact. The branch remains local because the configured GitHub
 repository is public. No M2 push, production build, signing, deployment, store
 submission, or release is claimed.
 
@@ -63,6 +64,7 @@ This repository owns Fred gameplay. Core owns only reusable, game-neutral servic
 - [App Build 1 local test evidence](docs/APP_BUILD_1_TEST_REPORT.md)
 - [App Generation Engine adoption and Apple readiness](docs/APP_GENERATION_ENGINE_APPLE_READINESS_STATUS.md)
 - [Fred iOS unsigned handoff plan](docs/IOS_HANDOFF_PLAN.md)
+- [M2 mobile-first product and visual uplift](docs/M2_PRODUCT_UPLIFT_REPORT.md)
 
 ## Godot desktop owner candidate
 
@@ -83,8 +85,9 @@ release or physical-device acceptance is claimed.
 
 The current owner candidate also preserves the active level across nonfatal
 life loss, resumes from the midpoint checkpoint when reached, alternates
-left-to-right and right-to-left routes, cycles four marsh treatments, and uses
-one non-overlapping layout contract for the HUD and landscape touch controls.
+left-to-right and right-to-left routes, cycles six whole-screen formations and
+six marsh treatments, and uses one non-overlapping layout contract for the HUD,
+Exit action, Fred start area, and landscape touch controls.
 
 The physical-phone handoff is hash guarded and read-only by default. With no
 authorized phone connected it returns `DEVICE_NOT_CONNECTED / UNVERIFIED`;

@@ -96,6 +96,7 @@ func _run() -> void:
 	check(game._bug_position(2).y >= 130.0 and game._bug_position(2).y <= 620.0, "moving bug remains inside safe bounds")
 	game.level_number = 1
 	game.level_profile = FredLevelIntensity.profile(1)
+	game.session = AdventureSession.new(1337)
 	game.fred = game.WHIRLPOOLS[0]
 	var health_before: int = game.session.health
 	game._fixed_tick(0.0)

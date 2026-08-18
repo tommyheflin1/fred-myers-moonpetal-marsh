@@ -106,7 +106,7 @@ func _run() -> void:
 	game.screen = game.Screen.FAILED
 	game._handle_click(Vector2(790,532))
 	check(game.screen == game.Screen.TITLE and game.menu_music.playing, "Go Home returns to title and menu music")
-	game._handle_click(Vector2(640,550))
+	game._handle_click(Main.TITLE_LEADERBOARD_RECT.get_center())
 	check(game.screen == game.Screen.LEADERBOARD and game.menu_music.playing, "title leaderboard button opens the functional local board")
 	game._handle_click(Vector2(640,648))
 	check(game.screen == game.Screen.TITLE, "leaderboard Home button returns to title")

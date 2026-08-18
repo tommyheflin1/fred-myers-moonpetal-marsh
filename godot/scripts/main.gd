@@ -8,8 +8,10 @@ const CameraFollow = preload("res://scripts/camera_follow.gd")
 const AnimationCoordinator = preload("res://scripts/fred_animation_coordinator.gd")
 const FredRigScene = preload("res://scenes/fred_rig.tscn")
 const MarshRouteLayout = preload("res://scripts/marsh_route_layout.gd")
+const FrogCustomization = preload("res://scripts/frog_customization.gd")
+const AppleGameScoring = preload("res://scripts/apple_game_scoring.gd")
 
-enum Screen { TITLE, PLAYING, FAILED, COMPLETE, LEADERBOARD }
+enum Screen { TITLE, PLAYING, FAILED, COMPLETE, LEADERBOARD, CUSTOMIZE }
 const START := Vector2(135, 560)
 const EXIT := Vector2(1150, 165)
 const PADS := [Vector2(220,500), Vector2(350,420), Vector2(490,500), Vector2(630,390), Vector2(760,300), Vector2(900,225), Vector2(1040,165)]
@@ -20,6 +22,16 @@ const WHIRLPOOLS := [Vector2(500,405), Vector2(790,315), Vector2(960,500)]
 const FAIRY_POSITIONS := [Vector2(455,205), Vector2(835,545), Vector2(1080,365)]
 const DAMAGE_GRACE_SECONDS := 1.75
 const RESPAWN_COUNTDOWN_SECONDS := 2.0
+const TITLE_START_RECT := Rect2(90,405,390,68)
+const TITLE_CUSTOMIZE_RECT := Rect2(90,490,390,58)
+const TITLE_LEADERBOARD_RECT := Rect2(90,565,390,58)
+const CUSTOM_HOME_RECT := Rect2(490,635,300,56)
+const CUSTOM_CARDS := {
+    "body": Rect2(120,205,245,165),
+    "size": Rect2(385,205,245,165),
+    "tongue": Rect2(650,205,245,165),
+    "attire": Rect2(915,205,245,165),
+}
 
 var session := AdventureSession.new(1337)
 var saver := FredSaveAdapter.new()
@@ -52,6 +64,8 @@ var camera_response_y := 0.0
 var camera_offset := Vector2.ZERO
 var camera_follow: RefCounted = CameraFollow.new()
 var leaderboard := FredLocalLeaderboard.new()
+var customization: RefCounted = FrogCustomization.new()
+var game_scoring: RefCounted = AppleGameScoring.new()
 var menu_music: AudioStreamPlayer
 var chase_music: AudioStreamPlayer
 var audio_enabled := true
@@ -119,6 +133,8 @@ func _handle_back_request() -> String:
     return "home"
 
 func _ready() -> void:
+    if DisplayServer.get_name() == "headless" and str(customization.path) == FrogCustomization.DEFAULT_PATH:
+        customization = FrogCustomization.new("")
     if "--reduced-motion" in OS.get_cmdline_user_args():
         reduced_motion = true
     if DisplayServer.is_touchscreen_available() or "--show-touch-controls" in OS.get_cmdline_user_args():
@@ -139,12 +155,13 @@ func _ready() -> void:
     if audio_enabled:
         menu_music.stream = load("res://assets/audio/the_marshland_march.mp3")
         chase_music.stream = load("res://assets/audio/marshland_chase.mp3")
-    title_art = load("res://assets/art/moonpetal-title-fred-v3.png")
+    title_art = load("res://assets/art/moonpetal-title-fred-v4-sport.png")
     gameplay_art = load("res://assets/art/moonpetal-gameplay-marsh-v1.png")
     menu_music.volume_db = -8.0
     chase_music.volume_db = -7.0
     add_child(menu_music)
     add_child(chase_music)
+    _sync_fred_style()
     _sync_music()
     set_process(true)
     queue_redraw()
@@ -233,6 +250,9 @@ func _fixed_tick(delta: float) -> void:
         return
     if fred.distance_to(_level_exit_position()) < 55 and session.complete_level():
         leaderboard.submit(identity.profile_label, level_number, session.bug_count, session.health)
+        customization.earn_coins(15 + mini(10, level_number / 10))
+        game_scoring.record_level_completion(level_number, session.bug_count, session.health, customization.coins)
+        _sync_fred_style()
         screen = Screen.COMPLETE; _save("Lily Leap is complete.")
 
 func _sync_music() -> void:
@@ -242,7 +262,7 @@ func _sync_music() -> void:
         menu_music.stop()
         chase_music.stop()
         return
-    var wants_menu := screen in [Screen.TITLE, Screen.LEADERBOARD]
+    var wants_menu := screen in [Screen.TITLE, Screen.LEADERBOARD, Screen.CUSTOMIZE]
     if wants_menu:
         if chase_music.playing: chase_music.stop()
         if not menu_music.playing: menu_music.play()
@@ -260,7 +280,7 @@ func _level_exit_position() -> Vector2:
     return _route_point(EXIT)
 
 func _level_safe_position() -> Vector2:
-    return _route_point(SAFE_LOCATION)
+    return MarshRouteLayout.safe_point(SAFE_LOCATION, level_number)
 
 func _whirlpool_position(index: int) -> Vector2:
     return _route_point(WHIRLPOOLS[index])
@@ -343,8 +363,10 @@ func _consume_tongue_target(target_id: String, target_kind: String) -> bool:
             return false
         collected.append(index)
         session.collect_bug()
+        customization.earn_coins(3)
+        _sync_fred_style()
         eat_effect_seconds = TongueTargeting.COOLDOWN_SECONDS
-        _set_feedback("[TONGUE HIT] Fred munched marsh bug %d!" % (index + 1))
+        _set_feedback("[MUNCH!] Fred ate marsh bug %d and earned 3 coins!" % (index + 1))
         return true
     if target_kind == "fairy" and target_id == "fairy:%03d" % level_number:
         if not _fairy_available() or not session.gain_life():
@@ -377,7 +399,7 @@ func _update_secondary_predators() -> void:
     secondary_predators[3] = _route_point(Vector2(405 + cos(simulation_time * 1.05) * 150, 575 + sin(simulation_time * 0.65) * 55))
 
 func _pad_position(index: int) -> Vector2:
-    var base: Vector2 = _route_point(PADS[index])
+    var base: Vector2 = MarshRouteLayout.pad_point(PADS[index], index, level_number)
     var route_sign := -1.0 if MarshRouteLayout.is_reversed(level_number) else 1.0
     var level_phase := float(level_number * 17 + index * 31)
     var level_offset := Vector2(
@@ -392,7 +414,7 @@ func _pad_position(index: int) -> Vector2:
     return (base + level_offset + motion).clamp(Vector2(90, 155), Vector2(1190, 590))
 
 func _bug_position(index: int) -> Vector2:
-    var base: Vector2 = _route_point(BUGS[index])
+    var base: Vector2 = MarshRouteLayout.bug_point(BUGS[index], index, level_number)
     var route_sign := -1.0 if MarshRouteLayout.is_reversed(level_number) else 1.0
     var radius := float(level_profile.bug_flight_radius)
     var speed := float(level_profile.bug_flight_speed)
@@ -588,6 +610,8 @@ func _handle_touch(index: int, position: Vector2, pressed: bool) -> void:
         "pause":
             session.paused = not session.paused
             _set_feedback("[PAUSED] Your last checkpoint is safe." if session.paused else "[PLAYING] Adventure resumed.")
+        "home":
+            _go_home()
         "":
             _request_leap(position - fred)
 
@@ -613,12 +637,28 @@ func _refresh_touch_holds() -> void:
     touch_movement = touch_movement.normalized()
 
 func _handle_click(position: Vector2) -> void:
-    if screen == Screen.TITLE and Rect2(475,468,330,66).has_point(position): _start()
-    elif screen == Screen.TITLE and Rect2(475,548,330,50).has_point(position):
+    if screen == Screen.TITLE and TITLE_START_RECT.has_point(position): _start()
+    elif screen == Screen.TITLE and TITLE_CUSTOMIZE_RECT.has_point(position):
+        screen = Screen.CUSTOMIZE; _sync_music(); queue_redraw()
+    elif screen == Screen.TITLE and TITLE_LEADERBOARD_RECT.has_point(position):
         screen = Screen.LEADERBOARD; _sync_music(); queue_redraw()
+    elif screen == Screen.CUSTOMIZE and CUSTOM_HOME_RECT.has_point(position): _go_home()
+    elif screen == Screen.CUSTOMIZE:
+        for category: String in CUSTOM_CARDS:
+            if Rect2(CUSTOM_CARDS[category]).has_point(position):
+                var result: Dictionary = customization.select_next(category)
+                if bool(result.get("ok", false)):
+                    _sync_fred_style()
+                    _set_feedback("[GEAR READY] Fred equipped %s." % str(result.label))
+                else:
+                    _set_feedback("[MORE COINS NEEDED] Earn %d coins to unlock %s." % [int(result.get("cost", 0)), str(result.get("label", "this upgrade"))])
+                queue_redraw()
+                return
     elif screen == Screen.PLAYING and MarshRouteLayout.PAUSE_RECT.has_point(position):
         session.paused = not session.paused
         _set_feedback("[PAUSED] Your last checkpoint is safe." if session.paused else "[PLAYING] Adventure resumed.")
+    elif screen == Screen.PLAYING and MarshRouteLayout.HOME_RECT.has_point(position):
+        _go_home()
     elif screen == Screen.PLAYING and session.paused and Rect2(490,410,300,65).has_point(position):
         session.paused = false; _set_feedback("[PLAYING] Adventure resumed.")
     elif screen == Screen.PLAYING:
@@ -676,18 +716,34 @@ func _retry() -> void:
     _set_feedback("[TRY AGAIN] Level 1 is ready.")
 
 func _go_home() -> void:
+    var leaving_gameplay := screen in [Screen.PLAYING, Screen.FAILED, Screen.COMPLETE]
     leap.reset()
-    depth.reset(session.player_state)
+    depth.reset("surface")
     tongue.reset()
     boost.reset()
     animation.reset()
     touch_contacts.clear()
     _refresh_touch_holds()
     countdown_seconds = 0.0
+    if leaving_gameplay:
+        level_number = 1
+        level_profile = FredLevelIntensity.profile(1)
+        session = AdventureSession.new(1337)
+        fred = _level_start_position()
+        predator = _route_point(PREDATOR_START)
+        collected.clear()
+        fairy_collected = false
+        danger_cooldown_seconds = 0.0
+        simulation_time = 0.0
+        saver.save(session, Time.get_datetime_string_from_system(true, true))
     screen = Screen.TITLE
     _reset_camera()
     _sync_music()
     _set_feedback("[HOME] Welcome back to Moonpetal Marsh.")
+
+func _sync_fred_style() -> void:
+    if is_instance_valid(fred_rig) and fred_rig.has_method("apply_style"):
+        fred_rig.apply_style(customization.current_style())
 
 func _advance_level() -> void:
     var carried_lives := session.health
@@ -738,7 +794,7 @@ func _apply_boost_event(event: String) -> void:
         "sustain":
             _set_feedback("[BOOST] Hold your course while energy drains.")
         "exhausted":
-            _set_feedback("[BOOST EXHAUSTED] Release Shift and let Fred recover.")
+            _set_feedback("[BOOST EXHAUSTED] Let Fred catch his breath, then boost again.")
         "ready":
             _set_feedback("[BOOST READY] Fred has full marsh energy.")
 
@@ -799,6 +855,7 @@ func _draw() -> void:
     draw_rect(Rect2(0,0,1280,720), Color("071d2d"))
     if screen == Screen.TITLE: _draw_title(); return
     if screen == Screen.LEADERBOARD: _draw_leaderboard(); return
+    if screen == Screen.CUSTOMIZE: _draw_customizer(); return
     _draw_level()
     if screen == Screen.FAILED: _draw_failure()
     elif screen == Screen.COMPLETE: _draw_overlay("Lily Leap Complete!", "Level %03d is ready." % mini(100, level_number + 1), "Next Level", Rect2(490,500,300,60), "LEVEL CLEAR")
@@ -807,17 +864,49 @@ func _draw() -> void:
 
 func _draw_title() -> void:
     draw_texture_rect(title_art, Rect2(0,0,1280,720), false)
-    draw_rect(Rect2(0,0,1280,125), Color(0.005,0.025,0.05,0.76), true)
-    draw_rect(Rect2(0,418,1280,302), Color(0.005,0.025,0.05,0.80), true)
-    draw_rect(Rect2(0,418,1280,3), Color("75d8c5"), true)
-    _text(Vector2(640,54), "FRED MYERS", 48, Color("ffe184"), HORIZONTAL_ALIGNMENT_CENTER, 820)
-    _text(Vector2(640,101), "and the Moonpetal Marsh", 28, Color("edfdf5"), HORIZONTAL_ALIGNMENT_CENTER, 820)
-    _text(Vector2(640,445), "LEAP  |  DIVE  |  MUNCH  |  SURVIVE", 16, Color("b9f5c7"), HORIZONTAL_ALIGNMENT_CENTER, 760)
-    _button(Rect2(475,468,330,66), "PLAY AGAIN" if session.completed else ("CONTINUE" if session.checkpoint_sequence > 0 else "START ADVENTURE"))
-    _button(Rect2(475,548,330,50), "LOCAL LEADERBOARD")
-    _status_panel(Rect2(260,612,760,42), 16)
-    _text(Vector2(640,680), "WASD / arrows move  |  F / right-click tongue  |  Space leap  |  Shift boost  |  Q / E depth  |  P pause", 14, Color("d7edf0"), HORIZONTAL_ALIGNMENT_CENTER, 1160)
-    _text(Vector2(640,707), "NOW PLAYING: THE MARSHLAND MARCH  |  GUEST PLAY  |  ACCOUNT LINKING OPTIONAL", 12, Color("b9f5c7"), HORIZONTAL_ALIGNMENT_CENTER, 1000)
+    draw_colored_polygon(PackedVector2Array([
+        Vector2(0,0),Vector2(635,0),Vector2(555,720),Vector2(0,720)
+    ]), Color(0.005,0.025,0.05,0.86))
+    draw_line(Vector2(635,0),Vector2(555,720),Color(0.45,0.94,0.80,0.58),4)
+    _text(Vector2(285,70), "FRED MYERS", 52, Color("ffe184"), HORIZONTAL_ALIGNMENT_CENTER, 500)
+    _text(Vector2(285,120), "and the Moonpetal Marsh", 27, Color("edfdf5"), HORIZONTAL_ALIGNMENT_CENTER, 500)
+    _text(Vector2(285,166), "THE 100-LEVEL MARSH CHALLENGE", 15, Color("b9f5c7"), HORIZONTAL_ALIGNMENT_CENTER, 470)
+    draw_rect(Rect2(72,205,426,155),Color(0.02,0.10,0.14,0.76),true)
+    draw_rect(Rect2(72,205,426,155),Color("70d6c2"),false,3)
+    _text(Vector2(285,242), "RUN • LEAP • DIVE", 23, Color("fff0ae"), HORIZONTAL_ALIGNMENT_CENTER, 390)
+    _text(Vector2(285,281), "MUNCH • DODGE • POWER UP", 19, Color.WHITE, HORIZONTAL_ALIGNMENT_CENTER, 390)
+    _text(Vector2(285,326), "Earn coins. Build your champion frog.", 16, Color("d9f4e2"), HORIZONTAL_ALIGNMENT_CENTER, 390)
+    _button(TITLE_START_RECT, "START ADVENTURE")
+    _button(TITLE_CUSTOMIZE_RECT, "CUSTOMIZE FRED  •  %d COINS" % customization.coins)
+    _button(TITLE_LEADERBOARD_RECT, "MARSH LEADERBOARDS")
+    _status_panel(Rect2(70,640,440,42), 14)
+    _text(Vector2(285,708), "THE MARSHLAND MARCH  •  PLAY INSTANTLY  •  ACCOUNT OPTIONAL", 11, Color("b9f5c7"), HORIZONTAL_ALIGNMENT_CENTER, 520)
+
+func _draw_customizer() -> void:
+    draw_texture_rect(title_art, Rect2(0,0,1280,720), false, Color(0.45,0.62,0.60,1.0))
+    draw_rect(Rect2(0,0,1280,720), Color(0.005,0.025,0.05,0.84), true)
+    _text(Vector2(640,58), "BUILD YOUR FRED", 42, Color("ffe184"), HORIZONTAL_ALIGNMENT_CENTER, 900)
+    _text(Vector2(640,100), "Tap a gear card to equip it or unlock the next style.", 18, Color("d9f4e2"), HORIZONTAL_ALIGNMENT_CENTER, 900)
+    _text(Vector2(640,145), "COINS  %d" % customization.coins, 26, Color("fff0ae"), HORIZONTAL_ALIGNMENT_CENTER, 400)
+    var headings := {"body":"FROG COLOR", "size":"ATHLETIC BUILD", "tongue":"TONGUE COLOR", "attire":"SPORT GEAR"}
+    for category: String in CUSTOM_CARDS:
+        var card := Rect2(CUSTOM_CARDS[category])
+        draw_rect(Rect2(card.position+Vector2(0,7),card.size),Color(0,0,0,0.46),true)
+        draw_rect(card,Color(0.02,0.11,0.15,0.96),true)
+        draw_rect(card,Color("70d6c2"),false,3)
+        _text(Vector2(card.get_center().x,card.position.y+34),str(headings[category]),16,Color("b9f5c7"),HORIZONTAL_ALIGNMENT_CENTER,card.size.x-20)
+        _text(Vector2(card.get_center().x,card.position.y+84),customization.selected_label(category),20,Color.WHITE,HORIZONTAL_ALIGNMENT_CENTER,card.size.x-18)
+        var price: int = int(customization.next_cost(category))
+        _text(Vector2(card.get_center().x,card.position.y+132),"TAP: NEXT" if price == 0 else "NEXT UNLOCK  %d COINS" % price,13,Color("fff0ae"),HORIZONTAL_ALIGNMENT_CENTER,card.size.x-18)
+    draw_circle(Vector2(640,500),118,Color(0.2,0.75,0.55,0.10))
+    draw_circle(Vector2(640,500),88,Color(0.95,0.84,0.30,0.07))
+    _sync_fred_style()
+    fred_rig.apply_pose(animation.pose(),0.0)
+    draw_set_transform(Vector2(640,510),0.0,Vector2(2.25,2.25))
+    fred_rig.render_to(self,Vector2.ZERO)
+    draw_set_transform(Vector2.ZERO)
+    _text(Vector2(640,606),"Cosmetics never change collision or difficulty.",14,Color("d9f4e2"),HORIZONTAL_ALIGNMENT_CENTER,700)
+    _button(CUSTOM_HOME_RECT,"SAVE & RETURN HOME")
 
 func _draw_title_legacy() -> void:
     var visual := FredVisualState.snapshot(visual_time, reduced_motion)
@@ -853,11 +942,11 @@ func _draw_title_legacy() -> void:
     if reduced_motion:
         _text(Vector2(640,675), "[REDUCED MOTION] All gameplay cues remain visible.", 15, Color("e8fbff"), HORIZONTAL_ALIGNMENT_CENTER, 700)
     _text(Vector2(640,650), "[GUEST] Play now. Platform account linking stays optional.", 15, Color("e8fbff"), HORIZONTAL_ALIGNMENT_CENTER, 900)
-    _text(Vector2(640,620), "WASD / arrows move  •  Space leaps  •  Shift boosts  •  Q dive  •  E surface  •  P pause", 17, Color("bfd8dc"), HORIZONTAL_ALIGNMENT_CENTER, 1100)
+    _text(Vector2(640,620), "MOVE  •  LEAP  •  BOOST  •  DIVE  •  MUNCH  •  PAUSE", 17, Color("bfd8dc"), HORIZONTAL_ALIGNMENT_CENTER, 1100)
 
     draw_rect(Rect2(0,580,1280,140), Color(0.01,0.05,0.08,0.92), true)
     _status_panel(Rect2(280,584,720,42), 16)
-    _text(Vector2(640,652), "WASD / arrows move  |  Space leaps  |  Shift boosts  |  Q dive  |  E surface  |  P pause", 15, Color("bfd8dc"), HORIZONTAL_ALIGNMENT_CENTER, 1100)
+    _text(Vector2(640,652), "MOVE  |  LEAP  |  BOOST  |  DIVE  |  MUNCH  |  PAUSE", 15, Color("bfd8dc"), HORIZONTAL_ALIGNMENT_CENTER, 1100)
     _text(Vector2(640,680), "[GUEST] Play now. Account linking remains optional.", 14, Color("e8fbff"), HORIZONTAL_ALIGNMENT_CENTER, 900)
     if reduced_motion:
         _text(Vector2(640,706), "[REDUCED MOTION] All gameplay cues remain visible.", 13, Color("e8fbff"), HORIZONTAL_ALIGNMENT_CENTER, 700)
@@ -882,6 +971,15 @@ func _draw_marsh_background(water: Color) -> void:
     for index in range(variant + 1):
         var accent := _route_point(accent_positions[index])
         draw_circle(accent, 70.0 + float(index) * 18.0, Color(0.72,0.93,1.0,0.028 + float(variant) * 0.006))
+    for layer in range(3):
+        var mist_y := 180.0 + float(layer) * 155.0 + float(variant % 2) * 28.0
+        var mist_shift := 0.0 if reduced_motion else sin(visual_time * (0.10 + float(layer) * 0.025) + float(variant)) * 42.0
+        draw_colored_polygon(_ellipse_points(Vector2(260.0 + float(layer) * 390.0 + mist_shift,mist_y),Vector2(240.0,38.0),0.0),Color(0.72,0.94,1.0,0.025 + float(layer) * 0.008))
+    for glint in range(18):
+        var glint_position := _route_point(Vector2(70 + (glint * 193 + variant * 61) % 1160,150 + (glint * 97 + variant * 43) % 430))
+        var glint_size := 1.5 + float(glint % 3)
+        draw_circle(glint_position,glint_size * 3.0,Color(1.0,0.89,0.38,0.035))
+        draw_circle(glint_position,glint_size,Color(1.0,0.91,0.45,0.68))
     draw_rect(playfield, Color("8be8e1"), false, 3)
     draw_rect(playfield.grow(-4.0), Color(0.01,0.08,0.11,0.20), false, 2)
     draw_rect(Rect2(playfield.position, Vector2(playfield.size.x,96.0)), Color(0.42,0.90,0.92,0.06), true)
@@ -919,7 +1017,7 @@ func _draw_level() -> void:
     if not assisted_target.is_empty() and tongue.is_ready():
         var assisted_position := Vector2(assisted_target.position)
         draw_arc(assisted_position, 29, 0, TAU, 24, Color("ffe980"), 3)
-        _text(assisted_position + Vector2(0,-35), "[F] MUNCH", 12, Color("fff5b0"), HORIZONTAL_ALIGNMENT_CENTER, 110)
+        _text(assisted_position + Vector2(0,-35), "[MUNCH READY]", 12, Color("fff5b0"), HORIZONTAL_ALIGNMENT_CENTER, 125)
     var predator_names := ["BASS", "PIKE", "HERON", "SNAKE", "MUSKIE"]
     var active_positions := _active_predator_positions()
     for index in active_positions.size():
@@ -928,6 +1026,7 @@ func _draw_level() -> void:
     _draw_moonpetal_exit(_level_exit_position(), exit_radius)
     var fred_draw_position := fred - Vector2(0,leap.visual_height)
     var animation_pose: Dictionary = animation.pose()
+    _sync_fred_style()
     fred_rig.apply_pose(animation_pose, float(depth.depth))
     var animation_origin := fred_draw_position + Vector2(animation_pose.body_offset)
     var tongue_origin: Vector2 = fred_draw_position + Vector2(fred_rig.tongue_anchor())
@@ -947,9 +1046,10 @@ func _draw_level() -> void:
     draw_set_transform(Vector2.ZERO)
     _text(Vector2(25,42), "LILY LEAP", 27, Color("f7d36a"), HORIZONTAL_ALIGNMENT_LEFT, 270)
     _text(Vector2(25,76), "LEVEL %03d  -  %s" % [level_profile.level, level_profile.label], 14, Color("d9f4e2"), HORIZONTAL_ALIGNMENT_LEFT, 270)
-    var route_summary := "ROUTE: %s  |  %s  |  NEW: %s" % [
+    var route_summary := "%s  |  %s  |  THREATS %d  |  NEW: %s" % [
+        MarshRouteLayout.formation_label(level_number).to_upper(),
         MarshRouteLayout.route_label(level_number),
-        MarshRouteLayout.background_label(level_number).to_upper(),
+        int(level_profile.predator_count),
         str(level_profile.new_twist).to_upper(),
     ]
     if reduced_motion:
@@ -957,14 +1057,15 @@ func _draw_level() -> void:
     _text(Vector2(25,98), route_summary, 12, Color("fff0ae"), HORIZONTAL_ALIGNMENT_LEFT, 830)
     draw_rect(MarshRouteLayout.OBJECTIVE_RECT, Color("06151f"), true)
     draw_rect(MarshRouteLayout.OBJECTIVE_RECT, Color("e8fbff"), false, 2)
-    _text(Vector2(320,49), "OBJECTIVE: " + ("Reach the moonpetal exit" if session.bug_count >= 3 else "Collect 3 marsh bugs"), 18, Color("e8fbff"), HORIZONTAL_ALIGNMENT_LEFT, 510)
+    _text(Vector2(295,49), "OBJECTIVE: " + ("Reach the moonpetal exit" if session.bug_count >= 3 else "Munch 3 marsh bugs"), 17, Color("e8fbff"), HORIZONTAL_ALIGNMENT_LEFT, 465)
     draw_rect(MarshRouteLayout.LIVES_RECT, Color("06151f"), true)
     draw_rect(MarshRouteLayout.LIVES_RECT, Color("f7d36a"), false, 3)
-    _text(Vector2(MarshRouteLayout.LIVES_RECT.get_center().x,49), "LIVES %d  |  THREATS %d" % [session.health, int(level_profile.predator_count)], 16, Color("fff0ae"), HORIZONTAL_ALIGNMENT_CENTER, MarshRouteLayout.LIVES_RECT.size.x - 12.0)
+    _text(Vector2(MarshRouteLayout.LIVES_RECT.get_center().x,49), "LIVES %d  •  COINS %d" % [session.health, customization.coins], 14, Color("fff0ae"), HORIZONTAL_ALIGNMENT_CENTER, MarshRouteLayout.LIVES_RECT.size.x - 10.0)
     _text(MarshRouteLayout.TELEMETRY_ANCHOR, "BUGS %d/3   %s %d%%   %s   %s" % [session.bug_count, depth.cue(), roundi(float(depth.depth) * 100.0), tongue.cue(), boost.cue()], 15, Color.WHITE, HORIZONTAL_ALIGNMENT_LEFT, 810)
     _draw_energy_meter()
     _status_panel(MarshRouteLayout.status_rect(touch_controls_visible), 15)
     _button(MarshRouteLayout.PAUSE_RECT, "PAUSE")
+    _button(MarshRouteLayout.HOME_RECT, "EXIT")
     if touch_controls_visible:
         _draw_touch_controls()
 
@@ -1142,44 +1243,61 @@ func _draw_fish(position: Vector2, species: String) -> void:
     if species == "PIKE": body = Color("759d55")
     elif species == "MUSKIE": body = Color("777bb0")
     var facing := -1.0 if species == "BASS" or species == "MUSKIE" else 1.0
-    var nose := position + Vector2(38.0 * facing, 0)
-    var tail_root := position - Vector2(36.0 * facing, 0)
+    var swim_lift := 0.0 if reduced_motion else sin(visual_time * 3.1 + position.x * 0.01) * 4.0
+    var fish_position := position + Vector2(0,swim_lift)
+    var tail_flex := 0.0 if reduced_motion else sin(visual_time * 5.4 + position.y * 0.02) * 8.0
+    var nose := fish_position + Vector2(38.0 * facing, 0)
+    var tail_root := fish_position - Vector2(36.0 * facing, 0)
     draw_colored_polygon(PackedVector2Array([
-        tail_root, tail_root - Vector2(26.0 * facing, 22), tail_root - Vector2(22.0 * facing, -23)
+        tail_root, tail_root - Vector2(26.0 * facing, 22 + tail_flex), tail_root - Vector2(22.0 * facing, -23 + tail_flex)
     ]), body.darkened(0.2))
     draw_colored_polygon(PackedVector2Array([
-        position + Vector2(-7, -22), position + Vector2(9, -39), position + Vector2(22, -18)
+        fish_position + Vector2(-7, -22), fish_position + Vector2(9, -39), fish_position + Vector2(22, -18)
     ]), body.lightened(0.12))
     draw_colored_polygon(PackedVector2Array([
-        position + Vector2(-4, 19), position + Vector2(13, 34), position + Vector2(22, 16)
+        fish_position + Vector2(-4, 19), fish_position + Vector2(13, 34), fish_position + Vector2(22, 16)
     ]), body.darkened(0.12))
     draw_colored_polygon(PackedVector2Array([
-        position - Vector2(35.0 * facing, 0), position + Vector2(0, -27), nose,
-        position + Vector2(0, 27)
+        fish_position - Vector2(35.0 * facing, 0), fish_position + Vector2(0, -27), nose,
+        fish_position + Vector2(0, 27)
     ]), body)
     draw_colored_polygon(PackedVector2Array([
-        position - Vector2(26.0 * facing, 0), position + Vector2(-4.0 * facing, -20),
-        position + Vector2(25.0 * facing, -5), position + Vector2(15.0 * facing, 4)
+        fish_position - Vector2(26.0 * facing, 0), fish_position + Vector2(-4.0 * facing, -20),
+        fish_position + Vector2(25.0 * facing, -5), fish_position + Vector2(15.0 * facing, 4)
     ]), body.lightened(0.20))
-    draw_arc(position, 27, 0, TAU, 28, Color("f2dfc7"), 2)
+    draw_arc(fish_position, 27, 0, TAU, 28, Color("f2dfc7"), 2)
+    draw_arc(fish_position + Vector2(-4.0 * facing,-5),21,-2.8,-0.35,18,Color(1,1,1,0.28),3)
     for stripe in [-13.0, 0.0, 13.0]:
-        draw_line(position + Vector2(stripe, -18), position + Vector2(stripe + 5, 18), body.darkened(0.28), 3)
-    var eye := position + Vector2(22.0 * facing, -7)
+        draw_line(fish_position + Vector2(stripe, -18), fish_position + Vector2(stripe + 5, 18), body.darkened(0.28), 3)
+    for scale_x in [-17.0,-5.0,7.0]:
+        for scale_y in [-8.0,6.0]:
+            draw_arc(fish_position+Vector2(scale_x*facing,scale_y),5.0,0.1,PI-0.1,8,Color(1,0.94,0.74,0.28),1.2)
+    var eye := fish_position + Vector2(22.0 * facing, -7)
     draw_circle(eye, 5, Color.WHITE)
     draw_circle(eye + Vector2(1.5 * facing, 0), 2.5, Color("172026"))
-    draw_line(position + Vector2(18.0 * facing,-18), position + Vector2(17.0 * facing,18), body.darkened(0.38), 2)
+    draw_line(fish_position + Vector2(18.0 * facing,-18), fish_position + Vector2(17.0 * facing,18), body.darkened(0.38), 2)
     draw_line(nose + Vector2(0, 7), nose - Vector2(9.0 * facing, -8), body.darkened(0.45), 2)
+    draw_arc(fish_position+Vector2(14.0*facing,0),15,-1.2,1.2,10,body.darkened(0.42),2)
 
 func _draw_snake(position: Vector2) -> void:
     var body := Color("8e7838")
+    var spine := PackedVector2Array()
     for segment in range(9):
-        var offset := Vector2(-55 + segment * 12, sin(float(segment) * 1.18 + simulation_time * 2.0) * 15)
+        spine.append(position + Vector2(-55 + segment * 12, sin(float(segment) * 1.18 + simulation_time * 2.0) * 15))
+    draw_polyline(spine,Color(0.01,0.04,0.02,0.45),27.0,true)
+    for segment in range(9):
+        var offset := spine[segment] - position
         var radius := 11.0 + sin(float(segment) * 0.6) * 1.5
         draw_circle(position + offset + Vector2(0,4), radius + 2.0, Color(0.03,0.08,0.05,0.32))
         draw_circle(position + offset, radius, body.darkened(float(segment % 2) * 0.12))
         draw_arc(position + offset + Vector2(-2,-3), radius * 0.72, 3.4, 5.8, 8, Color(0.94,0.86,0.48,0.34), 2)
         draw_arc(position + offset, radius * 0.58, -2.7, -0.45, 8, Color("d6c36b"), 2)
         draw_circle(position + offset + Vector2(0,4), 2.5, Color("4f5f2d"))
+        if segment % 2 == 0:
+            draw_colored_polygon(PackedVector2Array([
+                position+offset+Vector2(-4,-1),position+offset+Vector2(0,-6),
+                position+offset+Vector2(5,-1),position+offset+Vector2(0,5)
+            ]),Color(0.95,0.82,0.38,0.30))
     var head := position + Vector2(46, -4)
     draw_colored_polygon(PackedVector2Array([
         head+Vector2(-17,-14), head+Vector2(12,-17), head+Vector2(28,-5),
@@ -1187,6 +1305,7 @@ func _draw_snake(position: Vector2) -> void:
     ]), body.lightened(0.08))
     draw_arc(head, 20, -2.4, 2.4, 20, Color("d6c36b"), 2)
     draw_circle(head + Vector2(11, -7), 4.5, Color("f4e077"))
+    draw_circle(head + Vector2(11,-7),2.2,Color("170f08"))
     draw_line(head + Vector2(12,-10), head + Vector2(12,-4), Color("17150b"), 2)
     draw_circle(head + Vector2(21,1), 1.8, Color("3a2619"))
     draw_line(head + Vector2(27, 4), head + Vector2(40, 4), Color("e45d62"), 2)
@@ -1218,6 +1337,10 @@ func _draw_heron(position: Vector2) -> void:
     draw_colored_polygon(PackedVector2Array([
         position+Vector2(20, 7), position+Vector2(47, -20-wing_lift), position+Vector2(4, -10)
     ]), feathers.lightened(0.08))
+    for feather in range(4):
+        var feather_y := -11.0 + float(feather) * 7.0
+        draw_line(position+Vector2(-26,feather_y),position+Vector2(-52+float(feather)*5.0,feather_y-13-wing_lift*0.45),Color(0.86,0.95,0.98,0.58),3)
+        draw_line(position+Vector2(21,feather_y),position+Vector2(44-float(feather)*4.0,feather_y-14-wing_lift*0.45),Color(0.92,0.98,1.0,0.50),3)
     draw_circle(position, 24, feathers)
     draw_line(position + Vector2(13,-17), position + Vector2(31,-39), feathers.lightened(0.12), 9)
     var head := position + Vector2(34,-43)
@@ -1225,6 +1348,7 @@ func _draw_heron(position: Vector2) -> void:
     draw_colored_polygon(PackedVector2Array([head+Vector2(8,-2), head+Vector2(44,4), head+Vector2(8,7)]), Color("e7b94e"))
     draw_circle(head + Vector2(4,-4), 3, Color.WHITE)
     draw_circle(head + Vector2(5,-4), 1.5, Color("172026"))
+    draw_line(head+Vector2(-8,-8),head+Vector2(3,-13),Color("263b43"),3)
     draw_line(position+Vector2(-8,20), position+Vector2(-13,48), Color("d7b253"), 3)
     draw_line(position+Vector2(8,20), position+Vector2(14,48), Color("d7b253"), 3)
     draw_line(position+Vector2(-13,48), position+Vector2(-22,52), Color("d7b253"), 2)
@@ -1280,7 +1404,7 @@ func _draw_fairy(position: Vector2) -> void:
 func _draw_eating_effect(origin: Vector2, target: Vector2) -> void:
     var progress: float = 1.0 if reduced_motion else tongue.extension_ratio()
     var tongue_tip := origin.lerp(target, progress)
-    var tongue_color := Color("ff7ca8")
+    var tongue_color := Color(customization.current_style().tongue_color)
     if tongue.outcome == "miss":
         tongue_color = Color("ffd36a")
     elif tongue.outcome == "blocked":
@@ -1296,7 +1420,7 @@ func _draw_tongue_aim(origin: Vector2) -> void:
     var marker := origin + direction * 58.0
     draw_line(origin + direction * 30.0, marker, Color(1.0,0.94,0.58,0.58), 2)
     draw_arc(marker, 7, 0, TAU, 12, Color("fff0ae"), 2)
-    _text(marker + Vector2(0,-13), "F", 10, Color("fff0ae"), HORIZONTAL_ALIGNMENT_CENTER, 24)
+    _text(marker + Vector2(0,-13), "MUNCH", 9, Color("fff0ae"), HORIZONTAL_ALIGNMENT_CENTER, 58)
 
 func _draw_overlay(title: String, subtitle: String, action: String, rect: Rect2, cue: String) -> void:
     draw_rect(Rect2(350,245,580,300), Color(0.02,0.07,0.1,0.94), true)
@@ -1344,7 +1468,7 @@ func _draw_leaderboard() -> void:
     draw_circle(Vector2(180,120), 110, Color(0.2,0.75,0.55,0.08))
     draw_circle(Vector2(1100,600), 170, Color(0.5,0.3,0.8,0.07))
     _text(Vector2(640,70), "LOCAL MARSH LEADERS", 42, Color("f7d36a"), HORIZONTAL_ALIGNMENT_CENTER, 850)
-    _text(Vector2(640,112), "Offline scores on this Windows owner build", 17, Color("d9f4e2"), HORIZONTAL_ALIGNMENT_CENTER, 760)
+    _text(Vector2(640,112), "Offline-first scores • Apple Game Center adapter ready for iOS", 17, Color("d9f4e2"), HORIZONTAL_ALIGNMENT_CENTER, 850)
     draw_rect(Rect2(260,145,760,450), Color(0.01,0.07,0.10,0.90), true)
     draw_rect(Rect2(260,145,760,450), Color("70d6c2"), false, 3)
     _text(Vector2(300,180), "RANK", 16, Color("b9f5c7"), HORIZONTAL_ALIGNMENT_LEFT, 90)
@@ -1364,7 +1488,7 @@ func _draw_leaderboard() -> void:
             _text(Vector2(740,y), "%03d" % int(entry.get("level",1)), 17, Color.WHITE, HORIZONTAL_ALIGNMENT_LEFT, 90)
             _text(Vector2(875,y), str(entry.get("score",0)), 17, Color("fff0ae"), HORIZONTAL_ALIGNMENT_LEFT, 110)
     _button(Rect2(490,620,300,55), "HOME")
-    _text(Vector2(640,704), "Secure shared/cloud leaderboards remain a later authenticated backend gate.", 13, Color("bfd8dc"), HORIZONTAL_ALIGNMENT_CENTER, 900)
+    _text(Vector2(640,704), "Game Center activation and verified online submission remain Apple-build gates.", 13, Color("bfd8dc"), HORIZONTAL_ALIGNMENT_CENTER, 900)
 
 func _button(rect: Rect2, label: String) -> void:
     draw_rect(Rect2(rect.position+Vector2(0,6),rect.size), Color(0.0,0.02,0.03,0.55), true)

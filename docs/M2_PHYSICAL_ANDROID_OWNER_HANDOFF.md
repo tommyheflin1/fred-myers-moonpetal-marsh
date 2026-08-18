@@ -214,10 +214,10 @@ The current guarded successor was rebuilt from exact source
 Apple-readiness audit were committed. The only accepted phone target is now:
 
 - artifact: `builds/android/fred-myers-app-build-1-debug.apk`;
-- SHA-256: `85BE1F46711863AD994F243B711EBBD3CD5136C0B18EB615105AAE06B328CBA8`;
+- SHA-256: `C9FB181368524592918600235F1AE7B8083F5850CA5511BA61E6B0999F7CEB1B`;
 - size: 82,916,171 bytes;
 - package: `com.flinsappvault.fredmyers.dev`;
-- version: `0.2.1-app-build-1-r2` (`20102`);
+- version: `0.2.1-app-build-1-r3` (`20103`);
 - SDK: minimum 24, target/compile 36;
 - ABI: arm64-v8a and x86_64;
 - permissions: zero requested;

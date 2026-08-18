@@ -1,6 +1,7 @@
 extends SceneTree
 
 const Main = preload("res://scripts/main.gd")
+const MarshRouteLayout = preload("res://scripts/marsh_route_layout.gd")
 
 const SAVE_PREFIX := "user://m2_android_readiness"
 const BOARD_PATH := "user://m2_android_readiness_board.json"
@@ -43,12 +44,12 @@ func _run() -> void:
 
 	var move_touch := InputEventScreenTouch.new()
 	move_touch.index = 11
-	move_touch.position = Vector2(248,565)
+	move_touch.position = MarshRouteLayout.DPAD_CENTER + Vector2(MarshRouteLayout.DPAD_OFFSET,0)
 	move_touch.pressed = true
 	game._unhandled_input(move_touch)
 	var boost_touch := InputEventScreenTouch.new()
 	boost_touch.index = 12
-	boost_touch.position = Vector2(1175,625)
+	boost_touch.position = Vector2(MarshRouteLayout.touch_centers().boost)
 	boost_touch.pressed = true
 	game._unhandled_input(boost_touch)
 	check(game.touch_movement == Vector2.RIGHT and game.touch_boost, "simultaneous movement and boost touch zones remain independent")
@@ -85,7 +86,7 @@ func _run() -> void:
 
 	var pause_touch := InputEventScreenTouch.new()
 	pause_touch.index = 13
-	pause_touch.position = Vector2(1180,42)
+	pause_touch.position = MarshRouteLayout.PAUSE_RECT.get_center()
 	pause_touch.pressed = true
 	game._unhandled_input(pause_touch)
 	check(not game.session.paused, "touch pause control explicitly resumes after foreground recovery")
@@ -101,7 +102,7 @@ func _run() -> void:
 
 	var loaded := AdventureSession.new()
 	var load_result: Dictionary = game.saver.load_session(loaded)
-	check(bool(load_result.get("ok", false)) and loaded.health == 4, "schema-v1 lifecycle save preserves a stacked life above three")
+	check(bool(load_result.get("ok", false)) and loaded.health == 3, "leaving gameplay durably resets the next phone run to three lives")
 	var stable_hash := hash(loaded.to_save("2000-01-01T00:00:00Z"))
 	var second_load := AdventureSession.new()
 	check(bool(game.saver.load_session(second_load).get("ok", false)), "cold lifecycle relaunch reloads the fictional save")

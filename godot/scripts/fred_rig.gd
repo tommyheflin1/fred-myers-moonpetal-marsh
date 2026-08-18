@@ -100,6 +100,12 @@ var _hind_left: Node2D
 var _hind_right: Node2D
 var _eye_left: Node2D
 var _eye_right: Node2D
+var _style := {
+	"body_color": Color("4fbd68"),
+	"size_scale": 0.92,
+	"tongue_color": Color("ff7ca8"),
+	"attire": "marsh_runner",
+}
 
 func _ready() -> void:
 	contract_valid = validate_contract()
@@ -126,6 +132,18 @@ func validate_contract() -> bool:
 	contract_valid = true
 	return true
 
+func apply_style(style: Dictionary) -> bool:
+	if typeof(style.get("body_color")) != TYPE_COLOR or typeof(style.get("tongue_color")) != TYPE_COLOR:
+		return false
+	var size_scale := float(style.get("size_scale", 1.0))
+	var attire := str(style.get("attire", "marsh_runner"))
+	if not is_finite(size_scale) or size_scale < 0.88 or size_scale > 1.14:
+		return false
+	if attire not in ["marsh_runner", "trail_scout", "moon_champion", "firefly_hero"]:
+		return false
+	_style = style.duplicate(true)
+	return true
+
 func apply_pose(pose: Dictionary, depth_amount: float = 0.0) -> bool:
 	if not contract_valid and not validate_contract():
 		return false
@@ -142,7 +160,8 @@ func apply_pose(pose: Dictionary, depth_amount: float = 0.0) -> bool:
 
 	_root_joint.position = Vector2(pose.body_offset)
 	_root_joint.rotation = float(pose.tilt)
-	_root_joint.scale = Vector2(body_scale.x * facing, body_scale.y)
+	var cosmetic_scale := float(_style.size_scale)
+	_root_joint.scale = Vector2(body_scale.x * facing, body_scale.y) * cosmetic_scale
 	_body_joint.rotation = extension * 0.018
 	_head_joint.position = Vector2(0.0, -17.0 - maxf(0.0, extension) * 1.5)
 	_hind_left.rotation = -0.12 - extension * 0.28
@@ -160,8 +179,9 @@ func apply_pose(pose: Dictionary, depth_amount: float = 0.0) -> bool:
 	var mouth_line := get_node("RootJoint/HeadJoint/MouthLine") as Line2D
 	mouth_line.visible = mouth_open <= 0.04
 
-	var fill := SURFACE_FILL.lerp(UNDERWATER_FILL, submerged)
-	var head_fill := SURFACE_HEAD.lerp(UNDERWATER_HEAD, submerged)
+	var styled_fill := Color(_style.body_color)
+	var fill := styled_fill.lerp(UNDERWATER_FILL, submerged)
+	var head_fill := styled_fill.lightened(0.12).lerp(UNDERWATER_HEAD, submerged)
 	var outline := OUTLINE.lerp(UNDERWATER_OUTLINE, submerged * 0.58)
 	(get_node("RootJoint/BodyJoint/Fill") as Polygon2D).color = fill
 	(get_node("RootJoint/HeadJoint/Fill") as Polygon2D).color = head_fill
@@ -187,6 +207,7 @@ func render_to(canvas: Node2D, world_position: Vector2) -> bool:
 		var points := _transformed_points(polygon, polygon.polygon, world_position)
 		if points.size() >= 3:
 			canvas.draw_colored_polygon(points, polygon.color)
+	_draw_sport_gear(canvas, world_position)
 	for path in LINE_ORDER:
 		var line := get_node(str(path)) as Line2D
 		if not line.visible:
@@ -196,6 +217,43 @@ func render_to(canvas: Node2D, world_position: Vector2) -> bool:
 			var scale_width := maxf(0.5, absf(_root_joint.scale.x) + absf(_root_joint.scale.y)) * 0.5
 			canvas.draw_polyline(points, line.default_color, line.width * scale_width, true)
 	return true
+
+func style_snapshot() -> Dictionary:
+	return _style.duplicate(true)
+
+func _draw_sport_gear(canvas: Node2D, world_position: Vector2) -> void:
+	var attire := str(_style.attire)
+	var jersey := Color("087f7a")
+	var trim := Color("f5d35f")
+	match attire:
+		"trail_scout":
+			jersey = Color("9a6138")
+			trim = Color("f1d1a0")
+		"moon_champion":
+			jersey = Color("5547a9")
+			trim = Color("d9c7ff")
+		"firefly_hero":
+			jersey = Color("162b4a")
+			trim = Color("ffe04f")
+	var jersey_points := _transformed_points(_body_joint, PackedVector2Array([
+		Vector2(-21,-10),Vector2(-13,-20),Vector2(-5,-23),Vector2(0,-15),
+		Vector2(6,-23),Vector2(15,-19),Vector2(22,-8),Vector2(20,15),
+		Vector2(10,24),Vector2(-9,24),Vector2(-20,15),
+	]), world_position)
+	canvas.draw_colored_polygon(jersey_points, jersey)
+	canvas.draw_polyline(PackedVector2Array([jersey_points[0],jersey_points[1],jersey_points[2],jersey_points[3],jersey_points[4],jersey_points[5],jersey_points[6]]),trim,2.2,true)
+	var chest_center := world_position + to_local(_body_joint.to_global(Vector2(0,4)))
+	canvas.draw_circle(chest_center,7.0 * float(_style.size_scale),trim)
+	canvas.draw_circle(chest_center,3.2 * float(_style.size_scale),jersey.darkened(0.25))
+	var headband := _transformed_points(_head_joint, PackedVector2Array([Vector2(-24,-15),Vector2(-11,-19),Vector2(2,-20),Vector2(15,-18),Vector2(25,-13)]),world_position)
+	canvas.draw_polyline(headband,jersey,6.0 * float(_style.size_scale),true)
+	canvas.draw_polyline(headband,trim,2.0 * float(_style.size_scale),true)
+	var shine_left := world_position + to_local(_head_joint.to_global(Vector2(-18,-6)))
+	var shine_right := world_position + to_local(_head_joint.to_global(Vector2(17,-7)))
+	canvas.draw_circle(shine_left,3.2,Color(1,1,1,0.30))
+	canvas.draw_circle(shine_right,2.4,Color(1,1,1,0.24))
+	for contact in ground_contacts():
+		canvas.draw_circle(world_position + contact,3.5,trim.lightened(0.12))
 
 func tongue_anchor() -> Vector2:
 	return _marker_point("RootJoint/HeadJoint/TongueAnchor")
@@ -234,6 +292,7 @@ func snapshot() -> Dictionary:
 		"cue_anchor": cue_anchor(),
 		"ground_contacts": ground_contacts(),
 		"accent": (get_node("RootJoint/BodyJoint/Accent") as Polygon2D).color,
+		"style": style_snapshot(),
 	}
 
 func state_hash() -> String:

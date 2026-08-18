@@ -15,8 +15,8 @@ EXPECTED = {
     "exclude_filter": '"tests/**,tools/**,docs/evidence/**"',
     "package/unique_name": '"com.flinsappvault.fredmyers.dev"',
     "package/name": '"Fred Myers App Build 1"',
-    "version/code": "20102",
-    "version/name": '"0.2.1-app-build-1-r2"',
+    "version/code": "20103",
+    "version/name": '"0.2.1-app-build-1-r3"',
     "gradle_build/min_sdk": '""',
     "gradle_build/target_sdk": '""',
     "architectures/arm64-v8a": "true",
@@ -117,7 +117,7 @@ def main() -> None:
 
     print(
         "Android export validation passed: "
-        "com.flinsappvault.fredmyers.dev, version 0.2.1-app-build-1-r2 (20102), "
+        "com.flinsappvault.fredmyers.dev, version 0.2.1-app-build-1-r3 (20103), "
         "landscape, built-in-template SDK policy, arm64+x86_64, "
         "no requested permissions"
     )

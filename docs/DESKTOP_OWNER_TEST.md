@@ -17,17 +17,16 @@ It does not sign for production, publish, deploy, or connect an account. App
 Build 1 is now active as a separate local Android debug-testing phase; the
 desktop shortcut remains the exact-candidate Windows owner-review path.
 
-## Controls
+## Mobile-first actions
 
-- Start or continue: click the gold title button, or press Enter.
-- Move: WASD or arrow keys.
-- Aim and eat: face the target and press F; right-click is the pointer path.
-- Leap: Space or left-click a landing direction.
-- Boost: hold Shift while moving.
-- Dive: Q.
-- Surface: E.
-- Pause or resume: P, Escape, or the visible Pause/Resume buttons.
+- Start: choose the gold `Start Adventure` button.
+- Move: use the directional control area.
+- Aim and eat: face nearby prey and use `Munch`.
+- Leap, boost, dive/surface, pause/resume, and exit: use the named controls.
 - Failure choices: use the visible `Try Again?` or `Go Home` buttons.
+
+The Windows owner candidate retains a desktop input adapter for local control
+testing, but the application itself presents only device-neutral action names.
 
 ## Effective desktop acceptance path
 
@@ -46,15 +45,19 @@ desktop shortcut remains the exact-candidate Windows owner-review path.
 6. At zero lives, confirm the full-screen `OH NO FRED!!!` choice appears.
    `Try Again?` starts level one with three lives; `Go Home` returns to the title.
 7. Finish an odd level and confirm the next even level runs right to left.
-   Continue another transition and confirm the route direction alternates and
-   the marsh background treatment changes without overlapping the HUD.
+   Continue through the first six transitions and confirm the route direction
+   alternates while River Arc, Zigzag Sprint, Moon Ring, Cross Current,
+   Firefly Spiral, and Island Scatter change the full play space without
+   overlapping the HUD.
 8. On every tenth level, eat the one eligible fairy and confirm exactly one
    extra life is added even when Fred already has three lives. The campaign cap
    remains thirteen lives; ordinary damage never erases previously stacked
    lives except by consuming one life per accepted hit.
-9. Cross a midpoint checkpoint, close the game, relaunch the same shortcut,
-   choose Continue, and confirm the valid checkpoint and life total restore.
-10. Resize the window. Confirm objective, lives, Pause, energy, status, and the
+9. Use `Exit` from active gameplay and confirm the title returns. Starting again
+   must begin a fresh level-one, three-life run while coins and cosmetics stay.
+10. Open `Customize Fred`, earn/spend fictional coins, and confirm color, build,
+   tongue color, and sport gear alter presentation only.
+11. Resize the window. Confirm objective, lives, Pause, Exit, energy, status, and the
     phone-oriented touch targets stay separated and inside the play area.
 
 ## Evidence boundaries

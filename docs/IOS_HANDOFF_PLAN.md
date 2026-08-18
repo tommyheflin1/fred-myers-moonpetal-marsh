@@ -14,8 +14,10 @@ claiming Fred iOS readiness.
 - Save: `fred_save` v1, offline-first with atomic backup recovery.
 - Orientation: landscape, preserving the current 1280 by 720 design and
   safe-area/touch layout contract.
-- Identity: guest play remains available; Apple Game Center and Sign in with
-  Apple stay disabled until an owner-approved adapter/entitlement test.
+- Identity: guest play remains available. `FredAppleGameScoring` now defines
+  the platform-neutral `fred_marsh_adventure_progress` event and bounded
+  offline queue; the native Game Center bridge, leaderboard identifier and
+  entitlements stay disabled until an owner-approved macOS test.
 - Icon inputs: `fred-app-icon-v3-platform.png` is the 1024-pixel full-bleed
   platform master; `fred-moonpetal-crest-v3.png` is the transparent foreground
   source for later Icon Composer layering.
