@@ -1151,12 +1151,7 @@ func _draw_level() -> void:
     for glow in [Vector2(180,170), Vector2(530,270), Vector2(1020,420)]:
         draw_circle(_route_point(glow), 95, Color(0.2,0.85,0.78,0.035))
     draw_set_transform(camera_offset)
-    _draw_current_trails()
-    for row in range(4):
-        var ripple_y := 150.0 + row * 130.0
-        var shift := float(visual.water_shift) * (1.0 if row % 2 == 0 else -1.0)
-        for x in range(55,1240,120):
-            draw_line(Vector2(x + shift,ripple_y), Vector2(x + 58 + shift,ripple_y), Color(0.55,0.9,0.95,0.22), 3)
+    _draw_water_current()
     _draw_reeds(float(visual.reed_sway))
     _draw_whirlpools()
     for index in PADS.size():
@@ -1350,16 +1345,49 @@ func _draw_touch_action_button(rect: Rect2, label: String, active: bool, accent:
     draw_circle(rect.position + Vector2(28.0, 24.0), 8.0, Color(1,1,1,0.38))
     _text(rect.get_center() + Vector2(0.0, 8.0), label, 20, Color.WHITE, HORIZONTAL_ALIGNMENT_CENTER, rect.size.x - 18.0)
 
-func _draw_current_trails() -> void:
-    if level_number < 2:
+func _draw_water_current() -> void:
+    var flow := FredWaterCurrentVisual.profile(
+        level_number,
+        _current_vector(),
+        float(depth.depth),
+        visual_time,
+        reduced_motion
+    )
+    for index in range(FredWaterCurrentVisual.STREAM_COUNT):
+        var stream := FredWaterCurrentVisual.streamline(index, flow)
+        if not bool(stream.get("valid", false)):
+            continue
+        var points: PackedVector2Array = stream.points
+        draw_polyline(points, Color(stream.shadow), float(stream.width) + 2.2, true)
+        draw_polyline(points, Color(stream.highlight), float(stream.width), true)
+        var foam := float(stream.foam)
+        if foam > 0.05:
+            var foam_index := 4 if index % 2 == 0 else 2
+            draw_circle(points[foam_index], 1.5 + foam * 1.8, Color(0.84,0.98,1.0,0.18 + foam * 0.24))
+    for index in PADS.size():
+        _draw_current_eddy(_pad_position(index), index, flow)
+    _draw_current_eddy(_level_safe_position(), PADS.size(), flow)
+
+func _draw_current_eddy(anchor: Vector2, index: int, flow: Dictionary) -> void:
+    var eddy := FredWaterCurrentVisual.eddy(index, flow)
+    if not bool(eddy.get("valid", false)):
         return
-    var current := _current_vector()
-    var arrow := ">" if current.x >= 0.0 else "<"
-    for row in range(3):
-        for column in range(6):
-            var point := Vector2(130 + column * 190, 210 + row * 145)
-            var phase := 0.0 if reduced_motion else sin(visual_time * 1.4 + float(column + row)) * 10.0
-            _text(point + Vector2(phase,0), arrow + arrow, 18, Color(0.65,0.95,1.0,0.36), HORIZONTAL_ALIGNMENT_CENTER, 54)
+    var direction := float(flow.direction)
+    var center := anchor + Vector2(direction * 6.0, 12.0)
+    var rotation := float(eddy.rotation)
+    var sweep := float(eddy.sweep)
+    var opacity := float(eddy.opacity)
+    var radius := float(eddy.radius)
+    draw_arc(center, radius, rotation, rotation + sweep, 20, Color(0.62,0.94,0.96,opacity), 2.1, true)
+    draw_arc(center, radius + 8.0, rotation + direction * 0.42, rotation + direction * 0.42 + sweep * 0.72, 18, Color(0.34,0.73,0.84,opacity * 0.62), 1.4, true)
+    var wake_start := anchor + Vector2(direction * 30.0, 17.0)
+    var wake_length := float(eddy.wake_length)
+    var wake_points := PackedVector2Array([
+        wake_start,
+        wake_start + Vector2(direction * wake_length * 0.45, 3.0),
+        wake_start + Vector2(direction * wake_length, 8.0),
+    ])
+    draw_polyline(wake_points, Color(0.66,0.95,0.96,opacity * 0.82), 1.6, true)
 
 func _draw_boost_cues(position: Vector2) -> void:
     var aim := last_aim_direction.normalized()
