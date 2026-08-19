@@ -5,17 +5,17 @@ Updated: 2026-08-18
 ## Scope and authorization
 
 The owner's explicit next-phase instruction starts App Build 1 as a local
-testing phase. Revision 11 packages Campaign 1 as a touch-only, age-five-targeted
+testing phase. Revision 12 packages Campaign 1 as a touch-only, age-five-targeted
 PG family adventure with exactly 100 progressively harder levels. It retains
 the direct playfield drag steering, large bottom action row, sporty Fred art,
 six full-screen formations/backgrounds, coin-backed cosmetics, fresh-run Exit
 contract, wildlife, Moonpetal Promise story, touch instructions,
-child-readable mouth-clear Fred gear, safe no-life-loss splashback for missed
-leaps, deterministic surface/underwater routes for naturally aquatic predators,
+child-readable mouth-clear Fred gear, continuous leap traversal over predators,
+deterministic surface/underwater routes for naturally aquatic predators,
 depth-aware danger collisions, species-specific predator anatomy, a clean
 label-free space above Fred's head, and a dormant Apple Game Center scoring adapter.
 The exact product source checkpoint is
-`9b4ee2e3ccf04db9263b1f60d648062f88a83741`; Core and save v1 remain unchanged.
+`c58e7fc5aa108305b5efddb93dd5e9327bec0ced`; Core and save v1 remain unchanged.
 
 This build is not a production build, release, deployment, store submission,
 or physical-device acceptance result. It remains local and unpushed because
@@ -24,11 +24,11 @@ the configured GitHub repository is public.
 ## Artifact identity
 
 - Local artifact: `builds/android/fred-myers-app-build-1-debug.apk`
-- SHA-256: `003B808370A3A7055A0CDFE7623E65D0219A79AC2F0B776541C91C02BD04F886`
+- SHA-256: `63362ACC89B9EC4DA58CEA5F1D2CB6F836D720BFE5A98299BC8E0C0A1926420A`
 - Size: 84,866,616 bytes
 - Package: `com.flinsappvault.fredmyers.dev`
 - Label: `Fred Myers App Build 1`
-- Version: `0.2.1-app-build-1-r11` (`20111`)
+- Version: `0.2.1-app-build-1-r12` (`20112`)
 - Minimum/target/compile SDK: 24/36/36
 - Architectures: `arm64-v8a` and `x86_64`
 - Orientation: landscape
@@ -63,10 +63,10 @@ and visually inspected after packaging.
 ## Validation
 
 - Godot headless import: passed.
-- Complete deterministic matrix: 22 suites, 4,107 passed, 0 failed, using
+- Complete deterministic matrix: 22 suites, 4,116 passed, 0 failed, using
   isolated temporary AppData. Headless default customization is memory-only so
   legacy gameplay suites cannot write owner economy data.
-- Readiness: 86 artifacts, eight save fixtures, Core 0.5.1, Godot 4.7.
+- Readiness: 89 artifacts, eight save fixtures, Core 0.5.1, Godot 4.7.
 - Desktop/icon handoff: 43 checks passed before the final shortcut refresh.
 - App Generation Engine/Apple readiness audit: 25 checks passed; all ten
   reusable foundation controls are present and Apple remains
@@ -74,7 +74,7 @@ and visually inspected after packaging.
 - App Build 1 export contract: passed.
 - Physical-device safety fixtures: 60 passed, 0 failed.
 - Physical-device static safety contract: passed.
-- Revision 11 physical-device state: `UNVERIFIED`; no phone install, control or
+- Revision 12 physical-device state: `UNVERIFIED`; no phone install, control or
   capture is claimed. The earlier bounded ADB probe timed
   out before device classification. No serial, install, launch, or diagnostic
   mode was requested, and the probe was stopped cleanly with no ADB residue.
@@ -84,10 +84,13 @@ and visually inspected after packaging.
   `288d87420c5694f80c071f00aa71a0b581f9f60c`.
 - `fred_save` remains schema v1.
 
-The focused leap suite passed 56/56, including missed-perch recovery at one
-remaining life without failure. A real isolated 1280x720 touch-path review
-showed `LIVES 3` unchanged, the landing splash, the two-second ready countdown,
-and the complete unclipped `Fred is safe. No life lost!` status. The focused
+The focused leap suite passed 65/65. It proves open-water landing continues
+from the exact endpoint with no teleport, life loss, checkpoint change or
+countdown, and that a full fixed-tick arc clears a surface predator while
+grounded contact remains hazardous. A real isolated 1280x720 touch-path review
+used the visible `LEAP` action to cross a surface bass and froze after landing
+with `LIVES 3` and the complete status `Same round, 3 lives, no restart
+countdown.` The focused
 Campaign 1 suite passed 1,328/1,328; the touch-only player-input
 suite passed 22/22; the M2 foundation suite passed 750/750; the authored rig
 suite passed 508/508; and the product-uplift suite passed 94/94. Four actual
