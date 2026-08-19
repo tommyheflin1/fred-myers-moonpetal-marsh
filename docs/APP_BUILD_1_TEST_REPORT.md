@@ -5,17 +5,18 @@ Updated: 2026-08-18
 ## Scope and authorization
 
 The owner's explicit next-phase instruction starts App Build 1 as a local
-testing phase. Revision 13 packages Campaign 1 as a touch-only, age-five-targeted
+testing phase. Revision 14 packages Campaign 1 as a touch-only, age-five-targeted
 PG family adventure with exactly 100 progressively harder levels. It retains
 the direct playfield drag steering, large bottom action row, sporty Fred art,
 six full-screen formations/backgrounds, coin-backed cosmetics, fresh-run Exit
 contract, wildlife, Moonpetal Promise story, touch instructions,
 child-readable mouth-clear Fred gear, continuous leap traversal over predators,
 deterministic surface/underwater routes for naturally aquatic predators,
-depth-aware danger collisions, upgraded Fred/predator/bug/fairy anatomy, a clean
+depth-aware danger collisions, upgraded Fred/predator/bug/fairy anatomy and
+connected deterministic character articulation, a clean
 label-free space above Fred's head, and a dormant Apple Game Center scoring adapter.
 The exact product source checkpoint is
-`76aa673bdfb0c719336e7421d552f1c239fa5baf`; Core and save v1 remain unchanged.
+`2596a691198dcf8dbd08276721d77869151e459e`; Core and save v1 remain unchanged.
 
 This build is not a production build, release, deployment, store submission,
 or physical-device acceptance result. It remains local and unpushed because
@@ -24,11 +25,11 @@ the configured GitHub repository is public.
 ## Artifact identity
 
 - Local artifact: `builds/android/fred-myers-app-build-1-debug.apk`
-- SHA-256: `2731F0B2F3750EA4E1629650DB5F1AB0C77E12881AAB9508A660F47F31801C51`
-- Size: 84,887,096 bytes
+- SHA-256: `270160724F63B0C14D7DDAB6DB2348FB709949E5AF91E7068A30E25ECDD3B882`
+- Size: 84,891,371 bytes
 - Package: `com.flinsappvault.fredmyers.dev`
 - Label: `Fred Myers App Build 1`
-- Version: `0.2.1-app-build-1-r13` (`20113`)
+- Version: `0.2.1-app-build-1-r14` (`20114`)
 - Minimum/target/compile SDK: 24/36/36
 - Architectures: `arm64-v8a` and `x86_64`
 - Orientation: landscape
@@ -50,8 +51,8 @@ and visually inspected after packaging.
 - JDK: Eclipse Temurin/OpenJDK `17.0.19`
 - Android build tools: `36.0.0`; `aapt2` 2.20-13193326
 - ADB: 1.0.41, platform tools 37.0.0-14910828
-- APK entries: 201
-- Content scan: 66 text entries; no tests, tools, evidence, source-control
+- APK entries: 203
+- Content scan: 67 text entries; no tests, tools, evidence, source-control
   metadata, signing material, credentials, private Windows paths, or secret-like
   content
 - Package inspection retains Godot's optional missing themed-icon warning;
@@ -63,10 +64,11 @@ and visually inspected after packaging.
 ## Validation
 
 - Godot headless import: passed.
-- Complete deterministic matrix: 22 suites, 4,140 passed, 0 failed, using
+- Complete deterministic matrix: 22 suites, 4,277 passed, 0 failed in 14.85
+  seconds, using
   isolated temporary AppData. Headless default customization is memory-only so
   legacy gameplay suites cannot write owner economy data.
-- Readiness: 90 artifacts, eight save fixtures, Core 0.5.1, Godot 4.7.
+- Readiness: 92 artifacts, eight save fixtures, Core 0.5.1, Godot 4.7.
 - Desktop/icon handoff: 43 checks passed before the final shortcut refresh.
 - App Generation Engine/Apple readiness audit: 25 checks passed; all ten
   reusable foundation controls are present and Apple remains
@@ -74,7 +76,7 @@ and visually inspected after packaging.
 - App Build 1 export contract: passed.
 - Physical-device safety fixtures: 60 passed, 0 failed.
 - Physical-device static safety contract: passed.
-- Revision 13 physical-device state: `UNVERIFIED`; no phone install, control or
+- Revision 14 physical-device state: `UNVERIFIED`; no phone install, control or
   capture is claimed. The earlier bounded ADB probe timed
   out before device classification. No serial, install, launch, or diagnostic
   mode was requested, and the probe was stopped cleanly with no ADB residue.
@@ -93,7 +95,7 @@ with `LIVES 3` and the complete status `Same round, 3 lives, no restart
 countdown.` The focused
 Campaign 1 suite passed 1,328/1,328; the touch-only player-input
 suite passed 22/22; the M2 foundation suite passed 750/750; the authored rig
-suite passed 516/516; and the product-uplift suite passed 94/94. Four actual
+suite passed 521/521; and the product-uplift suite passed 94/94. Four actual
 1280x720 Godot customizer frames cover every mouth-clear face/body gear set.
 Prior revision evidence also
 covers constrained 960x540. The title's
@@ -105,7 +107,7 @@ touch input path; real multitouch, a physical Android device and an iPad remain
 separate owner/device gates. The attire improvements are presentation-only and
 do not alter touch hit targets or phone/tablet layout.
 
-The refined predator-depth/identity suite passes 167/167, including every aquatic phase,
+The refined predator-depth/identity suite passes 299/299, including every aquatic phase,
 100 identical fixed-tick traces, real touch-driven Fred depth traversal,
 surface/underwater pass-under safety, same-depth damage, save-v1 exclusion and
 a 10,000-update 14 ms loop with zero measured memory growth. Real 1280x720
@@ -116,15 +118,18 @@ largemouth bass anatomy, long spotted pike, long barred muskie, scaled snake
 and long-necked heron were visibly distinct. Fred's former overhead
 locomotion/location label remained absent in active play.
 
-Revision 13 adds ten inspectable Fred realism features and at least six
-species-specific anatomy cues per predator. Computer Use inspected the real
-Godot runtime at 1280x720 and 960x540: Fred's articulated frog features,
-fish fins/gills/scales, the snake's 16-segment scaled body and head, the
-heron's feather layers and joints, and the four-wing bug/fairy silhouettes
-were visible. Normal Level 1 retained separated Objective, Lives, Energy,
-Pause, Exit and bottom touch controls with no button overlap. These layers are
-presentation-only; the complete matrix and save checks prove no collision,
-reward, progression or save-v1 change.
+Revision 14 retains twelve inspectable Fred realism features and adds one typed
+deterministic animation contract for all seven wildlife families. Computer Use
+inspected the real Godot runtime at 1280x720, 960x540 and reduced-motion
+640x360. Fish tails, dorsal/paired fins, gills, jaws and eyes; the snake spine,
+head, jaw and tongue; heron neck, wings, feathers, legs and toes; four-wing
+bugs/fairy; and Fred's subtle breathing/blink cues moved as connected parts.
+Normal and constrained Level 1 retained separated Objective, Lives, Energy,
+Pause, Exit and bottom touch controls with no button overlap. A pointer contact
+also exercised the mobile screen-touch MUNCH path and mouth-anchored tongue.
+These layers are presentation-only; 100 repeated 240-tick all-character traces,
+the complete matrix and save checks prove no collision, reward, progression or
+save-v1 change.
 
 No phone was installed to, controlled, or captured. Emulator shader limits
 from the earlier M2 run are not relabeled as App Build 1 phone acceptance.

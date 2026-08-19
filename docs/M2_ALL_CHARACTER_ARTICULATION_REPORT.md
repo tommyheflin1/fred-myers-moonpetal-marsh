@@ -11,6 +11,11 @@ single-silhouette movement to connected, deterministic part articulation. The
 work is Fred-owned, local and unpushed because the configured GitHub repository
 is public.
 
+The exact focused product-source commit is
+`2596a691198dcf8dbd08276721d77869151e459e`. The resulting local Android
+development APK is guarded by SHA-256
+`270160724F63B0C14D7DDAB6DB2348FB709949E5AF91E7068A30E25ECDD3B882`.
+
 This pass does not change gameplay, collision, fixed-tick session state,
 difficulty, lives, coins, rewards, progression, touch controls, save v1, Core,
 networking or platform providers. It is a stronger review-stage vector rig,

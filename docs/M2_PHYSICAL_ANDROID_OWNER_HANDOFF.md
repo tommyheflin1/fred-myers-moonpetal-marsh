@@ -2,21 +2,22 @@
 
 Updated: 2026-08-18
 
-## Current App Build 1 revision 13
+## Current App Build 1 revision 14
 
 The current guarded phone candidate supersedes the older artifact identities
-retained below for append-only history. Revision 13 is built from exact source
-`76aa673bdfb0c719336e7421d552f1c239fa5baf` with the complete 100-level
+retained below for append-only history. Revision 14 is built from exact source
+`2596a691198dcf8dbd08276721d77869151e459e` with the complete 100-level
 Campaign 1 profile set, touch-only player routing, age-five recovery floors,
 PG copy, the Moonpetal hero story, the bottom action row, mouth-clear aligned
 Fred gear, continuous touch leap traversal over predators without a round reset, deterministic
 surface/underwater routes for aquatic predators, upgraded Fred/wildlife
-anatomy and no floating locomotion/location text above Fred.
+anatomy, connected deterministic articulation and no floating
+locomotion/location text above Fred.
 
 - artifact: `builds/android/fred-myers-app-build-1-debug.apk`;
-- SHA-256: `2731F0B2F3750EA4E1629650DB5F1AB0C77E12881AAB9508A660F47F31801C51`;
-- size: 84,887,096 bytes;
-- version: `0.2.1-app-build-1-r13` (`20113`);
+- SHA-256: `270160724F63B0C14D7DDAB6DB2348FB709949E5AF91E7068A30E25ECDD3B882`;
+- size: 84,891,371 bytes;
+- version: `0.2.1-app-build-1-r14` (`20114`);
 - package: `com.flinsappvault.fredmyers.dev`;
 - ABI: arm64-v8a and x86_64;
 - permissions: zero requested;
@@ -24,7 +25,7 @@ anatomy and no floating locomotion/location text above Fred.
 
 The same explicit serial and owner/save acknowledgement boundary applies. A
 zero-device result remains `DEVICE_NOT_CONNECTED / UNVERIFIED` and is not
-physical phone or tablet acceptance. Revision 13's 60/60 fictional safety
+physical phone or tablet acceptance. Revision 14's 60/60 fictional safety
 fixtures pass. No install, launch, selected serial, diagnostics, or phone
 control is performed by this packaging refresh, so physical testing remains
 `UNVERIFIED`.
