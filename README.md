@@ -76,6 +76,7 @@ This repository owns Fred gameplay. Core owns only reusable, game-neutral servic
 - [M2 touch-first phone and tablet controls](docs/M2_TOUCH_FIRST_PHONE_TABLET_CONTROLS.md)
 - [M2 Fred hero story and touch-first instructions](docs/M2_HERO_STORY_INSTRUCTIONS.md)
 - [Campaign 1 touch-only, age-five, and PG contract](docs/M2_CAMPAIGN_ONE_TOUCH_PG.md)
+- [Fred rig and child-readable attire uplift](docs/M2_FRED_ATTIRE_VISUAL_UPLIFT.md)
 
 ## Godot desktop owner candidate
 

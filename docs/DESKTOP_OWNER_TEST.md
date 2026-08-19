@@ -56,7 +56,10 @@ used on phones and tablets. Keyboard gameplay is disabled.
 9. Use `Exit` from active gameplay and confirm the title returns. Starting again
    must begin a fresh level-one, three-life run while coins and cosmetics stay.
 10. Open `Customize Fred`, earn/spend fictional coins, and confirm color, build,
-   tongue color, and sport gear alter presentation only.
+    tongue color, and the named Runner Goggles, Explorer Glasses, Moon Champion
+    Visor, and Firefly Hero Goggles alter presentation only. Each face item
+    should remain centered across Fred's eyes and move with his head; each vest,
+    scarf, medal, badge, or cape should remain attached to his body.
 11. Resize the window. Confirm objective, lives, Pause, Exit, energy, status, and the
     phone-oriented touch targets stay separated and inside the play area.
 

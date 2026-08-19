@@ -68,6 +68,30 @@ func _run() -> void:
 	check(rig.get_node("RootJoint/HindLeft/GroundContact") is Marker2D and rig.get_node("RootJoint/HindRight/GroundContact") is Marker2D, "both feet expose authored ground contacts")
 	check(rig.get_node("RootJoint/FrontLeft") is Line2D and rig.get_node("RootJoint/FrontRight") is Line2D, "front limbs remain independently articulated")
 
+	var attire_style := {
+		"body_color": Color("4fbd68"),
+		"size_scale": 1.05,
+		"tongue_color": Color("ff7ca8"),
+		"attire": "marsh_runner",
+	}
+	for attire_id: String in rig.ATTIRE_IDS:
+		attire_style.attire = attire_id
+		check(rig.apply_style(attire_style), "%s applies through the typed rig style contract" % attire_id)
+		rig.apply_pose(_pose_for(AnimationCoordinator.State.IDLE, 1.0))
+		var right_gear: Dictionary = rig.attire_snapshot()
+		check(bool(right_gear.valid) and bool(right_gear.child_readable), "%s exposes child-readable gear metadata" % attire_id)
+		check(str(right_gear.label) in ["Runner Goggles", "Explorer Glasses", "Moon Champion Visor", "Firefly Hero Goggles"], "%s has an obvious visible name" % attire_id)
+		check(str(right_gear.eyewear) != "none", "%s includes aligned eyewear" % attire_id)
+		check(Vector2(right_gear.left_eye_anchor).is_finite() and Vector2(right_gear.right_eye_anchor).is_finite(), "%s eyewear anchors remain finite" % attire_id)
+		check(float(right_gear.eye_span) >= 20.0 and float(right_gear.eye_span) <= 40.0, "%s eyewear spans both eyes without leaving Fred's head" % attire_id)
+		rig.apply_pose(_pose_for(AnimationCoordinator.State.IDLE, -1.0))
+		var left_gear: Dictionary = rig.attire_snapshot()
+		check(is_equal_approx(Vector2(right_gear.left_eye_anchor).x, -Vector2(left_gear.left_eye_anchor).x), "%s eyewear mirrors with Fred instead of drifting" % attire_id)
+	attire_style.attire = "floating_paper_hat"
+	check(not rig.apply_style(attire_style), "unknown attire cannot bypass the aligned gear catalog")
+	attire_style.attire = "marsh_runner"
+	check(rig.apply_style(attire_style), "rig restores the valid starter gear after a rejected style")
+
 	var state_hashes: Dictionary = {}
 	for state_value in AnimationCoordinator.State.values():
 		var pose := _pose_for(int(state_value))

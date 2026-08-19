@@ -1018,9 +1018,9 @@ func _draw_customizer() -> void:
     draw_texture_rect(title_art, Rect2(0,0,1280,720), false, Color(0.45,0.62,0.60,1.0))
     draw_rect(Rect2(0,0,1280,720), Color(0.005,0.025,0.05,0.84), true)
     _text(Vector2(640,58), "BUILD YOUR FRED", 42, Color("ffe184"), HORIZONTAL_ALIGNMENT_CENTER, 900)
-    _text(Vector2(640,100), "Tap a gear card to equip it or unlock the next style.", 18, Color("d9f4e2"), HORIZONTAL_ALIGNMENT_CENTER, 900)
+    _text(Vector2(640,100), "Tap a card to try the next look. Fred wears it right away!", 18, Color("d9f4e2"), HORIZONTAL_ALIGNMENT_CENTER, 900)
     _text(Vector2(640,145), "COINS  %d" % customization.coins, 26, Color("fff0ae"), HORIZONTAL_ALIGNMENT_CENTER, 400)
-    var headings := {"body":"FROG COLOR", "size":"ATHLETIC BUILD", "tongue":"TONGUE COLOR", "attire":"SPORT GEAR"}
+    var headings := {"body":"FROG COLOR", "size":"ATHLETIC BUILD", "tongue":"TONGUE COLOR", "attire":"GEAR + GLASSES"}
     for category: String in CUSTOM_CARDS:
         var card := Rect2(CUSTOM_CARDS[category])
         draw_rect(Rect2(card.position+Vector2(0,7),card.size),Color(0,0,0,0.46),true)
@@ -1029,7 +1029,9 @@ func _draw_customizer() -> void:
         _text(Vector2(card.get_center().x,card.position.y+34),str(headings[category]),16,Color("b9f5c7"),HORIZONTAL_ALIGNMENT_CENTER,card.size.x-20)
         _text(Vector2(card.get_center().x,card.position.y+84),customization.selected_label(category),20,Color.WHITE,HORIZONTAL_ALIGNMENT_CENTER,card.size.x-18)
         var price: int = int(customization.next_cost(category))
-        _text(Vector2(card.get_center().x,card.position.y+132),"TAP: NEXT" if price == 0 else "NEXT UNLOCK  %d COINS" % price,13,Color("fff0ae"),HORIZONTAL_ALIGNMENT_CENTER,card.size.x-18)
+        var next_label: String = customization.next_label(category)
+        _text(Vector2(card.get_center().x,card.position.y+119),"NEXT: %s" % next_label,12,Color("d9f4e2"),HORIZONTAL_ALIGNMENT_CENTER,card.size.x-18)
+        _text(Vector2(card.get_center().x,card.position.y+143),"TAP TO TRY" if price == 0 else "%d COINS TO UNLOCK" % price,12,Color("fff0ae"),HORIZONTAL_ALIGNMENT_CENTER,card.size.x-18)
     draw_circle(Vector2(640,500),118,Color(0.2,0.75,0.55,0.10))
     draw_circle(Vector2(640,500),88,Color(0.95,0.84,0.30,0.07))
     _sync_fred_style()

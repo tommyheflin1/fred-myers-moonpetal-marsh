@@ -95,6 +95,13 @@ The local Android handoff is refreshed as App Build 1 revision 6,
 permission-free and unpushed; zero connected devices means physical-phone
 acceptance remains `UNVERIFIED`.
 
+App Build 1 revision 7 makes Fred and the customization choices easier for a
+young player to understand. Four save-compatible attire IDs now render as
+recognizable goggles, glasses or a visor, with anchored vest/scarf/medal/badge
+details and clearer current/next labels. The rig adds dimensional skin, filled
+limbs and grounding while leaving deterministic gameplay, save v1, collision,
+Core 0.5.1 and the touch-first phone/tablet contract unchanged.
+
 ## M1 sequencing
 
 1. Expand the repository source tree and retain the legacy build under `legacy-web/` or a tagged legacy branch.

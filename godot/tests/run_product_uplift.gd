@@ -36,7 +36,8 @@ func _run() -> void:
 	var profile := Customization.new(PROFILE_PATH)
 	check(profile.coins == 0, "new customization profile starts with zero earned coins")
 	check(profile.selected_label("body") == "Marsh Green", "new profile owns a readable starter frog color")
-	check(profile.selected_label("attire") == "Marsh Runner", "sport attire is the default Fred identity")
+	check(profile.selected_label("attire") == "Runner Goggles", "clear starter goggles are the default Fred identity")
+	check(profile.next_label("attire") == "Explorer Glasses", "customizer names the next child-readable gear choice")
 	check(profile.earn_coins(200) == 200, "gameplay rewards add bounded local coins")
 	for category in Customization.CATEGORIES:
 		var result: Dictionary = profile.select_next(category)
@@ -44,6 +45,9 @@ func _run() -> void:
 	var style: Dictionary = profile.current_style()
 	check(style.body_color is Color and style.tongue_color is Color, "equipped frog and tongue colors are typed presentation values")
 	check(float(style.size_scale) >= 0.88 and float(style.size_scale) <= 1.14, "cosmetic frog sizes stay in a child-readable visual-only range")
+	for attire_entry: Dictionary in Customization.CATALOG.attire:
+		var label := str(attire_entry.label)
+		check("Goggles" in label or "Glasses" in label or "Visor" in label, "%s uses an obvious eyewear name" % label)
 	check(profile.save_profile(), "customization profile persists locally")
 	var restored := Customization.new(PROFILE_PATH)
 	check(restored.to_dictionary() == profile.to_dictionary(), "coins, ownership and equipped cosmetics round-trip exactly")
@@ -108,6 +112,9 @@ func _run() -> void:
 	game.fred_rig.apply_pose(game.animation.pose(), 0.0)
 	check(game.session.to_save("2000-01-01T00:00:00Z") == save_before_style, "sport rig and cosmetics cannot mutate gameplay or save state")
 	check(str(game.fred_rig.style_snapshot().attire) == str(restored.current_style().attire), "runtime rig receives the equipped sport attire")
+	var gear: Dictionary = game.fred_rig.attire_snapshot()
+	check(bool(gear.valid) and bool(gear.child_readable), "runtime attire exposes a child-readable alignment contract")
+	check(float(gear.eye_span) >= 20.0 and float(gear.eye_span) <= 40.0, "runtime eyewear remains aligned across Fred's eyes")
 
 	game.level_number = 8
 	game.level_profile = FredLevelIntensity.profile(8)
@@ -126,6 +133,7 @@ func _run() -> void:
 	for banned in ["WASD / arrows", "Space leaps", "Shift boosts", "Q dive", "E surface", "P pause", "[F] MUNCH"]:
 		check(banned not in main_source, "player-facing source omits desktop-specific instruction: %s" % banned)
 	check(main_source.contains("moonpetal-title-fred-v4-sport.png"), "runtime uses the new sporty game-hero title artwork")
+	check(main_source.contains("GEAR + GLASSES") and main_source.contains("NEXT: %s"), "customizer explains gear choices with simple visible labels")
 
 	game.menu_music.stop()
 	game.chase_music.stop()

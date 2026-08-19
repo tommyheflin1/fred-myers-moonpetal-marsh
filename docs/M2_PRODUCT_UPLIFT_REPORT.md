@@ -66,3 +66,21 @@ route-dependent light and depth layers reduce the prior flat-paper appearance.
 
 No production export, signing, provider activation, publication, deployment,
 release, push, PR or milestone-percentage increase is claimed by this slice.
+
+## Child-readable Fred gear refinement
+
+The next owner-review correction replaces the generic headband treatment with
+four recognizable face items: Runner Goggles, Explorer Glasses, Moon Champion
+Visor and Firefly Hero Goggles. Each item is drawn from authored head and eye
+anchors, mirrors with Fred, and follows every coordinator pose. Tailored vests,
+scarf, medal, firefly badge and cape remain body-anchored and presentation-only.
+The customizer now names both the current and next look and uses the plain
+instruction `Tap a card to try the next look. Fred wears it right away!`.
+
+Fred also gains a grounded shadow, layered skin light/shade, spots, filled
+front limbs, hand pads, eye glints and cheeks. These improvements do not change
+collision, movement, difficulty, progression, coins, save v1 or Core 0.5.1.
+Focused rig and product-uplift checks cover the typed attire catalog, eye-span
+alignment, mirrored facing, invalid-style rejection and save/gameplay
+invariance. Actual Godot review at 1280 by 720 cycled all four looks in the
+real customizer and found no floating or detached eyewear.

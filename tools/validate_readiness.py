@@ -64,6 +64,7 @@ REQUIRED = [
     "docs/M2_TOUCH_FIRST_PHONE_TABLET_CONTROLS.md",
     "docs/M2_HERO_STORY_INSTRUCTIONS.md",
     "docs/M2_CAMPAIGN_ONE_TOUCH_PG.md",
+    "docs/M2_FRED_ATTIRE_VISUAL_UPLIFT.md",
     "godot/assets/art/fred-moonpetal-crest-v3.png",
     "godot/assets/art/fred-moonpetal-crest-v3.png.import",
     "godot/assets/art/fred-app-icon-v3-platform.png",

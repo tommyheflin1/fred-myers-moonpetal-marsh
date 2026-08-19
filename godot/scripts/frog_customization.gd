@@ -25,10 +25,10 @@ const CATALOG := {
 		{"id":"moonbeam", "label":"Moonbeam Tongue", "cost":75, "value":"d7b9ff"},
 	],
 	"attire": [
-		{"id":"marsh_runner", "label":"Marsh Runner", "cost":0, "value":"marsh_runner"},
-		{"id":"trail_scout", "label":"Trail Scout", "cost":45, "value":"trail_scout"},
-		{"id":"moon_champion", "label":"Moon Champion", "cost":95, "value":"moon_champion"},
-		{"id":"firefly_hero", "label":"Firefly Hero", "cost":140, "value":"firefly_hero"},
+		{"id":"marsh_runner", "label":"Runner Goggles", "cost":0, "value":"marsh_runner"},
+		{"id":"trail_scout", "label":"Explorer Glasses", "cost":45, "value":"trail_scout"},
+		{"id":"moon_champion", "label":"Moon Champion Visor", "cost":95, "value":"moon_champion"},
+		{"id":"firefly_hero", "label":"Firefly Hero Goggles", "cost":140, "value":"firefly_hero"},
 	],
 }
 
@@ -109,6 +109,17 @@ func next_cost(category: String) -> int:
 			break
 	var next: Dictionary = entries[(current_index + 1) % entries.size()]
 	return 0 if str(next.id) in Array(owned[category]) else int(next.cost)
+
+func next_label(category: String) -> String:
+	if category not in CATEGORIES:
+		return "Unknown"
+	var entries: Array = CATALOG[category]
+	var current_index := 0
+	for index in entries.size():
+		if str(entries[index].id) == str(selected[category]):
+			current_index = index
+			break
+	return str(entries[(current_index + 1) % entries.size()].label)
 
 func to_dictionary() -> Dictionary:
 	return {
