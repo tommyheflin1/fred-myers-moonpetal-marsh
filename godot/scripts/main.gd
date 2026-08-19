@@ -550,8 +550,24 @@ func _resolve_landing() -> bool:
     if _is_valid_landing(fred):
         _set_feedback("[LANDING] Fred found a safe perch.")
         return true
-    _apply_danger_hit("[LANDING] Fred splashed down away from a safe perch!")
+    _recover_from_missed_landing()
     return false
+
+func _recover_from_missed_landing() -> void:
+    impact_burst_origin = fred
+    impact_burst_seconds = 0.62
+    impact_burst_kind = "LANDING SPLASH"
+    leap.reset()
+    depth.reset("surface")
+    tongue.reset()
+    boost.cancel(session.boost_energy)
+    session.set_underwater(false)
+    animation.reset()
+    fred = _checkpoint_respawn_position()
+    _reset_camera()
+    danger_cooldown_seconds = float(level_profile.mistake_grace_seconds)
+    countdown_seconds = RESPAWN_COUNTDOWN_SECONDS if countdown_enabled else 0.0
+    _set_feedback("[SAFE SPLASH] Fred is safe. No life lost!")
 
 func _unhandled_input(event: InputEvent) -> void:
     if event is InputEventScreenTouch:
@@ -996,7 +1012,7 @@ func _draw_instructions() -> void:
     _draw_instruction_card(Rect2(855,120,370,145), "LEAP", ["Jump between lily pads", "and land on safe perches."], Color("67c96f"))
     _draw_instruction_card(Rect2(55,295,370,145), "BOOST", ["Hold for a quick burst.", "Rest while energy refills."], Color("e4b943"))
     _draw_instruction_card(Rect2(455,295,370,145), "DIVE / SURFACE", ["Explore above and below", "the Moonpetal water."], Color("4d9fd8"))
-    _draw_instruction_card(Rect2(855,295,370,145), "STAY SAFE", ["Dodge fish, snakes, birds,", "whirlpools, and bad landings."], Color("d984ad"))
+    _draw_instruction_card(Rect2(855,295,370,145), "STAY SAFE", ["Dodge fish, snakes, birds,", "and whirlpools. Missed leaps are safe."], Color("d984ad"))
     draw_rect(Rect2(100,475,1080,112), Color(0.015,0.085,0.12,0.96), true)
     draw_rect(Rect2(100,475,1080,112), Color("fff0ae"), false, 3.0)
     _text(Vector2(640,510), "YOUR HERO MISSION", 19, Color("fff0ae"), HORIZONTAL_ALIGNMENT_CENTER, 900)

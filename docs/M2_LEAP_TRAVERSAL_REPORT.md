@@ -15,9 +15,12 @@ clock. A restrained camera response follows the arc and is disabled by reduced
 motion while the explicit `[AIRBORNE]` and `[LANDING]` cues remain.
 
 Moving lily pads, the starting shore, safe island and exit are valid landing
-surfaces. Open-water landings use the existing fair recovery rule: one heart,
-safe return and the existing cooldown. Predator contact cancels traversal;
-failure and retry return to grounded play.
+surfaces. Open-water landings create a readable `LANDING SPLASH`, return Fred
+to the earned checkpoint (or the level's starting perch), and start a short
+ready countdown without removing a life. Even on Fred's last life, a missed
+leap cannot trigger failure. Predator and whirlpool contact remain the only
+nearby traversal hazards that remove a life; failure and retry return to
+grounded play.
 
 ## Persistence and architecture
 
@@ -34,9 +37,10 @@ personal data, deployment, export or signing.
 ## Automated evidence
 
 - `run_leap_traversal.gd`: deterministic arc/distance, repeated-input
-  rejection, 20 repeated scenarios, valid/invalid landing, pause/resume,
-  failure/retry, hazard cooldown, stable save/reload, reduced motion,
-  mouse launch, synthetic adapter intent and a 10,000-iteration timing check.
+  rejection, 20 repeated scenarios, valid/invalid landing, zero-life-loss
+  splashback including the last-life boundary, pause/resume, failure/retry,
+  hazard cooldown, stable save/reload, reduced motion, mouse launch, synthetic
+  adapter intent and a 10,000-iteration timing check.
 - `run_keyboard_regression.gd`: a real parsed Space key event launches Fred.
 - Existing movement, boost, dive/surface, predator, save/recovery, feedback,
   visual and 100-level foundation suites remain required.
@@ -54,5 +58,20 @@ remain protected human gates.
 - Dive/surface: Q/E
 - Pause/resume: P or Escape
 
-Review launch readability, apex visibility, landing fairness, invalid-landing
-recovery, camera comfort, pause while airborne and coexistence with predators.
+Review launch readability, apex visibility, safe no-life-loss splashback,
+camera comfort, pause while airborne and coexistence with life-removing
+predators and whirlpools.
+
+## App Build 1 safe-leap correction
+
+Owner feedback on 2026-08-18 identified that a missed leap incorrectly shared
+the predator/whirlpool life-loss path. The App Build 1 revision 9 correction
+separates those outcomes: a missed perch now emits a non-color landing splash,
+returns Fred to the current safe recovery point, preserves every life, and
+shows a two-second ready countdown. Predator and whirlpool damage is unchanged.
+
+The focused suite passes 56/56, including the one-life boundary. The complete
+21-suite matrix passes 3,956/3,956. A real 1280x720 Windows touch-path review
+confirmed that `LIVES 3` remains unchanged after a missed leap and that the
+full `[SAFE SPLASH] Fred is safe. No life lost!` status fits the player panel.
+This runtime used isolated fictional AppData; owner saves were not opened.

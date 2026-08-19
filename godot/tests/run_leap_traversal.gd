@@ -77,8 +77,16 @@ func _run() -> void:
 	game.fred = Vector2(600, 200)
 	var health_before: int = game.session.health
 	check(not game._resolve_landing(), "invalid landing is rejected")
-	check(game.session.health == health_before - 1 and game.fred == game.START, "invalid landing uses fair one-heart safe recovery")
+	check(game.session.health == health_before and game.fred == game.START, "invalid landing safely returns Fred without costing a life")
+	check(game.screen == game.Screen.PLAYING and game.countdown_seconds == game.RESPAWN_COUNTDOWN_SECONDS, "invalid landing keeps the level active with a short ready countdown")
 	check(game.impact_burst_kind == "LANDING SPLASH", "invalid landing has a non-color splash cue")
+	check(game.save_feedback.contains("No life lost"), "invalid landing truthfully tells the player that Fred is safe")
+
+	game.session.health = 1
+	game.fred = Vector2(600, 200)
+	check(not game._resolve_landing(), "last-life missed landing is rejected safely")
+	check(game.session.health == 1 and game.screen == game.Screen.PLAYING, "missed leap cannot kill Fred on the last life")
+	game.session.health = health_before
 
 	game.leap.reset()
 	game.screen = game.Screen.PLAYING

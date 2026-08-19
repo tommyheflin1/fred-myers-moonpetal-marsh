@@ -38,7 +38,9 @@ used on phones and tablets. Keyboard gameplay is disabled.
    `Munch`. Confirm Fred visibly eats it once. Try `Munch` outside the eligible
    boundary and confirm the miss does not collect a bug or double-trigger a reward.
 4. Exercise leap, boost, dive, surface, pause, and resume. Confirm no action
-   changes while the countdown or pause overlay owns input.
+   changes while the countdown or pause overlay owns input. Deliberately miss
+   a lily pad and confirm Fred splashes safely back to the current checkpoint
+   or starting perch without losing a life, including when only one life remains.
 5. Take one danger hit. Confirm exactly one life is removed and Fred remains on
    the same level, returning to the level start or earned midpoint checkpoint.
    Repeat with a second life; the full failure screen must not appear early.
