@@ -5,20 +5,21 @@ Updated: 2026-08-18
 ## Scope and authorization
 
 The owner's explicit next-phase instruction starts App Build 1 as a local
-testing phase. Revision 16 packages Campaign 1 as a touch-only, age-five-targeted
+testing phase. Revision 17 packages Campaign 1 as a touch-only, age-five-targeted
 PG family adventure with exactly 100 progressively harder levels. It retains
 the direct playfield drag steering, large bottom action row, sporty Fred art,
 six full-screen formations/backgrounds, coin-backed cosmetics, fresh-run Exit
 contract, wildlife, Moonpetal Promise story, touch instructions,
-child-readable mouth-clear Fred gear with fitted material construction, continuous leap traversal over predators,
+child-readable mouth-clear Fred gear with pose-aware drape, limb-mounted
+tailoring and fitted material construction, continuous leap traversal over predators,
 deterministic surface/underwater routes for naturally aquatic predators,
 depth-aware danger collisions, upgraded Fred/predator/bug/fairy anatomy and
 connected deterministic character articulation, layered vector body volume,
 integrated joints and facial depth, a clean
 label-free space above Fred's head, and a dormant Apple Game Center scoring adapter.
-The exact product source checkpoint is
-`909e798c2f1bde96469dae915c53ba6f8536a96f`; the focused attire implementation
-is `fad55a06cb4ad5b2555fed114edeaef8b4fecac9`. Core and save v1 remain unchanged.
+The exact package source checkpoint is
+`b56005e1ec4f2024330bdeb11b1cb24d4dc2b4a8`; the focused attire implementation
+is `128e7cda434fad814e9b26adb08749dcfb939738`. Core and save v1 remain unchanged.
 
 This build is not a production build, release, deployment, store submission,
 or physical-device acceptance result. It remains local and unpushed because
@@ -27,11 +28,11 @@ the configured GitHub repository is public.
 ## Artifact identity
 
 - Local artifact: `builds/android/fred-myers-app-build-1-debug.apk`
-- SHA-256: `2F05B4DAC8F6642875D23C13F6828BA451030FF83F409056C3D314A7C4F41DB4`
-- Size: 84,903,659 bytes
+- SHA-256: `46F188D68058B58D697A950CA3C0EE41BF5575AA6FAE242BAB429EAFF8CB3798`
+- Size: 84,907,755 bytes
 - Package: `com.flinsappvault.fredmyers.dev`
 - Label: `Fred Myers App Build 1`
-- Version: `0.2.1-app-build-1-r16` (`20116`)
+- Version: `0.2.1-app-build-1-r17` (`20117`)
 - Minimum/target/compile SDK: 24/36/36
 - Architectures: `arm64-v8a` and `x86_64`
 - Orientation: landscape
@@ -66,8 +67,7 @@ and visually inspected after packaging.
 ## Validation
 
 - Godot headless import: passed.
-- Complete deterministic matrix: 22 suites, 4,454 passed, 0 failed in 15.99
-  seconds, using
+- Complete deterministic matrix: 22 suites, 4,846 passed, 0 failed, using
   isolated temporary AppData. Headless default customization is memory-only so
   legacy gameplay suites cannot write owner economy data.
 - Readiness: 93 artifacts, eight save fixtures, Core 0.5.1, Godot 4.7.
@@ -78,7 +78,7 @@ and visually inspected after packaging.
 - App Build 1 export contract: passed.
 - Physical-device safety fixtures: 60 passed, 0 failed.
 - Physical-device static safety contract: passed.
-- Revision 16 physical-device state: `UNVERIFIED`; no phone install, control or
+- Revision 17 physical-device state: `UNVERIFIED`; no phone install, control or
   capture is claimed. The earlier bounded ADB probe timed
   out before device classification. No serial, install, launch, or diagnostic
   mode was requested, and the probe was stopped cleanly with no ADB residue.
@@ -97,11 +97,14 @@ with `LIVES 3` and the complete status `Same round, 3 lives, no restart
 countdown.` The focused
 Campaign 1 suite passed 1,328/1,328; the touch-only player-input
 suite passed 22/22; the M2 foundation suite passed 750/750; the authored rig
-suite passed 660/660; and the product-uplift suite passed 94/94. Four actual
+suite passed 1,052/1,052; and the product-uplift suite passed 94/94. Four actual
 1280x720 Godot customizer frames cover every mouth-clear fitted face/body gear
 set, with distinct mesh, canvas, satin and reinforced-knit materials.
-Live attire motion review also covers 960x540 and reduced-motion 640x360 leap
-and dive states without gear drift or control overlap. The title's
+Live attire motion review also covers 960x540 and reduced-motion 640x360 idle,
+leap/landing, surfacing, tongue, and boost states without gear drift or control
+overlap. Revision 17 adds pose-aware folds, material-specific surface response,
+anatomical armholes, real limb-mounted sleeves/bracers/knee wraps, and smaller
+fitted eyewear. The title's
 Campaign 1 / 100 levels / PG identity, Moonpetal Promise, three story cards and
 six touch instructions remained readable. Level 1 showed one introductory
 predator, no whirlpool, the five-second countdown and separated Objective,

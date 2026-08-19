@@ -177,6 +177,19 @@ bodies, translucent wing roots and articulated limb joints. Moving specular
 cues remain deterministic and are restrained by reduced motion. The complete
 surface system remains transient and presentation-only.
 
+Revision 16 replaces generic torso overlays with fitted, mouth-clear
+multi-panel garments and material-specific mesh, canvas, satin, and reinforced
+knit treatments. Eyewear gains layered gaskets, frames, lenses, straps, hinges,
+and attire-specific hardware while keeping Fred's eyes and mouth readable.
+
+Revision 17 makes those garments follow the articulated character instead of
+reading as rigid plates. Pose-aware stretch, compression, and folds remain
+transient; sleeves, bracers, cuffs, and knee wraps mount to Fred's real limb
+joints; material lighting responds by outfit; and eyewear is proportioned more
+closely to Fred's eye spacing. Reduced motion preserves the same information
+with sharply restrained secondary cloth response. Gameplay, collisions,
+touch controls, progression, save v1, and Core remain unchanged.
+
 ## M1 sequencing
 
 1. Expand the repository source tree and retain the legacy build under `legacy-web/` or a tagged legacy branch.
