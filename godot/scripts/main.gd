@@ -1433,10 +1433,6 @@ func _draw_predator(position: Vector2, species: String, predator_snapshot: Dicti
     else:
         _draw_fish(drawn_position, species, _predator_identity_profile(species), rig_pose, rig_surface)
     _draw_predator_depth_cues(drawn_position, snapshot)
-    _text(drawn_position+_predator_label_offset(drawn_position), "%s • %s" % [species, str(snapshot.get("cue", "SURFACE"))], 10, Color("fff2dc"), HORIZONTAL_ALIGNMENT_CENTER, 150)
-
-func _predator_label_offset(position: Vector2) -> Vector2:
-    return Vector2(0,-58) if position.y > 480.0 else Vector2(0,55)
 
 func _draw_predator_depth_cues(position: Vector2, predator_snapshot: Dictionary) -> void:
     var predator_depth := clampf(float(predator_snapshot.get("depth", 0.0)), 0.0, 1.0)

@@ -171,7 +171,8 @@ func _run() -> void:
 	game.level_profile = FredLevelIntensity.profile(1)
 	game.secondary_predators.assign([Vector2(1100,650), Vector2(1100,650), Vector2(1100,650), Vector2(1100,650)])
 	game.in_safe_location = false
-	check(game._predator_label_offset(Vector2(600,520)).y < 0.0 and game._predator_label_offset(Vector2(600,300)).y > 0.0, "low predator depth labels move above the bottom status panel")
+	check(not main_source.contains("_predator_label_offset") and not main_source.contains("%s • %s"), "predator nameplates are absent from the playfield")
+	check(main_source.contains("_draw_predator_depth_cues(drawn_position, snapshot)"), "non-text ripple and bubble depth cues remain")
 	var phase_before_pause: Dictionary = game._predator_depth_snapshot(0)
 	game.session.paused = true
 	game._process(0.75)
