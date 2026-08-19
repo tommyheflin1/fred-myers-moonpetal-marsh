@@ -89,6 +89,12 @@ feedback and failure presentation declare and preserve a PG family-adventure
 contract. Completing Level 100 now ends Campaign 1 and celebrates Fred's hero
 promise instead of replaying Level 100.
 
+The local Android handoff is refreshed as App Build 1 revision 6,
+`0.2.1-app-build-1-r6` (`20106`), from exact Campaign 1 source
+`7d26bdaed10f4e07d4e87a11002b7a2c7bb59fa6`. The debug APK remains
+permission-free and unpushed; zero connected devices means physical-phone
+acceptance remains `UNVERIFIED`.
+
 ## M1 sequencing
 
 1. Expand the repository source tree and retain the legacy build under `legacy-web/` or a tagged legacy branch.

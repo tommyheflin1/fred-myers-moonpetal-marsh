@@ -2,18 +2,18 @@
 
 Updated: 2026-08-18
 
-## Current App Build 1 revision 5
+## Current App Build 1 revision 6
 
 The current guarded phone candidate supersedes the older artifact identities
-retained below for append-only history. Revision 5 is built from exact source
-`abe2890feb063c0daf8ce181e14ffa0b72b83be5` with direct touch-and-drag steering,
-the required Moonpetal hero story and touch-first instructions,
-and the bottom Munch, Leap, Boost, and Dive/Surface action row.
+retained below for append-only history. Revision 6 is built from exact source
+`7d26bdaed10f4e07d4e87a11002b7a2c7bb59fa6` with the complete 100-level
+Campaign 1 profile set, touch-only player routing, age-five recovery floors,
+PG copy, the Moonpetal hero story and the bottom action row.
 
 - artifact: `builds/android/fred-myers-app-build-1-debug.apk`;
-- SHA-256: `916CECBEE7243768A786979A2D6A48B110AF59453BA9E8CBB46F6901EA4F6224`;
+- SHA-256: `3E086F8576FB7954A662FBA46044E6CFD752B7D650902ECEECEDBD7778F9D81B`;
 - size: 84,850,069 bytes;
-- version: `0.2.1-app-build-1-r5` (`20105`);
+- version: `0.2.1-app-build-1-r6` (`20106`);
 - package: `com.flinsappvault.fredmyers.dev`;
 - ABI: arm64-v8a and x86_64;
 - permissions: zero requested;
