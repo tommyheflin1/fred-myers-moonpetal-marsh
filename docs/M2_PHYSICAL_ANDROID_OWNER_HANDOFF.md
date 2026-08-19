@@ -2,20 +2,21 @@
 
 Updated: 2026-08-18
 
-## Current App Build 1 revision 10
+## Current App Build 1 revision 11
 
 The current guarded phone candidate supersedes the older artifact identities
-retained below for append-only history. Revision 10 is built from exact source
-`bb5e2618e1dbf2990b2010a5d638804f8af752fb` with the complete 100-level
+retained below for append-only history. Revision 11 is built from exact source
+`9b4ee2e3ccf04db9263b1f60d648062f88a83741` with the complete 100-level
 Campaign 1 profile set, touch-only player routing, age-five recovery floors,
 PG copy, the Moonpetal hero story, the bottom action row, mouth-clear aligned
-Fred gear, safe missed-leap recovery that cannot remove a life, and
-deterministic surface/underwater routes for aquatic predators.
+Fred gear, safe missed-leap recovery that cannot remove a life, deterministic
+surface/underwater routes for aquatic predators, species-specific animal
+anatomy and no floating locomotion/location text above Fred.
 
 - artifact: `builds/android/fred-myers-app-build-1-debug.apk`;
-- SHA-256: `ACCC754ACD7204FAA876D00C4D51B3BA3E4429B052A0E77CC9B568A9C4B1470F`;
-- size: 84,862,520 bytes;
-- version: `0.2.1-app-build-1-r10` (`20110`);
+- SHA-256: `003B808370A3A7055A0CDFE7623E65D0219A79AC2F0B776541C91C02BD04F886`;
+- size: 84,866,616 bytes;
+- version: `0.2.1-app-build-1-r11` (`20111`);
 - package: `com.flinsappvault.fredmyers.dev`;
 - ABI: arm64-v8a and x86_64;
 - permissions: zero requested;
@@ -23,7 +24,7 @@ deterministic surface/underwater routes for aquatic predators.
 
 The same explicit serial and owner/save acknowledgement boundary applies. A
 zero-device result remains `DEVICE_NOT_CONNECTED / UNVERIFIED` and is not
-physical phone or tablet acceptance. Revision 10's 60/60 fictional safety
+physical phone or tablet acceptance. Revision 11's 60/60 fictional safety
 fixtures pass. No install, launch, selected serial, diagnostics, or phone
 control is performed by this packaging refresh, so physical testing remains
 `UNVERIFIED`.
