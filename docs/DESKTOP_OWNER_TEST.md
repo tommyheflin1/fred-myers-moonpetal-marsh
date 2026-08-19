@@ -59,7 +59,8 @@ used on phones and tablets. Keyboard gameplay is disabled.
     tongue color, and the named Runner Goggles, Explorer Glasses, Moon Champion
     Visor, and Firefly Hero Goggles alter presentation only. Each face item
     should remain centered across Fred's eyes and move with his head; each vest,
-    scarf, medal, badge, or cape should remain attached to his body.
+    scarf, medal, badge, or cape should remain attached to his body. Fred's
+    mouth, jaw and cheeks must remain visible above every collar and scarf.
 11. Resize the window. Confirm objective, lives, Pause, Exit, energy, status, and the
     phone-oriented touch targets stay separated and inside the play area.
 

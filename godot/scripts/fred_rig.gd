@@ -247,6 +247,8 @@ func attire_snapshot() -> Dictionary:
 	var attire := str(_style.attire)
 	var left_anchor := _node_point(_head_joint, Vector2(-13.0, -21.0))
 	var right_anchor := _node_point(_head_joint, Vector2(13.0, -21.0))
+	var mouth_lower_anchor := _node_point(_head_joint, Vector2(0.0, 14.0))
+	var collar_anchor := _node_point(_body_joint, Vector2(0.0, 5.0))
 	return {
 		"valid": true,
 		"attire": attire,
@@ -255,6 +257,9 @@ func attire_snapshot() -> Dictionary:
 		"left_eye_anchor": left_anchor,
 		"right_eye_anchor": right_anchor,
 		"eye_span": left_anchor.distance_to(right_anchor),
+		"mouth_lower_anchor": mouth_lower_anchor,
+		"collar_anchor": collar_anchor,
+		"mouth_clearance_pixels": collar_anchor.y - mouth_lower_anchor.y,
 		"body_anchor": _node_point(_body_joint, Vector2(0.0, 3.0)),
 		"child_readable": attire in ATTIRE_IDS,
 	}
@@ -305,12 +310,30 @@ func _draw_front_limbs(canvas: Node2D, world_position: Vector2) -> void:
 		canvas.draw_polyline(_closed_points(_ellipse_points(hand, Vector2(6.0, 4.0) * width_scale, 14)), outline, 1.5 * width_scale, true)
 
 func _draw_face_finish(canvas: Node2D, world_position: Vector2) -> void:
+	var head_color := (get_node("RootJoint/HeadJoint/Fill") as Polygon2D).color
+	var outline := (get_node("RootJoint/HeadJoint/MouthLine") as Line2D).default_color
+	_draw_transformed_ellipse(canvas, _head_joint, Vector2(0.0, 13.0), Vector2(14.0, 3.2), Color(head_color.lightened(0.34), 0.24), world_position)
 	for eye in [_eye_left, _eye_right]:
+		var iris_center := world_position + _node_point(eye, Vector2(2.0, 0.0))
+		canvas.draw_arc(iris_center, 4.8 * float(_style.size_scale), 0.0, TAU, 18, Color("78b84f"), 1.5 * float(_style.size_scale), true)
 		var glint := world_position + _node_point(eye, Vector2(-1.0, -3.0))
 		canvas.draw_circle(glint, 1.8 * float(_style.size_scale), Color(1.0, 1.0, 0.92, 0.92))
 	var cheek_color := Color(Color("f0a37f"), 0.28)
 	_draw_transformed_ellipse(canvas, _head_joint, Vector2(-20.0, 7.0), Vector2(4.0, 2.3), cheek_color, world_position)
 	_draw_transformed_ellipse(canvas, _head_joint, Vector2(20.0, 7.0), Vector2(4.0, 2.3), cheek_color, world_position)
+	var mouth := get_node("RootJoint/HeadJoint/MouthCavity") as Polygon2D
+	if mouth.visible:
+		var mouth_points := _transformed_points(mouth, mouth.polygon, world_position)
+		canvas.draw_colored_polygon(mouth_points, mouth.color)
+		canvas.draw_polyline(_closed_points(mouth_points), outline, 1.8 * float(_style.size_scale), true)
+	else:
+		var mouth_line := get_node("RootJoint/HeadJoint/MouthLine") as Line2D
+		var line_points := _transformed_points(mouth_line, mouth_line.points, world_position)
+		canvas.draw_polyline(line_points, outline, 2.7 * float(_style.size_scale), true)
+	var left_corner := world_position + _node_point(_head_joint, Vector2(-11.0, 5.0))
+	var right_corner := world_position + _node_point(_head_joint, Vector2(11.0, 5.0))
+	canvas.draw_circle(left_corner, 1.6 * float(_style.size_scale), outline)
+	canvas.draw_circle(right_corner, 1.6 * float(_style.size_scale), outline)
 
 func _draw_sport_gear(canvas: Node2D, world_position: Vector2) -> void:
 	var attire := str(_style.attire)
@@ -335,14 +358,14 @@ func _draw_sport_gear(canvas: Node2D, world_position: Vector2) -> void:
 			lens = Color(0.76, 1.0, 0.42, 0.32)
 			eyewear = "hero_goggles"
 	var jersey_points := _transformed_points(_body_joint, PackedVector2Array([
-		Vector2(-21,-9),Vector2(-15,-18),Vector2(-8,-21),Vector2(-5,-12),
-		Vector2(0,-7),Vector2(5,-12),Vector2(8,-21),Vector2(15,-18),
-		Vector2(21,-9),Vector2(19,15),Vector2(10,23),Vector2(-10,23),Vector2(-19,15),
+		Vector2(-21,-4),Vector2(-15,-9),Vector2(-9,-10),Vector2(-6,-2),
+		Vector2(0,5),Vector2(6,-2),Vector2(9,-10),Vector2(15,-9),
+		Vector2(21,-4),Vector2(19,15),Vector2(10,23),Vector2(-10,23),Vector2(-19,15),
 	]), world_position)
 	canvas.draw_colored_polygon(jersey_points, jersey)
 	canvas.draw_polyline(_closed_points(jersey_points), trim.darkened(0.18), 2.4 * float(_style.size_scale), true)
 	var neckline := _transformed_points(_body_joint, PackedVector2Array([
-		Vector2(-8,-20),Vector2(-5,-12),Vector2(0,-7),Vector2(5,-12),Vector2(8,-20),
+		Vector2(-9,-10),Vector2(-6,-2),Vector2(0,5),Vector2(6,-2),Vector2(9,-10),
 	]), world_position)
 	canvas.draw_polyline(neckline, trim, 2.3 * float(_style.size_scale), true)
 	var waist := _transformed_points(_body_joint, PackedVector2Array([Vector2(-18,14),Vector2(0,18),Vector2(18,14)]), world_position)
@@ -352,7 +375,7 @@ func _draw_sport_gear(canvas: Node2D, world_position: Vector2) -> void:
 	match attire:
 		"trail_scout":
 			canvas.draw_rect(Rect2(chest_center + Vector2(-4.2,-3.2), Vector2(8.4,6.4)), jersey.darkened(0.28), true)
-			var scarf := _transformed_points(_body_joint, PackedVector2Array([Vector2(-10,-13),Vector2(0,-6),Vector2(10,-13),Vector2(5,-4),Vector2(0,2),Vector2(-5,-4)]), world_position)
+			var scarf := _transformed_points(_body_joint, PackedVector2Array([Vector2(-10,-4),Vector2(0,3),Vector2(10,-4),Vector2(6,4),Vector2(0,10),Vector2(-6,4)]), world_position)
 			canvas.draw_colored_polygon(scarf, Color("d95f4b"))
 			canvas.draw_polyline(_closed_points(scarf), trim.darkened(0.25), 1.2, true)
 		"moon_champion":

@@ -56,3 +56,27 @@ Full regression, package identity and final shortcut evidence are recorded in
 separate owner-device gate. No production signing, provider activation,
 publication, deployment, push, PR, release or milestone-percentage increase is
 claimed.
+
+## Mouth-clear molded fit correction
+
+Owner review found that the vest neckline and explorer scarf rose across
+Fred's mouth. Revision 8 lowers and reshapes the garment shoulders and collar
+around the torso, moves the scarf below the jaw, and renders the articulated
+mouth and jaw finish after attire. The face now also has a restrained throat
+highlight, iris rings and defined mouth corners for better small-screen
+readability.
+
+The rig exposes a deterministic mouth-to-collar clearance measurement. Focused
+coverage checks all four attire choices in all 23 coordinator states, mirrored
+facing and the flattened failure pose. The corrected rig suite passes 508/508;
+the product-uplift suite remains 94/94. Four actual 1280 by 720 Godot frames
+were rendered and inspected:
+
+- `godot/docs/evidence/app-build-1-r8-attire-marsh_runner.png`
+- `godot/docs/evidence/app-build-1-r8-attire-trail_scout.png`
+- `godot/docs/evidence/app-build-1-r8-attire-moon_champion.png`
+- `godot/docs/evidence/app-build-1-r8-attire-firefly_hero.png`
+
+Every frame keeps the closed mouth, jaw and cheeks visible above the garment;
+the glasses and visor remain centered on the eyes. The correction changes only
+presentation and retains the touch-first phone/tablet control contract.

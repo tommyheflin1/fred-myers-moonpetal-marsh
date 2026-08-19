@@ -102,6 +102,11 @@ details and clearer current/next labels. The rig adds dimensional skin, filled
 limbs and grounding while leaving deterministic gameplay, save v1, collision,
 Core 0.5.1 and the touch-first phone/tablet contract unchanged.
 
+Revision 8 corrects the owner-observed attire fit: collars and the explorer
+scarf are molded below Fred's jaw, and the mouth is preserved as the final face
+layer across all 23 poses. New mouth-clearance tests and four real Godot attire
+frames prevent the clothing from obscuring Fred's expression again.
+
 ## M1 sequencing
 
 1. Expand the repository source tree and retain the legacy build under `legacy-web/` or a tagged legacy branch.

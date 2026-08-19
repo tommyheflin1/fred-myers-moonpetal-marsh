@@ -84,9 +84,14 @@ func _run() -> void:
 		check(str(right_gear.eyewear) != "none", "%s includes aligned eyewear" % attire_id)
 		check(Vector2(right_gear.left_eye_anchor).is_finite() and Vector2(right_gear.right_eye_anchor).is_finite(), "%s eyewear anchors remain finite" % attire_id)
 		check(float(right_gear.eye_span) >= 20.0 and float(right_gear.eye_span) <= 40.0, "%s eyewear spans both eyes without leaving Fred's head" % attire_id)
+		check(float(right_gear.mouth_clearance_pixels) >= 5.0, "%s collar stays below Fred's mouth" % attire_id)
 		rig.apply_pose(_pose_for(AnimationCoordinator.State.IDLE, -1.0))
 		var left_gear: Dictionary = rig.attire_snapshot()
 		check(is_equal_approx(Vector2(right_gear.left_eye_anchor).x, -Vector2(left_gear.left_eye_anchor).x), "%s eyewear mirrors with Fred instead of drifting" % attire_id)
+		check(float(left_gear.mouth_clearance_pixels) >= 5.0, "%s mirrored collar stays below Fred's mouth" % attire_id)
+		for state_value: int in AnimationCoordinator.State.values():
+			rig.apply_pose(_pose_for(state_value, 1.0))
+			check(float(rig.attire_snapshot().mouth_clearance_pixels) >= 5.0, "%s keeps mouth clearance in state %02d" % [attire_id, state_value])
 	attire_style.attire = "floating_paper_hat"
 	check(not rig.apply_style(attire_style), "unknown attire cannot bypass the aligned gear catalog")
 	attire_style.attire = "marsh_runner"
