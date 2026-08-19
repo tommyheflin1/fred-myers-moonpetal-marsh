@@ -149,6 +149,16 @@ collision, fixed-tick rules, touch hit targets, save v1 and Core 0.5.1 remain
 unchanged. The 22-suite matrix passes 4,140 checks. Physical-phone and owner
 visual acceptance remain separate gates.
 
+Revision 14 replaces single-piece wildlife motion with deterministic connected
+articulation. Fish flex their tails and fins while breathing through gills and
+working their jaws; the snake drives a jointed spine, head, jaw and forked
+tongue; the heron coordinates neck, wings, feathers, legs and toes; and bugs
+and the life fairy animate four wings plus articulated bodies and limbs. Fred
+adds restrained throat breathing and blinking. Reduced motion preserves the
+same silhouettes while sharply limiting secondary movement. These channels
+are transient presentation state only and cannot alter collision, rewards,
+progression, saves, touch controls or Core.
+
 ## M1 sequencing
 
 1. Expand the repository source tree and retain the legacy build under `legacy-web/` or a tagged legacy branch.

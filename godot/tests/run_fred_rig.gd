@@ -68,11 +68,18 @@ func _run() -> void:
 	check(rig.get_node("RootJoint/HindLeft/GroundContact") is Marker2D and rig.get_node("RootJoint/HindRight/GroundContact") is Marker2D, "both feet expose authored ground contacts")
 	check(rig.get_node("RootJoint/FrontLeft") is Line2D and rig.get_node("RootJoint/FrontRight") is Line2D, "front limbs remain independently articulated")
 	var realism: Dictionary = rig.realism_snapshot()
-	check(int(realism.feature_count) == 10, "Fred exposes ten inspectable anatomical and material realism features")
+	check(int(realism.feature_count) == 12, "Fred exposes twelve inspectable anatomical, material and micro-motion realism features")
 	for feature: String in ["dorsolateral folds", "visible tympanum", "horizontal frog pupils", "webbed fingers and toe pads", "mottled skin texture"]:
 		check(feature in Array(realism.features), "Fred realism contract includes %s" % feature)
 	check(bool(realism.presentation_only) and bool(realism.phone_safe_vector_rig), "Fred realism remains presentation-only and phone-safe")
 	check(not bool(realism.collision_mutation) and int(realism.save_fields) == 0, "Fred realism cannot alter collision or save-v1 authority")
+	for feature: String in ["articulated throat breathing","deterministic eyelid blink"]:
+		check(feature in Array(realism.features), "Fred micro-motion contract includes %s" % feature)
+	var micro_reference: Dictionary = rig.micro_motion_snapshot(2.37,false)
+	check(micro_reference == rig.micro_motion_snapshot(2.37,false), "Fred breathing and blink micro-motion is deterministic")
+	var micro_reduced: Dictionary = rig.micro_motion_snapshot(2.37,true)
+	check(absf(float(micro_reduced.breath)) <= absf(float(micro_reference.breath))*0.13+0.001, "reduced motion restrains Fred breathing while retaining anatomy")
+	check(bool(micro_reference.presentation_only) and not bool(micro_reference.collision_mutation) and int(micro_reference.save_fields)==0, "Fred micro-motion cannot mutate collision or save v1")
 
 	var attire_style := {
 		"body_color": Color("4fbd68"),

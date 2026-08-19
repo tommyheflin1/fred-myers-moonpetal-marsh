@@ -113,6 +113,8 @@ const REALISM_FEATURES: Array[String] = [
 	"hind-leg muscle contours",
 	"webbed fingers and toe pads",
 	"mottled skin texture",
+	"articulated throat breathing",
+	"deterministic eyelid blink",
 ]
 
 var last_error := ""
@@ -221,7 +223,7 @@ func apply_pose(pose: Dictionary, depth_amount: float = 0.0) -> bool:
 	(get_node("RootJoint/HeadJoint/EyeRight/Outline") as Polygon2D).color = outline
 	return true
 
-func render_to(canvas: Node2D, world_position: Vector2) -> bool:
+func render_to(canvas: Node2D, world_position: Vector2, presentation_time_seconds: float = 0.0, reduced_motion_override: bool = false) -> bool:
 	if not contract_valid:
 		_draw_safe_fallback(canvas, world_position)
 		return false
@@ -234,7 +236,7 @@ func render_to(canvas: Node2D, world_position: Vector2) -> bool:
 		var points := _transformed_points(polygon, polygon.polygon, world_position)
 		if points.size() >= 3:
 			canvas.draw_colored_polygon(points, polygon.color)
-	_draw_skin_dimension(canvas, world_position)
+	_draw_skin_dimension(canvas, world_position, presentation_time_seconds, reduced_motion_override)
 	_draw_front_limbs(canvas, world_position)
 	for path in LINE_ORDER:
 		if str(path) in ["RootJoint/FrontLeft", "RootJoint/FrontRight"]:
@@ -247,7 +249,7 @@ func render_to(canvas: Node2D, world_position: Vector2) -> bool:
 			var scale_width := maxf(0.5, absf(_root_joint.scale.x) + absf(_root_joint.scale.y)) * 0.5
 			canvas.draw_polyline(points, line.default_color, line.width * scale_width, true)
 	_draw_sport_gear(canvas, world_position)
-	_draw_face_finish(canvas, world_position)
+	_draw_face_finish(canvas, world_position, presentation_time_seconds, reduced_motion_override)
 	return true
 
 func style_snapshot() -> Dictionary:
@@ -286,6 +288,21 @@ func realism_snapshot() -> Dictionary:
 		"save_fields": 0,
 	}
 
+func micro_motion_snapshot(presentation_time_seconds: float, reduced_motion_override: bool = false) -> Dictionary:
+	var safe_time := maxf(0.0, presentation_time_seconds) if is_finite(presentation_time_seconds) else 0.0
+	var motion_scale := 0.12 if reduced_motion_override else 1.0
+	var blink_cycle := fmod(safe_time, 4.6)
+	var blink := clampf(1.0 - absf(blink_cycle - 0.12) / 0.12, 0.0, 1.0) * motion_scale
+	return {
+		"breath": sin(safe_time * 1.7) * 1.25 * motion_scale,
+		"throat": (sin(safe_time * 1.7 - 0.35) + 1.0) * 0.75 * motion_scale,
+		"blink": blink,
+		"reduced_motion": reduced_motion_override,
+		"presentation_only": true,
+		"collision_mutation": false,
+		"save_fields": 0,
+	}
+
 func _draw_ground_shadow(canvas: Node2D, world_position: Vector2) -> void:
 	var contacts := ground_contacts()
 	var center := world_position + (contacts[0] + contacts[1]) * 0.5 + Vector2(0.0, 2.5)
@@ -306,17 +323,21 @@ func _draw_attire_back(canvas: Node2D, world_position: Vector2) -> void:
 	canvas.draw_colored_polygon(cape, Color("d54d62"))
 	canvas.draw_polyline(_closed_points(cape), Color("ffd36a"), 2.0 * float(_style.size_scale), true)
 
-func _draw_skin_dimension(canvas: Node2D, world_position: Vector2) -> void:
+func _draw_skin_dimension(canvas: Node2D, world_position: Vector2, presentation_time_seconds: float, reduced_motion_override: bool) -> void:
 	var body_color := (get_node("RootJoint/BodyJoint/Fill") as Polygon2D).color
 	var head_color := (get_node("RootJoint/HeadJoint/Fill") as Polygon2D).color
 	var highlight := head_color.lightened(0.28)
 	var shadow := body_color.darkened(0.32)
+	var micro := micro_motion_snapshot(presentation_time_seconds, reduced_motion_override)
+	var breath := float(micro.breath)
+	var throat := float(micro.throat)
 	_draw_transformed_ellipse(canvas, _body_joint, Vector2(9.0, 7.0), Vector2(12.0, 17.0), Color(shadow, 0.34), world_position)
 	_draw_transformed_ellipse(canvas, _body_joint, Vector2(-9.0, -9.0), Vector2(8.0, 5.0), Color(highlight, 0.34), world_position)
-	_draw_transformed_ellipse(canvas, _body_joint, Vector2(0.0, 13.0), Vector2(13.0, 11.0), Color(body_color.lightened(0.30), 0.16), world_position)
+	_draw_transformed_ellipse(canvas, _body_joint, Vector2(0.0, 13.0+breath*0.18), Vector2(13.0+breath*0.25, 11.0+breath*0.28), Color(body_color.lightened(0.30), 0.16), world_position)
 	_draw_transformed_ellipse(canvas, _head_joint, Vector2(0.0, 9.0), Vector2(22.0, 8.0), Color(shadow, 0.20), world_position)
 	_draw_transformed_ellipse(canvas, _head_joint, Vector2(-8.0, -12.0), Vector2(10.0, 5.0), Color(highlight, 0.26), world_position)
-	_draw_transformed_ellipse(canvas, _head_joint, Vector2(0.0, 12.0), Vector2(17.0, 6.5), Color(head_color.lightened(0.34), 0.18), world_position)
+	_draw_transformed_ellipse(canvas, _head_joint, Vector2(0.0, 12.0+throat*0.20), Vector2(17.0+throat*0.32, 6.5+throat*0.38), Color(head_color.lightened(0.34), 0.18), world_position)
+	_draw_transformed_ellipse(canvas, _head_joint, Vector2(0.0, 15.0+throat*0.24), Vector2(11.0+throat*0.25, 3.2+throat*0.30), Color(body_color.lightened(0.34),0.18), world_position)
 	for ear_x in [-23.0, 23.0]:
 		var tympanum := world_position + _node_point(_head_joint, Vector2(ear_x, 1.5))
 		canvas.draw_circle(tympanum, 5.2 * float(_style.size_scale), Color(shadow, 0.30))
@@ -360,7 +381,7 @@ func _draw_front_limbs(canvas: Node2D, world_position: Vector2) -> void:
 			canvas.draw_circle(tip, 2.0 * width_scale, Color("b9e67d"))
 		canvas.draw_colored_polygon(PackedVector2Array([hand,finger_tips[0],finger_tips[1],finger_tips[2]]), Color(fill.lightened(0.22),0.28))
 
-func _draw_face_finish(canvas: Node2D, world_position: Vector2) -> void:
+func _draw_face_finish(canvas: Node2D, world_position: Vector2, presentation_time_seconds: float, reduced_motion_override: bool) -> void:
 	var head_color := (get_node("RootJoint/HeadJoint/Fill") as Polygon2D).color
 	var outline := (get_node("RootJoint/HeadJoint/MouthLine") as Line2D).default_color
 	_draw_transformed_ellipse(canvas, _head_joint, Vector2(0.0, 13.0), Vector2(14.0, 3.2), Color(head_color.lightened(0.34), 0.24), world_position)
@@ -372,6 +393,10 @@ func _draw_face_finish(canvas: Node2D, world_position: Vector2) -> void:
 		canvas.draw_arc(iris_center + Vector2(0,1.2), 5.8 * float(_style.size_scale), 0.18, PI - 0.18, 14, Color(0.78,0.94,0.74,0.42), 1.0 * float(_style.size_scale), true)
 		var glint := world_position + _node_point(eye, Vector2(-1.0, -3.0))
 		canvas.draw_circle(glint, 1.8 * float(_style.size_scale), Color(1.0, 1.0, 0.92, 0.92))
+		var blink := float(micro_motion_snapshot(presentation_time_seconds,reduced_motion_override).blink)
+		if blink > 0.02:
+			var eyelid_center := world_position + _node_point(eye,Vector2(0.0,-1.0+blink*3.2))
+			canvas.draw_line(eyelid_center+Vector2(-6.0,0.0),eyelid_center+Vector2(6.0,0.0),Color(head_color.darkened(0.18),0.86),1.4+blink*2.2,true)
 	for nostril_x in [-5.0,5.0]:
 		var nostril := world_position + _node_point(_head_joint, Vector2(nostril_x,-0.5))
 		canvas.draw_circle(nostril,1.5 * float(_style.size_scale),Color(outline,0.72))

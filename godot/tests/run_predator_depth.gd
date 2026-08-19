@@ -3,6 +3,7 @@ extends SceneTree
 const Main = preload("res://scripts/main.gd")
 const PredatorDepth = preload("res://scripts/predator_depth.gd")
 const MarshRouteLayout = preload("res://scripts/marsh_route_layout.gd")
+const WildlifeAnimationRig = preload("res://scripts/wildlife_animation_rig.gd")
 
 const SAVE_PREFIX := "user://predator_depth_test"
 
@@ -23,6 +24,19 @@ func clean_files() -> void:
 
 func _init() -> void:
 	_run.call_deferred()
+
+func _pose_signature(pose: Dictionary) -> Array:
+	return [
+		str(pose.kind), int(pose.joint_count),
+		snappedf(float(pose.body_pitch),0.0001), snappedf(float(pose.body_breathe),0.0001),
+		snappedf(float(pose.tail_base),0.0001), snappedf(float(pose.tail_tip),0.0001),
+		snappedf(float(pose.gill_open),0.0001), snappedf(float(pose.jaw_open),0.0001),
+		snappedf(float(pose.spine_wave),0.0001), snappedf(float(pose.spine_amplitude),0.0001),
+		snappedf(float(pose.wing_primary),0.0001), snappedf(float(pose.wing_secondary),0.0001),
+		snappedf(float(pose.neck_curve),0.0001), snappedf(float(pose.leg_lift),0.0001),
+		snappedf(float(pose.hover_lift),0.0001), snappedf(float(pose.abdomen_flex),0.0001),
+		snappedf(float(pose.arm_sweep),0.0001), snappedf(float(pose.glow),0.0001),
+	]
 
 func _run() -> void:
 	clean_files()
@@ -96,12 +110,36 @@ func _run() -> void:
 	var fairy_identity: Dictionary = game._wildlife_identity_profile("FAIRY")
 	check(Array(fairy_identity.anatomy).size() >= 5 and "moonpetal crown" in Array(fairy_identity.anatomy), "life fairy exposes a distinct child-readable anatomy contract")
 	check("four veined wings" in Array(fairy_identity.anatomy) and bool(fairy_identity.presentation_only), "life fairy detail remains four-wing and presentation-only")
+	check(WildlifeAnimationRig.SUPPORTED_KINDS == ["BASS","PIKE","MUSKIE","SNAKE","HERON","BUG","FAIRY"], "articulation rig covers every gameplay wildlife character")
+	for kind: String in WildlifeAnimationRig.SUPPORTED_KINDS:
+		var pose: Dictionary = WildlifeAnimationRig.pose(kind,0,1.375,false)
+		var repeated_pose: Dictionary = WildlifeAnimationRig.pose(kind,0,1.375,false)
+		var reduced_pose: Dictionary = WildlifeAnimationRig.pose(kind,0,1.375,true)
+		check(bool(pose.valid) and _pose_signature(pose) == _pose_signature(repeated_pose), "%s articulation pose is deterministic" % kind.to_lower())
+		check(int(pose.joint_count) >= 11, "%s uses at least eleven connected presentation joints" % kind.to_lower())
+		check(bool(pose.presentation_only) and not bool(pose.collision_mutation) and int(pose.save_fields) == 0, "%s articulation cannot change collision or save v1" % kind.to_lower())
+		var normal_motion := absf(float(pose.tail_tip))+absf(float(pose.spine_amplitude))+absf(float(pose.wing_primary))+absf(float(pose.neck_curve))+absf(float(pose.hover_lift))
+		var reduced_motion_amount := absf(float(reduced_pose.tail_tip))+absf(float(reduced_pose.spine_amplitude))+absf(float(reduced_pose.wing_primary))+absf(float(reduced_pose.neck_curve))+absf(float(reduced_pose.hover_lift))
+		check(reduced_motion_amount <= normal_motion*0.20+0.001, "%s reduced motion restrains secondary articulation" % kind.to_lower())
+	check(not bool(WildlifeAnimationRig.pose("DRAGON",0,1.0).valid), "unknown wildlife cannot enter the articulation contract")
+	check(not bool(WildlifeAnimationRig.pose("BASS",-1,1.0).valid), "negative wildlife actor index fails closed")
+	check(not bool(WildlifeAnimationRig.pose("BASS",0,NAN).valid), "non-finite wildlife time fails closed")
+	var articulation_reference := 0
+	for trace_index in range(100):
+		var articulation_hash := 0
+		for tick in range(240):
+			for kind: String in WildlifeAnimationRig.SUPPORTED_KINDS:
+				articulation_hash = hash([articulation_hash,_pose_signature(WildlifeAnimationRig.pose(kind,tick%4,float(tick)/60.0,false))])
+		if trace_index == 0:
+			articulation_reference = articulation_hash
+		check(articulation_hash == articulation_reference, "all-character articulation trace %03d is deterministic" % (trace_index+1))
 	var stable_identity_snapshot: Dictionary = game.session.to_save("2000-01-01T00:00:00Z")
 	var identity_hash := 0
 	for identity_iteration in range(10000):
 		var sampled_predator: Dictionary = game._predator_identity_profile(Main.PREDATOR_SPECIES[identity_iteration % Main.PREDATOR_SPECIES.size()])
 		var sampled_wildlife: Dictionary = game._wildlife_identity_profile("BUG" if identity_iteration % 2 == 0 else "FAIRY")
-		identity_hash = hash([identity_hash,str(sampled_predator.silhouette),int(sampled_predator.detail_layers),str(sampled_wildlife.silhouette)])
+		var sampled_pose: Dictionary = WildlifeAnimationRig.pose(WildlifeAnimationRig.SUPPORTED_KINDS[identity_iteration%WildlifeAnimationRig.SUPPORTED_KINDS.size()],identity_iteration%4,float(identity_iteration)/60.0,identity_iteration%11==0)
+		identity_hash = hash([identity_hash,str(sampled_predator.silhouette),int(sampled_predator.detail_layers),str(sampled_wildlife.silhouette),_pose_signature(sampled_pose)])
 	check(identity_hash != 0, "10,000 realism profile reads produce a stable observation")
 	check(game.session.to_save("2000-01-01T00:00:00Z") == stable_identity_snapshot, "realism profiles cannot mutate canonical gameplay or saves")
 	var main_source := FileAccess.get_file_as_string("res://scripts/main.gd")
