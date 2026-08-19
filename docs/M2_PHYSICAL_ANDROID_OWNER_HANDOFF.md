@@ -2,19 +2,20 @@
 
 Updated: 2026-08-18
 
-## Current App Build 1 revision 9
+## Current App Build 1 revision 10
 
 The current guarded phone candidate supersedes the older artifact identities
-retained below for append-only history. Revision 9 is built from exact source
-`5b325906fdad040791170d12ad1eb06978fd2082` with the complete 100-level
+retained below for append-only history. Revision 10 is built from exact source
+`bb5e2618e1dbf2990b2010a5d638804f8af752fb` with the complete 100-level
 Campaign 1 profile set, touch-only player routing, age-five recovery floors,
 PG copy, the Moonpetal hero story, the bottom action row, mouth-clear aligned
-Fred gear, and safe missed-leap recovery that cannot remove a life.
+Fred gear, safe missed-leap recovery that cannot remove a life, and
+deterministic surface/underwater routes for aquatic predators.
 
 - artifact: `builds/android/fred-myers-app-build-1-debug.apk`;
-- SHA-256: `ECCFFB8C81A701B83AD68C49159E0AD434710C13170702811B334EB5DA71A049`;
-- size: 84,858,261 bytes;
-- version: `0.2.1-app-build-1-r9` (`20109`);
+- SHA-256: `ACCC754ACD7204FAA876D00C4D51B3BA3E4429B052A0E77CC9B568A9C4B1470F`;
+- size: 84,862,520 bytes;
+- version: `0.2.1-app-build-1-r10` (`20110`);
 - package: `com.flinsappvault.fredmyers.dev`;
 - ABI: arm64-v8a and x86_64;
 - permissions: zero requested;
@@ -22,10 +23,9 @@ Fred gear, and safe missed-leap recovery that cannot remove a life.
 
 The same explicit serial and owner/save acknowledgement boundary applies. A
 zero-device result remains `DEVICE_NOT_CONNECTED / UNVERIFIED` and is not
-physical phone or tablet acceptance. Revision 9's 60/60 fictional safety
-fixtures pass, but its bounded live read-only ADB probe timed out before device
-classification. The probe was stopped with no install, launch, selected
-serial, diagnostics, or remaining ADB process, so physical testing remains
+physical phone or tablet acceptance. Revision 10's 60/60 fictional safety
+fixtures pass. No install, launch, selected serial, diagnostics, or phone
+control is performed by this packaging refresh, so physical testing remains
 `UNVERIFIED`.
 
 ## Scope and result

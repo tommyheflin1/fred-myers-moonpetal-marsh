@@ -5,15 +5,16 @@ Updated: 2026-08-18
 ## Scope and authorization
 
 The owner's explicit next-phase instruction starts App Build 1 as a local
-testing phase. Revision 9 packages Campaign 1 as a touch-only, age-five-targeted
+testing phase. Revision 10 packages Campaign 1 as a touch-only, age-five-targeted
 PG family adventure with exactly 100 progressively harder levels. It retains
 the direct playfield drag steering, large bottom action row, sporty Fred art,
 six full-screen formations/backgrounds, coin-backed cosmetics, fresh-run Exit
 contract, wildlife, Moonpetal Promise story, touch instructions,
 child-readable mouth-clear Fred gear, safe no-life-loss splashback for missed
-leaps, and a dormant Apple Game Center scoring adapter.
+leaps, deterministic surface/underwater routes for naturally aquatic predators,
+depth-aware danger collisions, and a dormant Apple Game Center scoring adapter.
 The exact product source checkpoint is
-`5b325906fdad040791170d12ad1eb06978fd2082`; Core and save v1 remain unchanged.
+`bb5e2618e1dbf2990b2010a5d638804f8af752fb`; Core and save v1 remain unchanged.
 
 This build is not a production build, release, deployment, store submission,
 or physical-device acceptance result. It remains local and unpushed because
@@ -22,11 +23,11 @@ the configured GitHub repository is public.
 ## Artifact identity
 
 - Local artifact: `builds/android/fred-myers-app-build-1-debug.apk`
-- SHA-256: `ECCFFB8C81A701B83AD68C49159E0AD434710C13170702811B334EB5DA71A049`
-- Size: 84,858,261 bytes
+- SHA-256: `ACCC754ACD7204FAA876D00C4D51B3BA3E4429B052A0E77CC9B568A9C4B1470F`
+- Size: 84,862,520 bytes
 - Package: `com.flinsappvault.fredmyers.dev`
 - Label: `Fred Myers App Build 1`
-- Version: `0.2.1-app-build-1-r9` (`20109`)
+- Version: `0.2.1-app-build-1-r10` (`20110`)
 - Minimum/target/compile SDK: 24/36/36
 - Architectures: `arm64-v8a` and `x86_64`
 - Orientation: landscape
@@ -48,8 +49,8 @@ and visually inspected after packaging.
 - JDK: Eclipse Temurin/OpenJDK `17.0.19`
 - Android build tools: `36.0.0`; `aapt2` 2.20-13193326
 - ADB: 1.0.41, platform tools 37.0.0-14910828
-- APK entries: 199
-- Content scan: 65 text entries; no tests, tools, evidence, source-control
+- APK entries: 201
+- Content scan: 66 text entries; no tests, tools, evidence, source-control
   metadata, signing material, credentials, private Windows paths, or secret-like
   content
 - Package inspection retains Godot's optional missing themed-icon warning;
@@ -61,7 +62,7 @@ and visually inspected after packaging.
 ## Validation
 
 - Godot headless import: passed.
-- Complete deterministic matrix: 21 suites, 3,956 passed, 0 failed, using
+- Complete deterministic matrix: 22 suites, 4,093 passed, 0 failed, using
   isolated temporary AppData. Headless default customization is memory-only so
   legacy gameplay suites cannot write owner economy data.
 - Readiness: 86 artifacts, eight save fixtures, Core 0.5.1, Godot 4.7.
@@ -72,7 +73,8 @@ and visually inspected after packaging.
 - App Build 1 export contract: passed.
 - Physical-device safety fixtures: 60 passed, 0 failed.
 - Physical-device static safety contract: passed.
-- Revision 9 live read-only preflight: `UNVERIFIED`; the bounded ADB probe timed
+- Revision 10 physical-device state: `UNVERIFIED`; no phone install, control or
+  capture is claimed. The earlier bounded ADB probe timed
   out before device classification. No serial, install, launch, or diagnostic
   mode was requested, and the probe was stopped cleanly with no ADB residue.
 - Preflight tooling now prefers the verified bundled Python runtime and rejects
@@ -98,6 +100,13 @@ Lives, Energy, Pause, Exit and action controls. Pointer review uses the exact
 touch input path; real multitouch, a physical Android device and an iPad remain
 separate owner/device gates. The attire improvements are presentation-only and
 do not alter touch hit targets or phone/tablet layout.
+
+The new predator-depth suite passes 137/137, including every aquatic phase,
+100 identical fixed-tick traces, real touch-driven Fred depth traversal,
+surface/underwater pass-under safety, same-depth damage, save-v1 exclusion and
+a 10,000-update 14 ms loop with zero measured memory growth. Real 1280x720
+Godot review confirmed readable surface, diving and underwater fish states;
+the discovered low-screen label overlap was corrected and rechecked.
 
 No phone was installed to, controlled, or captured. Emulator shader limits
 from the earlier M2 run are not relabeled as App Build 1 phone acceptance.
