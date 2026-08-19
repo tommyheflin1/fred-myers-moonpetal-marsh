@@ -11,6 +11,11 @@ species-specific surface response, integrated joints and facial depth. The
 work remains local and unpushed because the configured GitHub repository is
 public.
 
+The exact focused product-source commit is
+`40f575033df9ba9ba00b5dcd8059a982d292c2cd`. The resulting local Android
+development APK is guarded by SHA-256
+`4A85D9DF2A3DCC2D5A8C107C2BD446FECA4ADE15DE7ED4D5252F203CABB53728`.
+
 This is a bounded Fred-owned presentation pass. It changes no collision,
 fixed-tick gameplay, difficulty, rewards, lives, fairy rules, progression,
 touch targets, save-v1 fields, Core code, networking or providers. The vector
