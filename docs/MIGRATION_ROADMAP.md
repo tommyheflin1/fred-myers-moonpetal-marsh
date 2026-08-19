@@ -210,6 +210,14 @@ fitted eddies/wakes around pads and the safe perch. Reduced motion freezes the
 flow while retaining direction and depth cues. The established deterministic
 gameplay force remains unchanged and separate from this presentation layer.
 
+Revision 21 completes a stronger mouth-clear Fred presentation pass. All four
+outfits now share a measurable three-point jaw exclusion zone while retaining
+distinct five-point neckline shapes; the scarf, cape mounts, clasps, torso and
+shoulders follow that boundary. Added jaw/throat separation and recessed,
+edge-lit, woven garment layers improve volume without changing gameplay,
+collision, touch controls, progression, save v1 or Core. This is verified local
+M2 evidence and does not change milestone percentages before owner acceptance.
+
 ## M1 sequencing
 
 1. Expand the repository source tree and retain the legacy build under `legacy-web/` or a tagged legacy branch.

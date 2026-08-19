@@ -82,6 +82,7 @@ This repository owns Fred gameplay. Core owns only reusable, game-neutral servic
 - [Fred tailored attire material and fit uplift](docs/M2_FRED_ATTIRE_MATERIAL_FIT_REPORT.md)
 - [Fred attire drape and articulation uplift](docs/M2_FRED_ATTIRE_DRAPE_ARTICULATION_REPORT.md)
 - [Fred anatomical attire-cut uplift](docs/M2_FRED_ATTIRE_ANATOMICAL_CUT_REPORT.md)
+- [Fred mouth-clear rig and graphics Revision 21](docs/M2_FRED_RIG_GRAPHICS_REV21_REPORT.md)
 - [Realistic marsh-current visual uplift](docs/M2_WATER_CURRENT_VISUAL_REPORT.md)
 - [Predator surface and underwater traversal](docs/M2_PREDATOR_DEPTH_TRAVERSAL.md)
 - [Fred and wildlife character-rig realism uplift](docs/M2_CHARACTER_RIG_REALISM_REPORT.md)

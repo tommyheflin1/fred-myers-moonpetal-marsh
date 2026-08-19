@@ -1,25 +1,26 @@
 # Fred App Build 1 test report
 
-Updated: 2026-08-18
+Updated: 2026-08-19
 
 ## Scope and authorization
 
 The owner's explicit next-phase instruction starts App Build 1 as a local
-testing phase. Revision 20 packages Campaign 1 as a touch-only, age-five-targeted
+testing phase. Revision 21 packages Campaign 1 as a touch-only, age-five-targeted
 PG family adventure with exactly 100 progressively harder levels. It retains
 the direct playfield drag steering, large bottom action row, sporty Fred art,
 six full-screen formations/backgrounds, coin-backed cosmetics, fresh-run Exit
 contract, wildlife, Moonpetal Promise story, touch instructions,
-child-readable mouth-clear Fred gear with garment-specific anatomical cuts,
-soft edge finishing, pose-aware drape and limb-mounted tailoring, continuous leap traversal over predators,
+child-readable Fred gear with measured three-point jaw clearance,
+outfit-specific anatomical necklines, beveled fabric volume, soft edge finishing,
+pose-aware drape and limb-mounted tailoring, continuous leap traversal over predators,
 deterministic surface/underwater routes for naturally aquatic predators,
 depth-aware danger collisions, upgraded Fred/predator/bug/fairy anatomy and
 connected deterministic character articulation, layered vector body volume,
 integrated joints and facial depth, clean label-free space above Fred and every
 predator, realistic depth-aware marsh currents and a dormant Apple Game Center scoring adapter.
-The exact package source checkpoint is
-`6833cc5f698d73cb225935117edd6a6fa6961b86`; the focused realistic-current
-implementation is the same commit. Core and save v1 remain unchanged.
+The exact package source checkpoint and focused rig/graphics implementation is
+`c3e09aa64d7eb13a578f53ee24eec88dc1e29957`. Core and save v1 remain
+unchanged.
 
 This build is not a production build, release, deployment, store submission,
 or physical-device acceptance result. It remains local and unpushed because
@@ -28,11 +29,11 @@ the configured GitHub repository is public.
 ## Artifact identity
 
 - Local artifact: `builds/android/fred-myers-app-build-1-debug.apk`
-- SHA-256: `2580F146554214BB2C35655CE92A57ABFDDF8322C3EC1114605DBE707370033E`
+- SHA-256: `2DA94078B21F2A9C0ADE46CADE02C89FDDA06E5742BF96C66AA84AAFC1C6B3C4`
 - Size: 84,912,026 bytes
 - Package: `com.flinsappvault.fredmyers.dev`
 - Label: `Fred Myers App Build 1`
-- Version: `0.2.1-app-build-1-r20` (`20120`)
+- Version: `0.2.1-app-build-1-r21` (`20121`)
 - Minimum/target/compile SDK: 24/36/36
 - Architectures: `arm64-v8a` and `x86_64`
 - Orientation: landscape
@@ -54,8 +55,8 @@ and visually inspected after packaging.
 - JDK: Eclipse Temurin/OpenJDK `17.0.19`
 - Android build tools: `36.0.0`; `aapt2` 2.20-13193326
 - ADB: 1.0.41, platform tools 37.0.0-14910828
-- APK entries: 203
-- Content scan: 67 text entries; no tests, tools, evidence, source-control
+- APK entries: 205
+- Content scan: 68 text entries; no tests, tools, evidence, source-control
   metadata, signing material, credentials, private Windows paths, or secret-like
   content
 - Package inspection retains Godot's optional missing themed-icon warning;
@@ -67,7 +68,7 @@ and visually inspected after packaging.
 ## Validation
 
 - Godot headless import: passed.
-- Complete deterministic matrix: 23 suites, 5,145 passed, 0 failed, using
+- Complete deterministic matrix: 23 suites, 5,189 passed, 0 failed, using
   isolated temporary AppData. Headless default customization is memory-only so
   legacy gameplay suites cannot write owner economy data.
 - Readiness: 96 artifacts, eight save fixtures, Core 0.5.1, Godot 4.7.
@@ -78,7 +79,7 @@ and visually inspected after packaging.
 - App Build 1 export contract: passed.
 - Physical-device safety fixtures: 60 passed, 0 failed.
 - Physical-device static safety contract: passed.
-- Revision 20 physical-device state: `UNVERIFIED`; no phone install, control or
+- Revision 21 physical-device state: `UNVERIFIED`; no phone install, control or
   capture is claimed. The earlier bounded ADB probe timed
   out before device classification. No serial, install, launch, or diagnostic
   mode was requested, and the probe was stopped cleanly with no ADB residue.
@@ -97,7 +98,7 @@ with `LIVES 3` and the complete status `Same round, 3 lives, no restart
 countdown.` The focused
 Campaign 1 suite passed 1,328/1,328; the touch-only player-input
 suite passed 22/22; the M2 foundation suite passed 750/750; the authored rig
-suite passed 1,089/1,089; and the product-uplift suite passed 94/94. Four actual
+suite passed 1,133/1,133; and the product-uplift suite passed 94/94. Four actual
 1280x720 Godot customizer frames cover every mouth-clear fitted face/body gear
 set, with distinct mesh, canvas, satin and reinforced-knit materials.
 Live attire motion review also covers 960x540 and reduced-motion 640x360 idle,
@@ -136,6 +137,18 @@ focused current suite passes 261/261, including 100 identical traces and a
 inspected moving 1280x720 frames and a reduced-motion 640x360 frame; direction,
 depth and obstacle wakes remained readable without obscuring Fred, predators,
 objectives or the bottom touch controls.
+
+Revision 21 lowers every torso, shoulder, scarf, cape clasp and cape attachment
+below an explicit three-point jaw exclusion zone. Four distinct five-point
+necklines now expose at least seven rig pixels of idle mouth clearance, while
+separated jaw/throat planes, recessed cloth silhouettes, raised edge light,
+weave and seven tailored panels add visible volume. The focused rig suite
+passes 1,133/1,133 and its 10,000-update loop completed in 409 ms with zero
+retained resource, node or orphan growth. Computer Use inspected the actual
+customizer at 1280x720, 960x540 and reduced-motion 640x360, plus active Level 1
+landing and touch-path MUNCH. Fred's complete mouth stayed visible, gear and
+limbs remained attached, Bug 1 was eaten successfully, and no HUD/action
+overlap appeared.
 
 Revision 14 retains twelve inspectable Fred realism features and adds one typed
 deterministic animation contract for all seven wildlife families. Computer Use
