@@ -68,8 +68,8 @@ func _run() -> void:
 	check(rig.get_node("RootJoint/HindLeft/GroundContact") is Marker2D and rig.get_node("RootJoint/HindRight/GroundContact") is Marker2D, "both feet expose authored ground contacts")
 	check(rig.get_node("RootJoint/FrontLeft") is Line2D and rig.get_node("RootJoint/FrontRight") is Line2D, "front limbs remain independently articulated")
 	var realism: Dictionary = rig.realism_snapshot()
-	check(int(realism.feature_count) == 16, "Fred exposes sixteen inspectable anatomical, material, volume and micro-motion realism features")
-	for feature: String in ["dorsolateral folds", "visible tympanum", "horizontal frog pupils", "webbed fingers and toe pads", "mottled skin texture"]:
+	check(int(realism.feature_count) == 20, "Fred exposes twenty inspectable anatomical, material, volume and micro-motion realism features")
+	for feature: String in ["dorsolateral folds", "visible tympanum", "horizontal frog pupils", "webbed fingers and toe pads", "mottled skin texture", "separated jaw and throat planes", "layered corneal highlights", "beveled garment volume", "pose-aware silhouette lighting"]:
 		check(feature in Array(realism.features), "Fred realism contract includes %s" % feature)
 	check(bool(realism.presentation_only) and bool(realism.phone_safe_vector_rig), "Fred realism remains presentation-only and phone-safe")
 	check(not bool(realism.collision_mutation) and int(realism.save_fields) == 0, "Fred realism cannot alter collision or save-v1 authority")
@@ -111,16 +111,20 @@ func _run() -> void:
 		check(float(right_gear.sleeve_ratio) >= 0.2 and float(right_gear.sleeve_ratio) <= 0.5, "%s sleeve length stays fitted to Fred's forelimb" % attire_id)
 		check(float(right_gear.hem_drop) >= 0.2 and float(right_gear.hem_drop) <= 0.7, "%s hem drape stays bounded around Fred's belly" % attire_id)
 		check(float(right_gear.structure) >= 0.1 and float(right_gear.structure) <= 0.7, "%s fabric structure stays soft enough for frog movement" % attire_id)
-		check(Array(right_gear.fit_features).size() == 15, "%s exposes fifteen tailored fit features" % attire_id)
-		for fit_feature: String in ["contoured torso panels", "ribbed mouth-clear collar", "articulated shoulder gussets", "layered eyewear gasket", "attire-specific closures", "pose-aware cloth folds", "joint-mounted sleeves and bracers", "soft anatomical armholes", "tapered limb tailoring", "curved bound hems", "garment-specific accessory placement", "soft edge finishing"]:
+		check(Array(right_gear.fit_features).size() == 19, "%s exposes nineteen tailored fit features" % attire_id)
+		for fit_feature: String in ["contoured torso panels", "ribbed mouth-clear collar", "three-point mouth clearance", "cheek and jaw exclusion zone", "outfit-specific neckline", "articulated shoulder gussets", "layered eyewear gasket", "attire-specific closures", "pose-aware cloth folds", "joint-mounted sleeves and bracers", "soft anatomical armholes", "tapered limb tailoring", "curved bound hems", "garment-specific accessory placement", "soft edge finishing", "raised fabric edge lighting"]:
 			check(fit_feature in Array(right_gear.fit_features), "%s attire contract includes %s" % [attire_id, fit_feature])
-		check(int(right_gear.fabric_layers) >= 12 and int(right_gear.eyewear_depth_layers) >= 5, "%s uses layered fabric and eyewear depth" % attire_id)
-		check(int(right_gear.tailored_panels) == 5 and bool(right_gear.functional_seams) and bool(right_gear.limb_fit), "%s clothing is fitted around Fred's torso and limbs" % attire_id)
+		check(int(right_gear.fabric_layers) >= 15 and int(right_gear.eyewear_depth_layers) >= 5, "%s uses layered fabric and eyewear depth" % attire_id)
+		check(int(right_gear.tailored_panels) == 7 and bool(right_gear.functional_seams) and bool(right_gear.limb_fit), "%s clothing is fitted around Fred's torso and limbs" % attire_id)
 		check(int(right_gear.anatomical_openings) == 3 and float(right_gear.soft_edge_px) <= 2.0, "%s uses soft bound neck and arm openings" % attire_id)
 		check(bool(right_gear.presentation_only) and not bool(right_gear.collision_mutation) and int(right_gear.save_fields) == 0, "%s attire cannot alter collision or save-v1 authority" % attire_id)
 		check(Vector2(right_gear.left_eye_anchor).is_finite() and Vector2(right_gear.right_eye_anchor).is_finite(), "%s eyewear anchors remain finite" % attire_id)
 		check(float(right_gear.eye_span) >= 20.0 and float(right_gear.eye_span) <= 40.0, "%s eyewear spans both eyes without leaving Fred's head" % attire_id)
-		check(float(right_gear.mouth_clearance_pixels) >= 5.0, "%s collar stays below Fred's mouth" % attire_id)
+		check(float(right_gear.mouth_clearance_pixels) >= 7.0, "%s collar leaves a clearly visible idle mouth gap" % attire_id)
+		check(is_equal_approx(float(right_gear.jaw_exclusion_zone_pixels), float(right_gear.mouth_clearance_pixels)), "%s exposes the measured jaw exclusion zone" % attire_id)
+		check(int(right_gear.neckline_point_count) == 5, "%s uses a stable five-point anatomical neckline" % attire_id)
+		for anchor_name: String in ["mouth_left_anchor", "mouth_right_anchor", "collar_left_anchor", "collar_right_anchor"]:
+			check(Vector2(right_gear[anchor_name]).is_finite(), "%s %s remains finite" % [attire_id, anchor_name])
 		rig.apply_pose(_pose_for(AnimationCoordinator.State.IDLE, -1.0))
 		var left_gear: Dictionary = rig.attire_snapshot()
 		check(is_equal_approx(Vector2(right_gear.left_eye_anchor).x, -Vector2(left_gear.left_eye_anchor).x), "%s eyewear mirrors with Fred instead of drifting" % attire_id)
