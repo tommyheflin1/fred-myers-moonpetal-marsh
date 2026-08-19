@@ -17,11 +17,11 @@ param(
 $ErrorActionPreference = "Stop"
 $ProgressPreference = "SilentlyContinue"
 
-$CandidateSourceSha = "72e6678d3038df666f1b2f562a94568d85ead378"
-$ExpectedApkSha256 = "62E9BA3B105C264160D3F6810AB942A49AA666B75676D7BE9BD042FEC33A4D59"
+$CandidateSourceSha = "2b0931ba9a848c51e3820f8d361fccce6dbd9228"
+$ExpectedApkSha256 = "799B883E0EAB2A66B8BE336E66AD39E1EABF9D7515FE9EA31051D6C116037D2C"
 $ExpectedApkBytes = 84907755
 $ExpectedPackage = "com.flinsappvault.fredmyers.dev"
-$ExpectedVersionCode = 20118
+$ExpectedVersionCode = 20119
 $MinimumDeviceApi = 24
 $SupportedAbis = @("arm64-v8a", "x86_64")
 $MinimumFreeStorageKb = 524288

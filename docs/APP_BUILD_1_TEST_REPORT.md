@@ -5,7 +5,7 @@ Updated: 2026-08-18
 ## Scope and authorization
 
 The owner's explicit next-phase instruction starts App Build 1 as a local
-testing phase. Revision 18 packages Campaign 1 as a touch-only, age-five-targeted
+testing phase. Revision 19 packages Campaign 1 as a touch-only, age-five-targeted
 PG family adventure with exactly 100 progressively harder levels. It retains
 the direct playfield drag steering, large bottom action row, sporty Fred art,
 six full-screen formations/backgrounds, coin-backed cosmetics, fresh-run Exit
@@ -15,11 +15,11 @@ soft edge finishing, pose-aware drape and limb-mounted tailoring, continuous lea
 deterministic surface/underwater routes for naturally aquatic predators,
 depth-aware danger collisions, upgraded Fred/predator/bug/fairy anatomy and
 connected deterministic character articulation, layered vector body volume,
-integrated joints and facial depth, a clean
-label-free space above Fred's head, and a dormant Apple Game Center scoring adapter.
+integrated joints and facial depth, clean label-free space above Fred and every
+predator, and a dormant Apple Game Center scoring adapter.
 The exact package source checkpoint is
-`72e6678d3038df666f1b2f562a94568d85ead378`; the focused attire implementation
-is `e794a22fe5267106f25d3b296da09502cea1ed82`. Core and save v1 remain unchanged.
+`2b0931ba9a848c51e3820f8d361fccce6dbd9228`; the focused predator-nameplate
+removal is the same commit. Core and save v1 remain unchanged.
 
 This build is not a production build, release, deployment, store submission,
 or physical-device acceptance result. It remains local and unpushed because
@@ -28,11 +28,11 @@ the configured GitHub repository is public.
 ## Artifact identity
 
 - Local artifact: `builds/android/fred-myers-app-build-1-debug.apk`
-- SHA-256: `62E9BA3B105C264160D3F6810AB942A49AA666B75676D7BE9BD042FEC33A4D59`
+- SHA-256: `799B883E0EAB2A66B8BE336E66AD39E1EABF9D7515FE9EA31051D6C116037D2C`
 - Size: 84,907,755 bytes
 - Package: `com.flinsappvault.fredmyers.dev`
 - Label: `Fred Myers App Build 1`
-- Version: `0.2.1-app-build-1-r18` (`20118`)
+- Version: `0.2.1-app-build-1-r19` (`20119`)
 - Minimum/target/compile SDK: 24/36/36
 - Architectures: `arm64-v8a` and `x86_64`
 - Orientation: landscape
@@ -67,7 +67,7 @@ and visually inspected after packaging.
 ## Validation
 
 - Godot headless import: passed.
-- Complete deterministic matrix: 22 suites, 4,883 passed, 0 failed, using
+- Complete deterministic matrix: 22 suites, 4,884 passed, 0 failed, using
   isolated temporary AppData. Headless default customization is memory-only so
   legacy gameplay suites cannot write owner economy data.
 - Readiness: 93 artifacts, eight save fixtures, Core 0.5.1, Godot 4.7.
@@ -78,7 +78,7 @@ and visually inspected after packaging.
 - App Build 1 export contract: passed.
 - Physical-device safety fixtures: 60 passed, 0 failed.
 - Physical-device static safety contract: passed.
-- Revision 18 physical-device state: `UNVERIFIED`; no phone install, control or
+- Revision 19 physical-device state: `UNVERIFIED`; no phone install, control or
   capture is claimed. The earlier bounded ADB probe timed
   out before device classification. No serial, install, launch, or diagnostic
   mode was requested, and the probe was stopped cleanly with no ADB residue.
@@ -114,16 +114,19 @@ touch input path; real multitouch, a physical Android device and an iPad remain
 separate owner/device gates. The attire improvements are presentation-only and
 do not alter touch hit targets or phone/tablet layout.
 
-The refined predator-depth/identity suite passes 337/337, including every aquatic phase,
+The refined predator-depth/identity suite passes 338/338, including every aquatic phase,
 100 identical fixed-tick traces, real touch-driven Fred depth traversal,
 surface/underwater pass-under safety, same-depth damage, save-v1 exclusion and
 a 10,000-update 14 ms loop with zero measured memory growth. Real 1280x720
-Godot review confirmed readable surface, diving and underwater fish states;
-the discovered low-screen label overlap was corrected and rechecked. A second
-actual Level 100 lineup review showed all five named species together: the
+Godot review confirmed readable surface, diving and underwater fish states.
+Revision 19 removes the predator species/depth nameplates entirely while
+retaining non-text waterline, ripple, bubble, depth-tint and silhouette cues.
+Actual Level 100 lineup review at 1280x720 and phone-like 640x360 showed all
+five species together: the
 largemouth bass anatomy, long spotted pike, long barred muskie, scaled snake
-and long-necked heron were visibly distinct. Fred's former overhead
-locomotion/location label remained absent in active play.
+and long-necked heron were visibly distinct without overhead names. Objective,
+Lives, Energy, Pause, Exit and the bottom touch actions remained separated.
+Fred's former overhead locomotion/location label remained absent in active play.
 
 Revision 14 retains twelve inspectable Fred realism features and adds one typed
 deterministic animation contract for all seven wildlife families. Computer Use

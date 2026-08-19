@@ -2,23 +2,23 @@
 
 Updated: 2026-08-18
 
-## Current App Build 1 revision 18
+## Current App Build 1 revision 19
 
 The current guarded phone candidate supersedes the older artifact identities
-retained below for append-only history. Revision 18 is built from exact source
-`72e6678d3038df666f1b2f562a94568d85ead378` with the complete 100-level
+retained below for append-only history. Revision 19 is built from exact source
+`2b0931ba9a848c51e3820f8d361fccce6dbd9228` with the complete 100-level
 Campaign 1 profile set, touch-only player routing, age-five recovery floors,
 PG copy, the Moonpetal hero story, the bottom action row, mouth-clear aligned
 Fred gear, continuous touch leap traversal over predators without a round reset, deterministic
 surface/underwater routes for aquatic predators, upgraded Fred/wildlife
 anatomy, connected deterministic articulation, layered character volume,
 garment-specific anatomical Fred attire with soft fitted materials and no floating
-locomotion/location text above Fred.
+locomotion/location text above Fred or nameplates above predators.
 
 - artifact: `builds/android/fred-myers-app-build-1-debug.apk`;
-- SHA-256: `62E9BA3B105C264160D3F6810AB942A49AA666B75676D7BE9BD042FEC33A4D59`;
+- SHA-256: `799B883E0EAB2A66B8BE336E66AD39E1EABF9D7515FE9EA31051D6C116037D2C`;
 - size: 84,907,755 bytes;
-- version: `0.2.1-app-build-1-r18` (`20118`);
+- version: `0.2.1-app-build-1-r19` (`20119`);
 - package: `com.flinsappvault.fredmyers.dev`;
 - ABI: arm64-v8a and x86_64;
 - permissions: zero requested;
@@ -26,7 +26,7 @@ locomotion/location text above Fred.
 
 The same explicit serial and owner/save acknowledgement boundary applies. A
 zero-device result remains `DEVICE_NOT_CONNECTED / UNVERIFIED` and is not
-physical phone or tablet acceptance. Revision 18's 60/60 fictional safety
+physical phone or tablet acceptance. Revision 19's 60/60 fictional safety
 fixtures pass. No install, launch, selected serial, diagnostics, or phone
 control is performed by this packaging refresh, so physical testing remains
 `UNVERIFIED`.

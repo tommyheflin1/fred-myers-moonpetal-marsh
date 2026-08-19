@@ -198,6 +198,12 @@ curved hems follow Fred's belly; emblems and eyewear are restrained; and the
 Firefly cape bends and drops with deterministic pose state. All presentation
 values remain transient, reduced-motion safe, and isolated from gameplay.
 
+Revision 19 removes species/depth nameplates from every predator. Bass, pike,
+muskie, snake and heron remain distinguishable through their authored anatomy,
+while waterlines, concentric ripples, bubbles and depth occlusion communicate
+surface and underwater danger without floating text. Desktop and phone-like
+layouts retain separated touch controls; gameplay, saves and Core are unchanged.
+
 ## M1 sequencing
 
 1. Expand the repository source tree and retain the legacy build under `legacy-web/` or a tagged legacy branch.

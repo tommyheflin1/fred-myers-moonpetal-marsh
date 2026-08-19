@@ -7,9 +7,10 @@ Updated: 2026-08-18
 Bass, pike, muskie and the marsh snake now follow deterministic surface,
 diving, underwater and surfacing phases. The heron remains above water. Each
 aquatic cycle has a readable surface hold, an eased dive, a bounded underwater
-patrol and an eased return to the surface. Bubble, ripple, tint and explicit
-`SURFACE`, `DIVING`, `UNDERWATER` or `SURFACING` text cues communicate the
-predator's current band without relying on color alone.
+patrol and an eased return to the surface. Waterlines, concentric ripples,
+bubbles, depth tint and partial water occlusion communicate the predator's
+current band through shape and motion without relying on color or overhead
+text.
 
 Predator contact now requires both spatial overlap and depth overlap. Fred can
 swim underneath a predator while it is above water, or remain above one while
@@ -61,3 +62,16 @@ The refined focused suite passes **151/151**, including explicit anatomy and
 unique silhouette contracts for all five named predators plus a source guard
 against restoring Fred's overhead text. The complete 22-suite matrix passes
 **4,107/4,107** checks.
+
+## Revision 19 nameplate removal
+
+The predator species/depth nameplate is no longer drawn above or below any
+predator. Recognizable anatomy continues to identify bass, pike, muskie,
+snake and heron, while waterlines, ripples and bubbles preserve readable depth
+information. This is presentation-only: depth collision, damage, lives,
+progression, touch controls, save v1 and Core 0.5.1 are unchanged.
+
+The focused predator suite passes **338/338** and the complete 22-suite matrix
+passes **4,884/4,884**. Computer Use inspected the actual Level 100 lineup at
+1280x720 and 640x360; no predator name appeared, the five silhouettes remained
+distinct, and the bottom touch controls stayed separated.
