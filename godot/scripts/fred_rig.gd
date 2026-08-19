@@ -115,6 +115,10 @@ const REALISM_FEATURES: Array[String] = [
 	"mottled skin texture",
 	"articulated throat breathing",
 	"deterministic eyelid blink",
+	"layered cheek and brow volume",
+	"integrated shoulder and knee caps",
+	"wet skin rim lighting",
+	"subsurface belly shading",
 ]
 
 var last_error := ""
@@ -282,6 +286,10 @@ func realism_snapshot() -> Dictionary:
 	return {
 		"features": REALISM_FEATURES.duplicate(),
 		"feature_count": REALISM_FEATURES.size(),
+		"surface_model": "layered vector volume",
+		"volume_layers": 9,
+		"integrated_joint_caps": true,
+		"facial_depth": true,
 		"presentation_only": true,
 		"phone_safe_vector_rig": true,
 		"collision_mutation": false,
@@ -333,9 +341,13 @@ func _draw_skin_dimension(canvas: Node2D, world_position: Vector2, presentation_
 	var throat := float(micro.throat)
 	_draw_transformed_ellipse(canvas, _body_joint, Vector2(9.0, 7.0), Vector2(12.0, 17.0), Color(shadow, 0.34), world_position)
 	_draw_transformed_ellipse(canvas, _body_joint, Vector2(-9.0, -9.0), Vector2(8.0, 5.0), Color(highlight, 0.34), world_position)
+	_draw_transformed_ellipse(canvas, _body_joint, Vector2(-5.0,-4.0), Vector2(17.0,22.0), Color(body_color.lightened(0.20),0.16), world_position)
+	_draw_transformed_ellipse(canvas, _body_joint, Vector2(5.0,11.0), Vector2(17.0,12.0), Color(shadow,0.18), world_position)
 	_draw_transformed_ellipse(canvas, _body_joint, Vector2(0.0, 13.0+breath*0.18), Vector2(13.0+breath*0.25, 11.0+breath*0.28), Color(body_color.lightened(0.30), 0.16), world_position)
 	_draw_transformed_ellipse(canvas, _head_joint, Vector2(0.0, 9.0), Vector2(22.0, 8.0), Color(shadow, 0.20), world_position)
 	_draw_transformed_ellipse(canvas, _head_joint, Vector2(-8.0, -12.0), Vector2(10.0, 5.0), Color(highlight, 0.26), world_position)
+	_draw_transformed_ellipse(canvas, _head_joint, Vector2(-18.0,3.0), Vector2(10.0,9.0), Color(head_color.lightened(0.20),0.24), world_position)
+	_draw_transformed_ellipse(canvas, _head_joint, Vector2(18.0,4.0), Vector2(10.0,9.0), Color(shadow,0.18), world_position)
 	_draw_transformed_ellipse(canvas, _head_joint, Vector2(0.0, 12.0+throat*0.20), Vector2(17.0+throat*0.32, 6.5+throat*0.38), Color(head_color.lightened(0.34), 0.18), world_position)
 	_draw_transformed_ellipse(canvas, _head_joint, Vector2(0.0, 15.0+throat*0.24), Vector2(11.0+throat*0.25, 3.2+throat*0.30), Color(body_color.lightened(0.34),0.18), world_position)
 	for ear_x in [-23.0, 23.0]:
@@ -351,6 +363,8 @@ func _draw_skin_dimension(canvas: Node2D, world_position: Vector2, presentation_
 	for spot in [Vector2(-13.0,-8.0),Vector2(11.0,-13.0),Vector2(-7.0,17.0),Vector2(14.0,9.0)]:
 		_draw_transformed_ellipse(canvas, _body_joint, spot, Vector2(2.0,1.2), Color(shadow,0.22), world_position)
 	for node in [_hind_left, _hind_right]:
+		_draw_transformed_ellipse(canvas,node,Vector2(-15.0,6.0),Vector2(8.0,7.0),Color(shadow,0.38),world_position)
+		_draw_transformed_ellipse(canvas,node,Vector2(-16.5,4.5),Vector2(5.0,4.0),Color(highlight,0.32),world_position)
 		var muscle := _transformed_points(node, PackedVector2Array([Vector2(-2,-3),Vector2(-17,1),Vector2(-29,12)]), world_position)
 		canvas.draw_polyline(muscle, Color(highlight, 0.48), 2.2 * float(_style.size_scale), true)
 		var lower_muscle := _transformed_points(node, PackedVector2Array([Vector2(-27,13),Vector2(-32,19),Vector2(-31,25)]), world_position)
@@ -368,6 +382,7 @@ func _draw_front_limbs(canvas: Node2D, world_position: Vector2) -> void:
 		var elbow := points[1]
 		canvas.draw_circle(elbow, 5.0 * width_scale, outline)
 		canvas.draw_circle(elbow - Vector2(1.2,1.2), 3.0 * width_scale, fill.lightened(0.16))
+		canvas.draw_arc(elbow-Vector2(0.8,0.9),3.6*width_scale,3.35,6.0,10,Color(fill.lightened(0.42),0.64),1.2*width_scale,true)
 		var hand := points[points.size() - 1]
 		canvas.draw_colored_polygon(_ellipse_points(hand, Vector2(6.0, 4.0) * width_scale, 14), fill.lightened(0.10))
 		canvas.draw_polyline(_closed_points(_ellipse_points(hand, Vector2(6.0, 4.0) * width_scale, 14)), outline, 1.5 * width_scale, true)
@@ -385,6 +400,8 @@ func _draw_face_finish(canvas: Node2D, world_position: Vector2, presentation_tim
 	var head_color := (get_node("RootJoint/HeadJoint/Fill") as Polygon2D).color
 	var outline := (get_node("RootJoint/HeadJoint/MouthLine") as Line2D).default_color
 	_draw_transformed_ellipse(canvas, _head_joint, Vector2(0.0, 13.0), Vector2(14.0, 3.2), Color(head_color.lightened(0.34), 0.24), world_position)
+	_draw_transformed_ellipse(canvas,_head_joint,Vector2(-14.0,-17.0),Vector2(9.0,4.2),Color(head_color.lightened(0.30),0.28),world_position)
+	_draw_transformed_ellipse(canvas,_head_joint,Vector2(14.0,-17.0),Vector2(9.0,4.2),Color(head_color.darkened(0.18),0.18),world_position)
 	for eye in [_eye_left, _eye_right]:
 		var iris_center := world_position + _node_point(eye, Vector2(2.0, 0.0))
 		canvas.draw_circle(iris_center, 5.2 * float(_style.size_scale), Color("a6c95e"))

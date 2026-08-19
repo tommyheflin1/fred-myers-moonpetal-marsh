@@ -38,6 +38,16 @@ func _pose_signature(pose: Dictionary) -> Array:
 		snappedf(float(pose.arm_sweep),0.0001), snappedf(float(pose.glow),0.0001),
 	]
 
+func _surface_signature(surface: Dictionary) -> Array:
+	return [
+		str(surface.kind),int(surface.volume_layers),str(surface.surface_kind),
+		snappedf(float(surface.key_light),0.0001),snappedf(float(surface.underside_shadow),0.0001),
+		snappedf(float(surface.rim_strength),0.0001),snappedf(float(surface.wet_specular),0.0001),
+		snappedf(float(surface.feather_depth),0.0001),snappedf(float(surface.wing_translucency),0.0001),
+		snappedf(float(surface.joint_depth),0.0001),snappedf(float(surface.facial_depth),0.0001),
+		snappedf(float(surface.light_shift),0.0001),snappedf(float(surface.eye_glint),0.0001),
+	]
+
 func _run() -> void:
 	clean_files()
 	check(PredatorDepth.naturally_submerges("BASS"), "bass naturally uses surface and underwater bands")
@@ -121,15 +131,26 @@ func _run() -> void:
 		var normal_motion := absf(float(pose.tail_tip))+absf(float(pose.spine_amplitude))+absf(float(pose.wing_primary))+absf(float(pose.neck_curve))+absf(float(pose.hover_lift))
 		var reduced_motion_amount := absf(float(reduced_pose.tail_tip))+absf(float(reduced_pose.spine_amplitude))+absf(float(reduced_pose.wing_primary))+absf(float(reduced_pose.neck_curve))+absf(float(reduced_pose.hover_lift))
 		check(reduced_motion_amount <= normal_motion*0.20+0.001, "%s reduced motion restrains secondary articulation" % kind.to_lower())
+		var rig_surface: Dictionary = WildlifeAnimationRig.surface_profile(kind,0,1.375,false)
+		var repeated_surface: Dictionary = WildlifeAnimationRig.surface_profile(kind,0,1.375,false)
+		var reduced_surface: Dictionary = WildlifeAnimationRig.surface_profile(kind,0,1.375,true)
+		check(bool(rig_surface.valid) and _surface_signature(rig_surface)==_surface_signature(repeated_surface),"%s layered surface is deterministic" % kind.to_lower())
+		check(int(rig_surface.volume_layers)>=9 and not str(rig_surface.surface_kind).is_empty(),"%s exposes at least nine dimensional surface layers" % kind.to_lower())
+		check(float(rig_surface.joint_depth)>0.0 and float(rig_surface.facial_depth)>0.0,"%s surface integrates joints and facial depth" % kind.to_lower())
+		check(absf(float(reduced_surface.light_shift))<=absf(float(rig_surface.light_shift))*0.11+0.001,"%s reduced motion restrains moving specular light" % kind.to_lower())
+		check(bool(rig_surface.presentation_only) and not bool(rig_surface.collision_mutation) and int(rig_surface.save_fields)==0,"%s dimensional surface cannot change collision or save v1" % kind.to_lower())
 	check(not bool(WildlifeAnimationRig.pose("DRAGON",0,1.0).valid), "unknown wildlife cannot enter the articulation contract")
 	check(not bool(WildlifeAnimationRig.pose("BASS",-1,1.0).valid), "negative wildlife actor index fails closed")
 	check(not bool(WildlifeAnimationRig.pose("BASS",0,NAN).valid), "non-finite wildlife time fails closed")
+	check(not bool(WildlifeAnimationRig.surface_profile("DRAGON",0,1.0).valid),"unknown wildlife cannot enter the dimensional surface contract")
+	check(not bool(WildlifeAnimationRig.surface_profile("BASS",-1,1.0).valid),"negative actor index fails the dimensional surface contract")
+	check(not bool(WildlifeAnimationRig.surface_profile("BASS",0,NAN).valid),"non-finite time fails the dimensional surface contract")
 	var articulation_reference := 0
 	for trace_index in range(100):
 		var articulation_hash := 0
 		for tick in range(240):
 			for kind: String in WildlifeAnimationRig.SUPPORTED_KINDS:
-				articulation_hash = hash([articulation_hash,_pose_signature(WildlifeAnimationRig.pose(kind,tick%4,float(tick)/60.0,false))])
+				articulation_hash = hash([articulation_hash,_pose_signature(WildlifeAnimationRig.pose(kind,tick%4,float(tick)/60.0,false)),_surface_signature(WildlifeAnimationRig.surface_profile(kind,tick%4,float(tick)/60.0,false))])
 		if trace_index == 0:
 			articulation_reference = articulation_hash
 		check(articulation_hash == articulation_reference, "all-character articulation trace %03d is deterministic" % (trace_index+1))
@@ -139,7 +160,8 @@ func _run() -> void:
 		var sampled_predator: Dictionary = game._predator_identity_profile(Main.PREDATOR_SPECIES[identity_iteration % Main.PREDATOR_SPECIES.size()])
 		var sampled_wildlife: Dictionary = game._wildlife_identity_profile("BUG" if identity_iteration % 2 == 0 else "FAIRY")
 		var sampled_pose: Dictionary = WildlifeAnimationRig.pose(WildlifeAnimationRig.SUPPORTED_KINDS[identity_iteration%WildlifeAnimationRig.SUPPORTED_KINDS.size()],identity_iteration%4,float(identity_iteration)/60.0,identity_iteration%11==0)
-		identity_hash = hash([identity_hash,str(sampled_predator.silhouette),int(sampled_predator.detail_layers),str(sampled_wildlife.silhouette),_pose_signature(sampled_pose)])
+		var sampled_surface: Dictionary = WildlifeAnimationRig.surface_profile(WildlifeAnimationRig.SUPPORTED_KINDS[identity_iteration%WildlifeAnimationRig.SUPPORTED_KINDS.size()],identity_iteration%4,float(identity_iteration)/60.0,identity_iteration%11==0)
+		identity_hash = hash([identity_hash,str(sampled_predator.silhouette),int(sampled_predator.detail_layers),str(sampled_wildlife.silhouette),_pose_signature(sampled_pose),_surface_signature(sampled_surface)])
 	check(identity_hash != 0, "10,000 realism profile reads produce a stable observation")
 	check(game.session.to_save("2000-01-01T00:00:00Z") == stable_identity_snapshot, "realism profiles cannot mutate canonical gameplay or saves")
 	var main_source := FileAccess.get_file_as_string("res://scripts/main.gd")

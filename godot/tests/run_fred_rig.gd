@@ -68,13 +68,17 @@ func _run() -> void:
 	check(rig.get_node("RootJoint/HindLeft/GroundContact") is Marker2D and rig.get_node("RootJoint/HindRight/GroundContact") is Marker2D, "both feet expose authored ground contacts")
 	check(rig.get_node("RootJoint/FrontLeft") is Line2D and rig.get_node("RootJoint/FrontRight") is Line2D, "front limbs remain independently articulated")
 	var realism: Dictionary = rig.realism_snapshot()
-	check(int(realism.feature_count) == 12, "Fred exposes twelve inspectable anatomical, material and micro-motion realism features")
+	check(int(realism.feature_count) == 16, "Fred exposes sixteen inspectable anatomical, material, volume and micro-motion realism features")
 	for feature: String in ["dorsolateral folds", "visible tympanum", "horizontal frog pupils", "webbed fingers and toe pads", "mottled skin texture"]:
 		check(feature in Array(realism.features), "Fred realism contract includes %s" % feature)
 	check(bool(realism.presentation_only) and bool(realism.phone_safe_vector_rig), "Fred realism remains presentation-only and phone-safe")
 	check(not bool(realism.collision_mutation) and int(realism.save_fields) == 0, "Fred realism cannot alter collision or save-v1 authority")
 	for feature: String in ["articulated throat breathing","deterministic eyelid blink"]:
 		check(feature in Array(realism.features), "Fred micro-motion contract includes %s" % feature)
+	for feature: String in ["layered cheek and brow volume","integrated shoulder and knee caps","wet skin rim lighting","subsurface belly shading"]:
+		check(feature in Array(realism.features), "Fred dimensional surface contract includes %s" % feature)
+	check(str(realism.surface_model)=="layered vector volume" and int(realism.volume_layers)>=9,"Fred uses a deep layered vector surface model")
+	check(bool(realism.integrated_joint_caps) and bool(realism.facial_depth),"Fred surface model integrates joint caps and facial depth")
 	var micro_reference: Dictionary = rig.micro_motion_snapshot(2.37,false)
 	check(micro_reference == rig.micro_motion_snapshot(2.37,false), "Fred breathing and blink micro-motion is deterministic")
 	var micro_reduced: Dictionary = rig.micro_motion_snapshot(2.37,true)

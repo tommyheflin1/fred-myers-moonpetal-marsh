@@ -159,6 +159,16 @@ same silhouettes while sharply limiting secondary movement. These channels
 are transient presentation state only and cannot alter collision, rewards,
 progression, saves, touch controls or Core.
 
+Revision 15 deepens every active character rig with layered vector volume and
+integrated anatomy. Fred gains cheek, brow, belly and wet-skin depth plus
+shoulder, elbow and knee caps. Fish gain overlapping scale/muscle lighting,
+dimensional fin roots, gill covers and jaw volume. The snake gains overlapping
+keeled-scale volume and a deeper head/jaw; the heron gains layered contour
+feathers and highlighted leg joints; bugs and the life fairy gain segmented
+bodies, translucent wing roots and articulated limb joints. Moving specular
+cues remain deterministic and are restrained by reduced motion. The complete
+surface system remains transient and presentation-only.
+
 ## M1 sequencing
 
 1. Expand the repository source tree and retain the legacy build under `legacy-web/` or a tagged legacy branch.

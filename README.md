@@ -82,6 +82,7 @@ This repository owns Fred gameplay. Core owns only reusable, game-neutral servic
 - [Predator surface and underwater traversal](docs/M2_PREDATOR_DEPTH_TRAVERSAL.md)
 - [Fred and wildlife character-rig realism uplift](docs/M2_CHARACTER_RIG_REALISM_REPORT.md)
 - [All-character deterministic articulation uplift](docs/M2_ALL_CHARACTER_ARTICULATION_REPORT.md)
+- [All-character volume, surface, and joint uplift](docs/M2_CHARACTER_VOLUME_RIG_REPORT.md)
 
 ## Godot desktop owner candidate
 

@@ -71,6 +71,66 @@ static func pose(kind: String, actor_index: int, time_seconds: float, reduced_mo
 	result.valid = true
 	return result
 
+static func surface_profile(kind: String, actor_index: int, time_seconds: float, reduced_motion: bool = false) -> Dictionary:
+	var normalized_kind := kind.strip_edges().to_upper()
+	if normalized_kind not in SUPPORTED_KINDS or actor_index < 0 or not is_finite(time_seconds):
+		return _invalid_surface(normalized_kind, reduced_motion)
+	var phase := maxf(0.0, time_seconds) + float(SUPPORTED_KINDS.find(normalized_kind)) * 0.61 + float(actor_index) * 0.79
+	var motion_scale := 0.10 if reduced_motion else 1.0
+	var result := _base_surface(normalized_kind, reduced_motion)
+	result.light_shift = sin(phase * 0.54) * 0.035 * motion_scale
+	result.eye_glint = 0.88 + sin(phase * 0.72) * 0.06 * motion_scale
+	match normalized_kind:
+		"BASS", "PIKE", "MUSKIE":
+			result.volume_layers = 9
+			result.key_light = 0.30
+			result.underside_shadow = 0.36
+			result.rim_strength = 0.44
+			result.wet_specular = 0.72 + sin(phase * 0.83) * 0.04 * motion_scale
+			result.joint_depth = 0.78
+			result.facial_depth = 0.82
+			result.surface_kind = "overlapping scales and wet muscle volume"
+		"SNAKE":
+			result.volume_layers = 10
+			result.key_light = 0.27
+			result.underside_shadow = 0.42
+			result.rim_strength = 0.38
+			result.wet_specular = 0.48 + sin(phase * 0.64) * 0.035 * motion_scale
+			result.joint_depth = 0.90
+			result.facial_depth = 0.88
+			result.surface_kind = "overlapping keeled scales and muscular spine"
+		"HERON":
+			result.volume_layers = 11
+			result.key_light = 0.34
+			result.underside_shadow = 0.31
+			result.rim_strength = 0.48
+			result.feather_depth = 0.86
+			result.joint_depth = 0.82
+			result.facial_depth = 0.76
+			result.surface_kind = "layered contour feathers and jointed limbs"
+		"BUG":
+			result.volume_layers = 9
+			result.key_light = 0.31
+			result.underside_shadow = 0.40
+			result.rim_strength = 0.50
+			result.wing_translucency = 0.66
+			result.wet_specular = 0.42
+			result.joint_depth = 0.72
+			result.facial_depth = 0.64
+			result.surface_kind = "segmented shell and translucent veined wings"
+		"FAIRY":
+			result.volume_layers = 10
+			result.key_light = 0.36
+			result.underside_shadow = 0.28
+			result.rim_strength = 0.58
+			result.wing_translucency = 0.74
+			result.wet_specular = 0.36
+			result.joint_depth = 0.76
+			result.facial_depth = 0.72
+			result.surface_kind = "moonlit skin, articulated limbs and luminous wings"
+	result.valid = true
+	return result
+
 static func _base_pose(kind: String, reduced_motion: bool) -> Dictionary:
 	return {
 		"valid": false,
@@ -110,3 +170,28 @@ static func _base_pose(kind: String, reduced_motion: bool) -> Dictionary:
 
 static func _invalid_pose(kind: String, reduced_motion: bool) -> Dictionary:
 	return _base_pose(kind, reduced_motion)
+
+static func _base_surface(kind: String, reduced_motion: bool) -> Dictionary:
+	return {
+		"valid": false,
+		"kind": kind,
+		"volume_layers": 0,
+		"key_light": 0.0,
+		"underside_shadow": 0.0,
+		"rim_strength": 0.0,
+		"wet_specular": 0.0,
+		"feather_depth": 0.0,
+		"wing_translucency": 0.0,
+		"joint_depth": 0.0,
+		"facial_depth": 0.0,
+		"light_shift": 0.0,
+		"eye_glint": 0.0,
+		"surface_kind": "invalid",
+		"reduced_motion": reduced_motion,
+		"presentation_only": true,
+		"collision_mutation": false,
+		"save_fields": 0,
+	}
+
+static func _invalid_surface(kind: String, reduced_motion: bool) -> Dictionary:
+	return _base_surface(kind, reduced_motion)
