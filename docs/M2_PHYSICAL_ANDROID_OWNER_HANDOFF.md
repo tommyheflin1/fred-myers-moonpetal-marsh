@@ -2,19 +2,19 @@
 
 Updated: 2026-08-18
 
-## Current App Build 1 revision 7
+## Current App Build 1 revision 8
 
 The current guarded phone candidate supersedes the older artifact identities
-retained below for append-only history. Revision 7 is built from exact source
-`cd1becb04c4876dd4ab8f686ebca40ed63ca1bcc` with the complete 100-level
+retained below for append-only history. Revision 8 is built from exact source
+`edbd911a713bb8738f9959991a0ab975cf3817d0` with the complete 100-level
 Campaign 1 profile set, touch-only player routing, age-five recovery floors,
-PG copy, the Moonpetal hero story, the bottom action row and the aligned Fred
-goggles/glasses/visor presentation.
+PG copy, the Moonpetal hero story, the bottom action row and the mouth-clear,
+aligned Fred goggles/glasses/visor presentation.
 
 - artifact: `builds/android/fred-myers-app-build-1-debug.apk`;
-- SHA-256: `67B4FA71D21CA49D203621663684E9856A0CFB18426FF0974A701985EE244ADC`;
+- SHA-256: `1187E3CA614C7B3FDD97DD9BCBC51FEFB054E90041912A574AD83D62881F0C3A`;
 - size: 84,858,261 bytes;
-- version: `0.2.1-app-build-1-r7` (`20107`);
+- version: `0.2.1-app-build-1-r8` (`20108`);
 - package: `com.flinsappvault.fredmyers.dev`;
 - ABI: arm64-v8a and x86_64;
 - permissions: zero requested;

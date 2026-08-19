@@ -5,14 +5,14 @@ Updated: 2026-08-18
 ## Scope and authorization
 
 The owner's explicit next-phase instruction starts App Build 1 as a local
-testing phase. Revision 7 packages Campaign 1 as a touch-only, age-five-targeted
+testing phase. Revision 8 packages Campaign 1 as a touch-only, age-five-targeted
 PG family adventure with exactly 100 progressively harder levels. It retains
 the direct playfield drag steering, large bottom action row, sporty Fred art,
 six full-screen formations/backgrounds, coin-backed cosmetics, fresh-run Exit
 contract, wildlife, Moonpetal Promise story, touch instructions,
-child-readable aligned Fred gear and a dormant Apple Game Center scoring adapter.
+child-readable mouth-clear Fred gear and a dormant Apple Game Center scoring adapter.
 The exact product source checkpoint is
-`cd1becb04c4876dd4ab8f686ebca40ed63ca1bcc`; Core and save v1 remain unchanged.
+`edbd911a713bb8738f9959991a0ab975cf3817d0`; Core and save v1 remain unchanged.
 
 This build is not a production build, release, deployment, store submission,
 or physical-device acceptance result. It remains local and unpushed because
@@ -21,11 +21,11 @@ the configured GitHub repository is public.
 ## Artifact identity
 
 - Local artifact: `builds/android/fred-myers-app-build-1-debug.apk`
-- SHA-256: `67B4FA71D21CA49D203621663684E9856A0CFB18426FF0974A701985EE244ADC`
+- SHA-256: `1187E3CA614C7B3FDD97DD9BCBC51FEFB054E90041912A574AD83D62881F0C3A`
 - Size: 84,858,261 bytes
 - Package: `com.flinsappvault.fredmyers.dev`
 - Label: `Fred Myers App Build 1`
-- Version: `0.2.1-app-build-1-r7` (`20107`)
+- Version: `0.2.1-app-build-1-r8` (`20108`)
 - Minimum/target/compile SDK: 24/36/36
 - Architectures: `arm64-v8a` and `x86_64`
 - Orientation: landscape
@@ -60,10 +60,10 @@ and visually inspected after packaging.
 ## Validation
 
 - Godot headless import: passed.
-- Complete deterministic matrix: 21 suites, 3,818 passed, 0 failed, using
+- Complete deterministic matrix: 21 suites, 3,918 passed, 0 failed, using
   isolated temporary AppData. Headless default customization is memory-only so
   legacy gameplay suites cannot write owner economy data.
-- Readiness: 81 artifacts, eight save fixtures, Core 0.5.1, Godot 4.7.
+- Readiness: 86 artifacts, eight save fixtures, Core 0.5.1, Godot 4.7.
 - Desktop/icon handoff: 43 checks passed before the final shortcut refresh.
 - App Generation Engine/Apple readiness audit: 25 checks passed; all ten
   reusable foundation controls are present and Apple remains
@@ -81,9 +81,9 @@ and visually inspected after packaging.
 
 The focused Campaign 1 suite passed 1,328/1,328; the touch-only player-input
 suite passed 22/22; the M2 foundation suite passed 750/750; the authored rig
-suite passed 408/408; and the product-uplift suite passed 94/94. The latest
-visible Windows attire review covered the actual 1280x720 Godot customizer and
-cycled all four aligned face/body gear sets. Prior revision evidence also
+suite passed 508/508; and the product-uplift suite passed 94/94. Four actual
+1280x720 Godot customizer frames cover every mouth-clear face/body gear set.
+Prior revision evidence also
 covers constrained 960x540. The title's
 Campaign 1 / 100 levels / PG identity, Moonpetal Promise, three story cards and
 six touch instructions remained readable. Level 1 showed one introductory
