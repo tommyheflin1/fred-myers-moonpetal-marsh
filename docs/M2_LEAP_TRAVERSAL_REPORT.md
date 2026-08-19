@@ -4,23 +4,23 @@ Date: 2026-07-23 MDT
 
 ## Implemented slice
 
-Fred now has a transient fixed-tick traversal model with grounded, airborne and
-landing states. Space or the existing `LEAP` action launches a deterministic
-0.72-second arc. A pond click launches toward the pointer. The same
-device-independent action accepts synthetic controller/touch adapter events.
+Fred has a transient fixed-tick traversal model with grounded, airborne and
+landing states. The large touch-first `LEAP` action launches a deterministic
+0.72-second arc in Fred's current movement or facing direction. The same
+device-independent intent remains available to synthetic platform adapters.
 
 Airborne movement uses a fixed distance and readable height curve. Repeated
 leap input is rejected until landing completes. Pause freezes the traversal
 clock. A restrained camera response follows the arc and is disabled by reduced
 motion while the explicit `[AIRBORNE]` and `[LANDING]` cues remain.
 
-Moving lily pads, the starting shore, safe island and exit are valid landing
-surfaces. Open-water landings create a readable `LANDING SPLASH`, return Fred
-to the earned checkpoint (or the level's starting perch), and start a short
-ready countdown without removing a life. Even on Fred's last life, a missed
-leap cannot trigger failure. Predator and whirlpool contact remain the only
-nearby traversal hazards that remove a life; failure and retry return to
-grounded play.
+Moving lily pads, the starting shore, safe island and exit remain recognizable
+perches, but a leap does not require one. Every completed arc lands exactly at
+its deterministic endpoint and continues the same round. Open-water landing
+never teleports Fred, removes a life, mutates a checkpoint, or starts a ready
+countdown. While airborne Fred passes above surface predators, making `LEAP`
+a practical evasive move. Once grounded, predator contact is dangerous again;
+whirlpools remain hazardous throughout the arc.
 
 ## Persistence and architecture
 
@@ -36,12 +36,12 @@ personal data, deployment, export or signing.
 
 ## Automated evidence
 
-- `run_leap_traversal.gd`: deterministic arc/distance, repeated-input
-  rejection, 20 repeated scenarios, valid/invalid landing, zero-life-loss
-  splashback including the last-life boundary, pause/resume, failure/retry,
-  hazard cooldown, stable save/reload, reduced motion, mouse launch, synthetic
-  adapter intent and a 10,000-iteration timing check.
-- `run_keyboard_regression.gd`: a real parsed Space key event launches Fred.
+- `run_leap_traversal.gd`: 65/65 checks for deterministic arc/distance,
+  repeated-input rejection, 20 repeated scenarios, perch/open-water landing,
+  a full fixed-tick predator crossing, grounded danger, pause/resume,
+  failure/retry, stable save/reload, reduced motion, screen-touch input,
+  synthetic adapter intent and a 10,000-iteration timing check.
+- Complete regression matrix: 22 suites, 4,116 passed, 0 failed.
 - Existing movement, boost, dive/surface, predator, save/recovery, feedback,
   visual and 100-level foundation suites remain required.
 
@@ -51,16 +51,14 @@ remain protected human gates.
 
 ## Owner controls and review
 
-- Move/aim: WASD or arrows
-- Leap: Space
-- Pointer leap: click a landing direction in the pond
-- Boost: Shift
-- Dive/surface: Q/E
-- Pause/resume: P or Escape
+- Move/aim: touch and drag in the marsh
+- Leap: use the large bottom-row `LEAP` action
+- Boost, dive/surface and munch: use the named bottom-row actions
+- Pause/resume and exit: use the isolated top-row actions
 
-Review launch readability, apex visibility, safe no-life-loss splashback,
-camera comfort, pause while airborne and coexistence with life-removing
-predators and whirlpools.
+Review launch readability, apex visibility, landing continuity, camera comfort,
+pause while airborne, surface-predator clearance and coexistence with
+grounded predator/whirlpool danger.
 
 ## App Build 1 safe-leap correction
 
@@ -75,3 +73,19 @@ The focused suite passes 56/56, including the one-life boundary. The complete
 confirmed that `LIVES 3` remains unchanged after a missed leap and that the
 full `[SAFE SPLASH] Fred is safe. No life lost!` status fits the player panel.
 This runtime used isolated fictional AppData; owner saves were not opened.
+
+## App Build 1 revision 12 continuous-leap correction
+
+Owner review on 2026-08-18 clarified that `LEAP` must be a normal move Fred can
+use to jump over a predator, never a round-restart action. Revision 12 removes
+the missed-perch recovery route entirely. Open-water and perch landings both
+continue from the exact endpoint with the same lives, checkpoint and round;
+no respawn or countdown is created. Airborne predator overlap is ignored while
+grounded contact and whirlpools retain their established damage rules.
+
+The focused suite passes 65/65 and the complete 22-suite matrix passes
+4,116/4,116. A real 1280x720 Windows review used the same visible touch `LEAP`
+button as the phone layout, crossed a surface bass, and froze on the landing
+with the explicit status `[LEAP VERIFIED] Same round, 3 lives, no restart
+countdown.` The review used isolated fictional AppData and did not open owner
+saves.

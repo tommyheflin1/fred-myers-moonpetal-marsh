@@ -38,9 +38,11 @@ used on phones and tablets. Keyboard gameplay is disabled.
    `Munch`. Confirm Fred visibly eats it once. Try `Munch` outside the eligible
    boundary and confirm the miss does not collect a bug or double-trigger a reward.
 4. Exercise leap, boost, dive, surface, pause, and resume. Confirm no action
-   changes while the countdown or pause overlay owns input. Deliberately miss
-   a lily pad and confirm Fred splashes safely back to the current checkpoint
-   or starting perch without losing a life, including when only one life remains.
+   changes while the countdown or pause overlay owns input. Use `Leap` near a
+   surface predator and confirm Fred springs over it, lands beyond it, keeps
+   the same life count and round position, and never starts a restart countdown.
+   Landing in open water must also continue from the landing point. Grounded
+   predator contact and whirlpools remain hazards.
 5. Watch a bass, pike, muskie, or marsh snake cycle through `SURFACE`,
    `DIVING`, `UNDERWATER`, and `SURFACING`. Dive Fred beneath a surface
    predator and confirm he passes safely below it. Stay at the surface while

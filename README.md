@@ -10,7 +10,7 @@ surface/diving/underwater predator traversal with depth-aware collisions,
 species-specific bass, pike, muskie, snake and heron presentation,
 100-level progression foundation, stackable fairy lives, six rotating route
 formations and marsh treatments, coin-backed Fred customization, sport-character
-and wildlife presentation, safe missed-leap recovery, mobile-first UI, an Apple Game Center scoring adapter,
+and wildlife presentation, continuous leap traversal over predators, mobile-first UI, an Apple Game Center scoring adapter,
 the required Moonpetal hero story and touch-first instructions, and a
 development-only Android debug artifact. The branch remains local because the configured GitHub
 repository is public. No M2 push, production build, signing, deployment, store

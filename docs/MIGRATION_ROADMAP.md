@@ -131,6 +131,14 @@ Fred's floating locomotion/location words are removed from above his head,
 while the touch depth action and bottom status panel retain the necessary
 state information. The 22-suite matrix passes 4,107 checks.
 
+Revision 12 makes `LEAP` a continuous traversal action rather than a recovery
+event. Fred now lands at the end of every valid fixed-tick arc, including over
+open water, without teleporting to a checkpoint, removing a life, restarting
+the level, or showing another countdown. While airborne he clears surface
+predators; grounded contact and whirlpools remain dangerous. The touch-first
+instruction card now teaches this purpose. The focused leap suite passes 65
+checks and the 22-suite matrix passes 4,116 checks.
+
 ## M1 sequencing
 
 1. Expand the repository source tree and retain the legacy build under `legacy-web/` or a tagged legacy branch.

@@ -457,10 +457,17 @@ func _predator_danger_message(index: int) -> String:
     var location := "underwater" if float(predator_snapshot.depth) > 0.5 else "at the surface"
     return "[DANGER] A %s met Fred %s!" % [species.to_lower(), location]
 
+func _leap_clears_predators() -> bool:
+    # Leap is traversal, not a respawn action. While the arc is airborne Fred is
+    # above surface predators; landing on one is still dangerous because the
+    # traversal state has already changed to LANDING before collision checks.
+    return leap.state == LeapTraversal.State.AIRBORNE
+
 func _check_danger_collision() -> bool:
     if danger_cooldown_seconds > 0.0 or in_safe_location:
         return false
-    if _predator_can_hit(0) and fred.distance_to(predator) < float(level_profile.danger_radius):
+    var clears_predators := _leap_clears_predators()
+    if not clears_predators and _predator_can_hit(0) and fred.distance_to(predator) < float(level_profile.danger_radius):
         _apply_danger_hit(_predator_danger_message(0))
         return true
     if not hazards_enabled:
@@ -468,7 +475,7 @@ func _check_danger_collision() -> bool:
     var active_positions := _active_predator_positions()
     for index in range(1, active_positions.size()):
         var position: Vector2 = active_positions[index]
-        if _predator_can_hit(index) and fred.distance_to(position) < float(level_profile.danger_radius):
+        if not clears_predators and _predator_can_hit(index) and fred.distance_to(position) < float(level_profile.danger_radius):
             _apply_danger_hit(_predator_danger_message(index))
             return true
     for index in range(mini(int(level_profile.whirlpool_count), WHIRLPOOLS.size())):
@@ -518,7 +525,7 @@ func _request_leap(requested_direction: Vector2) -> bool:
         return false
     var accepted: bool = leap.request(requested_direction)
     if accepted:
-        _set_feedback("[LEAP] Fred launched toward a landing.")
+        _set_feedback("[LEAP] Fred sprang over the marsh!")
     return accepted
 
 func _can_dive_here(position: Vector2) -> bool:
@@ -565,25 +572,9 @@ func _is_valid_landing(position: Vector2) -> bool:
 func _resolve_landing() -> bool:
     if _is_valid_landing(fred):
         _set_feedback("[LANDING] Fred found a safe perch.")
-        return true
-    _recover_from_missed_landing()
-    return false
-
-func _recover_from_missed_landing() -> void:
-    impact_burst_origin = fred
-    impact_burst_seconds = 0.62
-    impact_burst_kind = "LANDING SPLASH"
-    leap.reset()
-    depth.reset("surface")
-    tongue.reset()
-    boost.cancel(session.boost_energy)
-    session.set_underwater(false)
-    animation.reset()
-    fred = _checkpoint_respawn_position()
-    _reset_camera()
-    danger_cooldown_seconds = float(level_profile.mistake_grace_seconds)
-    countdown_seconds = RESPAWN_COUNTDOWN_SECONDS if countdown_enabled else 0.0
-    _set_feedback("[SAFE SPLASH] Fred is safe. No life lost!")
+    else:
+        _set_feedback("[LANDING] Fred kept moving through the marsh.")
+    return true
 
 func _unhandled_input(event: InputEvent) -> void:
     if event is InputEventScreenTouch:
@@ -1025,7 +1016,7 @@ func _draw_instructions() -> void:
     _text(Vector2(640,93), "Touch the marsh to move. Use the big action buttons when Fred needs them.", 17, Color("d9f4e2"), HORIZONTAL_ALIGNMENT_CENTER, 1050)
     _draw_instruction_card(Rect2(55,120,370,145), "TOUCH + DRAG", ["Steer Fred anywhere", "in the open marsh."], Color("70d6c2"))
     _draw_instruction_card(Rect2(455,120,370,145), "MUNCH", ["Eat nearby bugs.", "Fairies can add a life."], Color("e67b4a"))
-    _draw_instruction_card(Rect2(855,120,370,145), "LEAP", ["Jump between lily pads", "and land on safe perches."], Color("67c96f"))
+    _draw_instruction_card(Rect2(855,120,370,145), "LEAP", ["Jump over predators.", "Land and keep moving."], Color("67c96f"))
     _draw_instruction_card(Rect2(55,295,370,145), "BOOST", ["Hold for a quick burst.", "Rest while energy refills."], Color("e4b943"))
     _draw_instruction_card(Rect2(455,295,370,145), "DIVE / SURFACE", ["Explore above and below", "the Moonpetal water."], Color("4d9fd8"))
     _draw_instruction_card(Rect2(855,295,370,145), "STAY SAFE", ["Dive under surface predators.", "Bubbles mean danger is underwater."], Color("d984ad"))

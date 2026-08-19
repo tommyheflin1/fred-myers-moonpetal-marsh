@@ -71,22 +71,51 @@ func _run() -> void:
 	check(not game._request_leap(Vector2.UP), "game rejects repeated input while airborne")
 	check(game._is_valid_landing(game._pad_position(0)), "moving lily pad is a valid landing")
 	check(game._is_valid_landing(game.SAFE_LOCATION), "safe island is a valid landing")
-	check(not game._is_valid_landing(Vector2(600, 200)), "open water is an invalid landing")
+	check(not game._is_valid_landing(Vector2(600, 200)), "open water is distinguished from a perch")
 
 	game.leap.reset()
 	game.fred = Vector2(600, 200)
 	var health_before: int = game.session.health
-	check(not game._resolve_landing(), "invalid landing is rejected")
-	check(game.session.health == health_before and game.fred == game.START, "invalid landing safely returns Fred without costing a life")
-	check(game.screen == game.Screen.PLAYING and game.countdown_seconds == game.RESPAWN_COUNTDOWN_SECONDS, "invalid landing keeps the level active with a short ready countdown")
-	check(game.impact_burst_kind == "LANDING SPLASH", "invalid landing has a non-color splash cue")
-	check(game.save_feedback.contains("No life lost"), "invalid landing truthfully tells the player that Fred is safe")
+	var checkpoint_before: String = game.session.current_checkpoint
+	check(game._resolve_landing(), "open-water landing continues the round")
+	check(game.session.health == health_before and game.fred == Vector2(600, 200), "open-water landing never teleports Fred or costs a life")
+	check(game.screen == game.Screen.PLAYING and game.countdown_seconds == 0.0, "open-water landing adds no restart countdown")
+	check(game.session.current_checkpoint == checkpoint_before, "ordinary landing does not mutate checkpoint progress")
+	check(game.save_feedback.contains("kept moving"), "open-water landing gives truthful continuation feedback")
 
-	game.session.health = 1
-	game.fred = Vector2(600, 200)
-	check(not game._resolve_landing(), "last-life missed landing is rejected safely")
-	check(game.session.health == 1 and game.screen == game.Screen.PLAYING, "missed leap cannot kill Fred on the last life")
-	game.session.health = health_before
+	game.fred = Vector2(520, 320)
+	game.predator = game.fred
+	game.leap.reset()
+	check(game._request_leap(Vector2.RIGHT), "Fred can launch while a surface predator is close")
+	game.leap.advance(LeapTraversal.AIRBORNE_SECONDS * 0.5)
+	var airborne_health: int = game.session.health
+	check(game._leap_clears_predators(), "airborne leap explicitly clears surface predators")
+	check(not game._check_danger_collision(), "airborne overlap passes over a predator without damage")
+	check(game.session.health == airborne_health and game.screen == game.Screen.PLAYING, "predator clearance keeps the same round and lives")
+
+	game.leap.reset()
+	game.fred = Vector2(520, 320)
+	game.predator = Vector2(588, 320)
+	game.predator_direction = 0.0
+	game.danger_cooldown_seconds = 0.0
+	game.countdown_seconds = 0.0
+	var route_health: int = game.session.health
+	var route_checkpoint: String = game.session.current_checkpoint
+	check(game._request_leap(Vector2.RIGHT), "touch-ready leap starts a real fixed-tick predator crossing")
+	for frame in range(44):
+		game._fixed_tick(1.0 / 60.0)
+	check(game.fred.x > 650.0 and game.leap.state == LeapTraversal.State.LANDING, "full leap arc lands beyond the predator instead of returning to start")
+	check(game.session.health == route_health and game.screen == game.Screen.PLAYING, "full predator crossing preserves the same round and life count")
+	check(game.session.current_checkpoint == route_checkpoint and game.countdown_seconds == 0.0, "full predator crossing creates no checkpoint or countdown restart")
+
+	game.leap.reset()
+	game.predator = game.fred
+	check(not game._leap_clears_predators(), "grounded Fred has no leap clearance")
+	check(game._check_danger_collision(), "grounded predator contact remains dangerous")
+	check(game.session.health == airborne_health - 1, "grounded predator contact still costs exactly one life")
+	game.danger_cooldown_seconds = 0.0
+	game.countdown_seconds = 0.0
+	game.predator = Vector2(1200, 650)
 
 	game.leap.reset()
 	game.screen = game.Screen.PLAYING

@@ -31,7 +31,7 @@ func _review() -> void:
 	root.add_child(game)
 	await process_frame
 	game._start()
-	if scenario == "level1":
+	if scenario in ["level1", "leap"]:
 		game.level_number = 1
 	elif scenario == "predators":
 		game.level_number = 100
@@ -44,16 +44,45 @@ func _review() -> void:
 	game.predator = game._route_point(game.PREDATOR_START)
 	game.predator_direction = -1.0 if Layout.is_reversed(game.level_number) else 1.0
 	game.last_aim_direction = Layout.route_direction(game.level_number)
+	if scenario == "leap":
+		game.fred = Vector2(520, 360)
+		game.predator = Vector2(585, 360)
+		game.predator_direction = 0.0
 	game._set_feedback(
 		"[PHONE REVIEW] Two lives remain after one hit."
 		if scenario == "lives"
 		else (
 			"[SPECIES REVIEW] Bass, pike, heron, snake and muskie use distinct anatomy."
 			if scenario == "predators"
-			else "[PHONE REVIEW] %s route with touch controls." % Layout.route_label(game.level_number)
+			else (
+				"[LEAP REVIEW] Tap LEAP to spring over the bass and keep the same round."
+				if scenario == "leap"
+				else "[PHONE REVIEW] %s route with touch controls." % Layout.route_label(game.level_number)
+			)
 		)
 	)
 	game.queue_redraw()
+	if scenario == "leap":
+		_monitor_first_leap(game)
+
+func _monitor_first_leap(game: Node2D) -> void:
+	var saw_airborne := false
+	while is_instance_valid(game):
+		await process_frame
+		if not saw_airborne:
+			# Keep the bass visibly at the surface until the owner presses LEAP;
+			# the arc then completes inside the normal deterministic depth window.
+			game.simulation_time = 0.0
+		if game.leap.state == FredLeapTraversal.State.AIRBORNE:
+			saw_airborne = true
+		elif saw_airborne:
+			game.set_process(false)
+			game._set_feedback(
+				"[LEAP VERIFIED] Same round, %d lives, no restart countdown."
+				% game.session.health
+			)
+			game.queue_redraw()
+			return
 
 func _clean() -> void:
 	for suffix: String in [".json", ".backup.json", ".tmp.json"]:
