@@ -204,6 +204,12 @@ while waterlines, concentric ripples, bubbles and depth occlusion communicate
 surface and underwater danger without floating text. Desktop and phone-like
 layouts retain separated touch controls; gameplay, saves and Core are unchanged.
 
+Revision 20 replaces paper-like current chevrons and straight bars with layered
+curved streamlines, strength-dependent foam, underwater depth response, and
+fitted eddies/wakes around pads and the safe perch. Reduced motion freezes the
+flow while retaining direction and depth cues. The established deterministic
+gameplay force remains unchanged and separate from this presentation layer.
+
 ## M1 sequencing
 
 1. Expand the repository source tree and retain the legacy build under `legacy-web/` or a tagged legacy branch.

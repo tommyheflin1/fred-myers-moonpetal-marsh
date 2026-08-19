@@ -5,7 +5,7 @@ Updated: 2026-08-18
 ## Scope and authorization
 
 The owner's explicit next-phase instruction starts App Build 1 as a local
-testing phase. Revision 19 packages Campaign 1 as a touch-only, age-five-targeted
+testing phase. Revision 20 packages Campaign 1 as a touch-only, age-five-targeted
 PG family adventure with exactly 100 progressively harder levels. It retains
 the direct playfield drag steering, large bottom action row, sporty Fred art,
 six full-screen formations/backgrounds, coin-backed cosmetics, fresh-run Exit
@@ -16,10 +16,10 @@ deterministic surface/underwater routes for naturally aquatic predators,
 depth-aware danger collisions, upgraded Fred/predator/bug/fairy anatomy and
 connected deterministic character articulation, layered vector body volume,
 integrated joints and facial depth, clean label-free space above Fred and every
-predator, and a dormant Apple Game Center scoring adapter.
+predator, realistic depth-aware marsh currents and a dormant Apple Game Center scoring adapter.
 The exact package source checkpoint is
-`2b0931ba9a848c51e3820f8d361fccce6dbd9228`; the focused predator-nameplate
-removal is the same commit. Core and save v1 remain unchanged.
+`6833cc5f698d73cb225935117edd6a6fa6961b86`; the focused realistic-current
+implementation is the same commit. Core and save v1 remain unchanged.
 
 This build is not a production build, release, deployment, store submission,
 or physical-device acceptance result. It remains local and unpushed because
@@ -28,11 +28,11 @@ the configured GitHub repository is public.
 ## Artifact identity
 
 - Local artifact: `builds/android/fred-myers-app-build-1-debug.apk`
-- SHA-256: `799B883E0EAB2A66B8BE336E66AD39E1EABF9D7515FE9EA31051D6C116037D2C`
-- Size: 84,907,755 bytes
+- SHA-256: `2580F146554214BB2C35655CE92A57ABFDDF8322C3EC1114605DBE707370033E`
+- Size: 84,912,026 bytes
 - Package: `com.flinsappvault.fredmyers.dev`
 - Label: `Fred Myers App Build 1`
-- Version: `0.2.1-app-build-1-r19` (`20119`)
+- Version: `0.2.1-app-build-1-r20` (`20120`)
 - Minimum/target/compile SDK: 24/36/36
 - Architectures: `arm64-v8a` and `x86_64`
 - Orientation: landscape
@@ -67,10 +67,10 @@ and visually inspected after packaging.
 ## Validation
 
 - Godot headless import: passed.
-- Complete deterministic matrix: 22 suites, 4,884 passed, 0 failed, using
+- Complete deterministic matrix: 23 suites, 5,145 passed, 0 failed, using
   isolated temporary AppData. Headless default customization is memory-only so
   legacy gameplay suites cannot write owner economy data.
-- Readiness: 93 artifacts, eight save fixtures, Core 0.5.1, Godot 4.7.
+- Readiness: 96 artifacts, eight save fixtures, Core 0.5.1, Godot 4.7.
 - Desktop/icon handoff: 43 checks passed before the final shortcut refresh.
 - App Generation Engine/Apple readiness audit: 25 checks passed; all ten
   reusable foundation controls are present and Apple remains
@@ -78,7 +78,7 @@ and visually inspected after packaging.
 - App Build 1 export contract: passed.
 - Physical-device safety fixtures: 60 passed, 0 failed.
 - Physical-device static safety contract: passed.
-- Revision 19 physical-device state: `UNVERIFIED`; no phone install, control or
+- Revision 20 physical-device state: `UNVERIFIED`; no phone install, control or
   capture is claimed. The earlier bounded ADB probe timed
   out before device classification. No serial, install, launch, or diagnostic
   mode was requested, and the probe was stopped cleanly with no ADB residue.
@@ -127,6 +127,15 @@ largemouth bass anatomy, long spotted pike, long barred muskie, scaled snake
 and long-necked heron were visibly distinct without overhead names. Objective,
 Lives, Energy, Pause, Exit and the bottom touch actions remained separated.
 Fred's former overhead locomotion/location label remained absent in active play.
+
+Revision 20 replaces repeated text chevrons and straight water bars with 28
+curved, layered streamlines, depth-aware color/speed, restrained strong-current
+foam, and fitted eddies/wakes around every lily pad and the safe perch. The
+focused current suite passes 261/261, including 100 identical traces and a
+10,000-calculation 187 ms loop with 680 bytes measured growth. Computer Use
+inspected moving 1280x720 frames and a reduced-motion 640x360 frame; direction,
+depth and obstacle wakes remained readable without obscuring Fred, predators,
+objectives or the bottom touch controls.
 
 Revision 14 retains twelve inspectable Fred realism features and adds one typed
 deterministic animation contract for all seven wildlife families. Computer Use

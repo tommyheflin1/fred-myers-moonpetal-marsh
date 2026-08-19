@@ -2,23 +2,24 @@
 
 Updated: 2026-08-18
 
-## Current App Build 1 revision 19
+## Current App Build 1 revision 20
 
 The current guarded phone candidate supersedes the older artifact identities
-retained below for append-only history. Revision 19 is built from exact source
-`2b0931ba9a848c51e3820f8d361fccce6dbd9228` with the complete 100-level
+retained below for append-only history. Revision 20 is built from exact source
+`6833cc5f698d73cb225935117edd6a6fa6961b86` with the complete 100-level
 Campaign 1 profile set, touch-only player routing, age-five recovery floors,
 PG copy, the Moonpetal hero story, the bottom action row, mouth-clear aligned
 Fred gear, continuous touch leap traversal over predators without a round reset, deterministic
 surface/underwater routes for aquatic predators, upgraded Fred/wildlife
 anatomy, connected deterministic articulation, layered character volume,
 garment-specific anatomical Fred attire with soft fitted materials and no floating
-locomotion/location text above Fred or nameplates above predators.
+locomotion/location text above Fred, no nameplates above predators, and
+realistic deterministic marsh currents with reduced-motion-safe cues.
 
 - artifact: `builds/android/fred-myers-app-build-1-debug.apk`;
-- SHA-256: `799B883E0EAB2A66B8BE336E66AD39E1EABF9D7515FE9EA31051D6C116037D2C`;
-- size: 84,907,755 bytes;
-- version: `0.2.1-app-build-1-r19` (`20119`);
+- SHA-256: `2580F146554214BB2C35655CE92A57ABFDDF8322C3EC1114605DBE707370033E`;
+- size: 84,912,026 bytes;
+- version: `0.2.1-app-build-1-r20` (`20120`);
 - package: `com.flinsappvault.fredmyers.dev`;
 - ABI: arm64-v8a and x86_64;
 - permissions: zero requested;
@@ -26,7 +27,7 @@ locomotion/location text above Fred or nameplates above predators.
 
 The same explicit serial and owner/save acknowledgement boundary applies. A
 zero-device result remains `DEVICE_NOT_CONNECTED / UNVERIFIED` and is not
-physical phone or tablet acceptance. Revision 19's 60/60 fictional safety
+physical phone or tablet acceptance. Revision 20's 60/60 fictional safety
 fixtures pass. No install, launch, selected serial, diagnostics, or phone
 control is performed by this packaging refresh, so physical testing remains
 `UNVERIFIED`.

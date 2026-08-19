@@ -5,7 +5,7 @@ $ErrorActionPreference = "Stop"
 $ToolPath = Join-Path (Split-Path -Parent $PSScriptRoot) "validate_physical_android_device.ps1"
 $RepoRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 $ApkPath = Join-Path $RepoRoot "builds\android\fred-myers-app-build-1-debug.apk"
-$ExpectedHash = "799B883E0EAB2A66B8BE336E66AD39E1EABF9D7515FE9EA31051D6C116037D2C"
+$ExpectedHash = "2580F146554214BB2C35655CE92A57ABFDDF8322C3EC1114605DBE707370033E"
 $TempRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("fred-physical-preflight-" + [guid]::NewGuid().ToString("N"))
 $Passed = 0
 $Failed = 0
@@ -80,7 +80,7 @@ function Invoke-Case {
 
 New-Item -ItemType Directory -Path $TempRoot -Force | Out-Null
 try {
-    $normalMetadata = '{"package":"com.flinsappvault.fredmyers.dev","version_code":20119,"version_name":"0.2.1-app-build-1-r19","min_sdk":24,"target_sdk":36,"abis":["arm64-v8a","x86_64"],"permission_count":0}'
+    $normalMetadata = '{"package":"com.flinsappvault.fredmyers.dev","version_code":20120,"version_name":"0.2.1-app-build-1-r20","min_sdk":24,"target_sdk":36,"abis":["arm64-v8a","x86_64"],"permission_count":0}'
     $normalFacts = '{"api":35,"abis":["arm64-v8a"],"free_storage_kb":1048576,"installed":false,"installed_version_code":0}'
     $header = "List of devices attached`r`n"
 
@@ -94,7 +94,7 @@ try {
     $wrongHash = (Get-FileHash -LiteralPath $wrongHashApk -Algorithm SHA256).Hash
     Invoke-Case "wrong-hash" $header "APK_HASH_MISMATCH" 42 "" $normalMetadata "" $wrongHashApk $wrongHash
 
-    $wrongPackage = '{"package":"com.example.wrong","version_code":20119,"version_name":"0.2.1-app-build-1-r19","min_sdk":24,"target_sdk":36,"abis":["arm64-v8a","x86_64"],"permission_count":0}'
+    $wrongPackage = '{"package":"com.example.wrong","version_code":20120,"version_name":"0.2.1-app-build-1-r20","min_sdk":24,"target_sdk":36,"abis":["arm64-v8a","x86_64"],"permission_count":0}'
     Invoke-Case "wrong-package" $header "APK_PACKAGE_MISMATCH" 43 "" $wrongPackage
 
     $oldApi = '{"api":23,"abis":["arm64-v8a"],"free_storage_kb":1048576,"installed":false,"installed_version_code":0}'
