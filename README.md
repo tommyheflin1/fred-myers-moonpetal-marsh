@@ -74,6 +74,10 @@ This repository owns Fred gameplay. Core owns only reusable, game-neutral servic
 - [App Build 1 local test evidence](docs/APP_BUILD_1_TEST_REPORT.md)
 - [App Generation Engine adoption and Apple readiness](docs/APP_GENERATION_ENGINE_APPLE_READINESS_STATUS.md)
 - [Fred iOS unsigned handoff plan](docs/IOS_HANDOFF_PLAN.md)
+- [App Store Connect and TestFlight Build 1 package](docs/APP_STORE_CONNECT_BUILD_1_PACKAGE.md)
+- [Fred privacy policy content draft](docs/FRED_PRIVACY_POLICY_DRAFT.md)
+- [Fred support content draft](docs/FRED_SUPPORT_DRAFT.md)
+- [iOS App Build 1 handoff report](docs/IOS_APP_BUILD_1_HANDOFF_REPORT.md)
 - [M2 mobile-first product and visual uplift](docs/M2_PRODUCT_UPLIFT_REPORT.md)
 - [M2 touch-first phone and tablet controls](docs/M2_TOUCH_FIRST_PHONE_TABLET_CONTROLS.md)
 - [M2 Fred hero story and touch-first instructions](docs/M2_HERO_STORY_INSTRUCTIONS.md)
@@ -126,6 +130,14 @@ The physical-phone handoff is hash guarded and read-only by default. With no
 authorized phone connected it returns `DEVICE_NOT_CONNECTED / UNVERIFIED`;
 install, launch, and bounded Fred-only diagnostics require an explicit physical
 serial plus owner/save acknowledgements.
+
+The iOS source boundary now includes an unsigned iPhone+iPad preset for version
+1.0 build 1, an offline-safe native Game Center adapter and a hash-guarded Mac
+handoff. Run `python tools/validate_ios_preparation.py` on Windows. After the
+exact commit is frozen, `python tools/prepare_ios_handoff.py
+--expected-commit <SHA>` creates the ignored transfer bundle. The authenticated
+Mac runner is the only path that may sign and upload the owner-approved first
+TestFlight build; App Review and public release remain separate gates.
 
 ## Legacy source
 

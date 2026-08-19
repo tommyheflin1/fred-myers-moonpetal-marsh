@@ -3,3 +3,6 @@ godot/.godot/
 builds/
 exports/
 *.tmp
+__pycache__/
+*.pyc
+godot/docs/evidence/*.png.import

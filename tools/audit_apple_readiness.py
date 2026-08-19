@@ -95,15 +95,24 @@ def main() -> None:
             and "application/short_version" in preset
             and "application/version" in preset
         ),
+        "game_center_adapter_and_ids": (
+            (ROOT / "godot/scripts/game_center_adapter.gd").is_file()
+            and "com.flinsvault.fredmyers.adventure_score" in read(
+                ROOT / "godot/scripts/game_center_adapter.gd"
+            )
+            and "com.flinsvault.fredmyers.highest_level" in read(
+                ROOT / "godot/scripts/game_center_adapter.gd"
+            )
+        ),
         "privacy_manifest_audited": bool(privacy_manifests),
         "unsigned_xcode_handoff_manifest": (
-            ROOT / "builds" / "ios" / "handoff-manifest.json"
+            ROOT / "builds" / "ios-handoff" / "handoff-manifest.json"
         ).is_file(),
         "xcode_26_ios_26_sdk_validation": bool(ios_evidence),
         "simulator_runtime_evidence": False,
         "physical_iphone_ipad_evidence": False,
         "live_game_center_or_sign_in_with_apple": False,
-        "owner_approved_signing_testflight_or_submission": False,
+        "signed_archive_uploaded_to_testflight": False,
     }
 
     missing = [name for name, ready in apple.items() if not ready]
@@ -125,8 +134,9 @@ def main() -> None:
         "apple_readiness": apple,
         "missing_apple_gates": missing,
         "protected_next_action": (
-            "Create and validate a local unsigned iOS preset and exact macOS handoff; "
-            "do not sign, upload, enable providers, or use TestFlight without owner approval."
+            "Freeze the exact local handoff, create the separate Fred App Store Connect record, "
+            "then use the already owner-authorized Mac path for Build 1 signing and TestFlight upload; "
+            "do not submit App Review or release publicly."
         ),
     }
     print(json.dumps(output, sort_keys=True))

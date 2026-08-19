@@ -14,11 +14,14 @@ and server-verification requirement without pretending Windows can activate
 Game Center. The executable audit reports
 `STRONG_REUSE` for all ten foundation controls.
 
-Fred is not yet an Apple test candidate. The current Apple execution status is
-truthfully `APPLE_PREPARATION_REQUIRED`: one of ten platform items is prepared
-(the 1024-pixel platform icon master), while the iOS export, privacy, macOS,
-Simulator, physical-device, provider, signing, and TestFlight gates have not
-run. This is a short operational gap rather than an architecture rewrite.
+Fred now has the local source needed for an Apple test candidate. The current
+Apple execution status remains truthfully `APPLE_PREPARATION_REQUIRED`: the
+1024-pixel icon master, unsigned iPhone+iPad preset, bundle/version/build
+identity, offline-safe Game Center adapter and permanent leaderboard IDs are
+prepared. The exact macOS handoff is frozen locally after the clean commit.
+Privacy-manifest,
+Xcode 26, Simulator, physical-device, sandbox Game Center, signed archive,
+upload and TestFlight processing gates have not run.
 
 Run the current local audit with:
 
@@ -60,10 +63,11 @@ levels, story, audio, and art.
 
 ## Remaining Apple preparation
 
-1. Add a Fred-owned local `iOS Unsigned Preparation` preset with an
-   owner-confirmed bundle ID, monotonic build number, minimum OS, device
-   families, landscape policy, and no team/signing identity.
-2. Create the exact source/handoff manifest and transfer validation script.
+1. Freeze the clean exact source into the hash-guarded macOS Git bundle and
+   handoff manifest.
+2. Create the separate Fred App Store Connect record, verify
+   `com.flinsvault.fredmyers`, create both leaderboard records and confirm that
+   version 1.0 build 1 is unused.
 3. Export on a supported Mac with Xcode 26 and the iOS/iPadOS 26 SDK or later,
    then record the generated Xcode project and toolchain hashes.
 4. Audit Godot and included code for required-reason APIs; add and validate
@@ -75,15 +79,13 @@ levels, story, audio, and art.
 6. Run iPhone and iPad Simulator matrices, then representative physical
    iPhone/iPad touch, safe-area, lifecycle, audio, save, performance, battery,
    and thermal testing.
-7. Map `fred_marsh_adventure_progress` to an owner-created Game Center
-   leaderboard identifier on macOS, inject the native bridge, and activate Game
-   Center or Sign in with Apple only after the owner approves the entitlement,
-   App ID, and provider effects; preserve guest/offline play.
-8. Prepare App Store Connect privacy answers, privacy-policy/support URLs,
-   metadata, screenshots, age rating, test information, and release notes from
-   the exact build.
-9. Stop again for owner approval before signing, archive/upload, TestFlight,
-   submission, or release.
+7. Build the pinned official Game Center plugin and map the two checked-in
+   leaderboard identifiers to the owner-created Apple records; preserve
+   guest/offline play.
+8. Upload the exact signed Build 1 under the owner's current TestFlight
+   authorization, wait for processing and attach it only to approved internal
+   testers.
+9. Stop again before App Review submission or public release.
 
 Apple currently requires iOS/iPadOS uploads to use the iOS/iPadOS 26 SDK or
 later, documents a 1024 by 1024 layered app-icon layout whose final mask is
@@ -98,12 +100,11 @@ privacy information. Recheck these official requirements at execution time:
 
 ## Questions intentionally deferred to the protected owner gate
 
-Only choices that affect Apple records or release authority should need owner
-input: final production bundle/App ID, Apple team and signing custody,
-minimum-supported device/OS policy, Game Center/Sign in with Apple enablement,
-tester groups, and the exact upload/submission/release action. Everything else
-should follow the checked-in plan and generated evidence.
+The owner has authorized a $2.99 paid app and the first TestFlight build upload.
+Apple team/signing custody stays on the authenticated Mac. App Review
+submission, public release, final storefront/regulatory choices, tester groups
+and legal/media-rights acceptance remain separate owner gates.
 
-No Apple account, credential, certificate, provisioning profile, entitlement,
-App Store Connect record, upload, TestFlight build, signing, submission, or
-release was created or changed by this audit.
+No Apple credential, certificate, provisioning profile, App Store Connect
+record, signed archive, upload, TestFlight build, submission, or release was
+created or changed by this local preparation.

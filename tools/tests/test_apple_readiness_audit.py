@@ -36,18 +36,20 @@ check(
     payload["apple_execution_status"] == "APPLE_PREPARATION_REQUIRED",
     "audit must not imply Apple readiness before protected gates run",
 )
-check(payload["apple_items_prepared"] == 1, "only the platform icon should be prepared")
-check(payload["apple_items_total"] == 10, "Apple gate denominator changed")
+check(payload["apple_items_prepared"] >= 4, "local iOS identity and Game Center preparation should be present")
+check(payload["apple_items_total"] == 11, "Apple gate denominator changed")
 check(payload["apple_readiness"]["platform_icon_master_1024"] is True, "icon master missing")
+check(payload["apple_readiness"]["ios_export_preset"] is True, "iOS preset missing")
+check(payload["apple_readiness"]["ios_bundle_and_build_identity"] is True, "iOS identity missing")
+check(payload["apple_readiness"]["game_center_adapter_and_ids"] is True, "Game Center adapter missing")
 for required_gap in (
-    "ios_export_preset",
     "privacy_manifest_audited",
     "xcode_26_ios_26_sdk_validation",
     "simulator_runtime_evidence",
     "physical_iphone_ipad_evidence",
-    "owner_approved_signing_testflight_or_submission",
+    "signed_archive_uploaded_to_testflight",
 ):
     check(required_gap in payload["missing_apple_gates"], f"missing gap: {required_gap}")
 
-check("do not sign" in payload["protected_next_action"], "protected boundary is unclear")
+check("do not submit App Review" in payload["protected_next_action"], "public-release boundary is unclear")
 print(f"Apple readiness audit tests passed: {checks} checks")

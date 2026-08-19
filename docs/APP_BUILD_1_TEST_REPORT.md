@@ -17,14 +17,17 @@ deterministic surface/underwater routes for naturally aquatic predators,
 depth-aware danger collisions, upgraded Fred/predator/bug/fairy anatomy and
 connected deterministic character articulation, layered vector body volume,
 integrated joints and facial depth, clean label-free space above Fred and every
-predator, realistic depth-aware marsh currents and a dormant Apple Game Center scoring adapter.
+predator, realistic depth-aware marsh currents, an offline-safe native Apple
+Game Center adapter and a reproducible unsigned iOS handoff.
 The exact package source checkpoint and focused rig/graphics implementation is
 `c3e09aa64d7eb13a578f53ee24eec88dc1e29957`. Core and save v1 remain
 unchanged.
 
-This build is not a production build, release, deployment, store submission,
-or physical-device acceptance result. It remains local and unpushed because
-the configured GitHub repository is public.
+This build is not a public release, App Review submission, deployment or
+physical-device acceptance result. The owner has authorized the first
+TestFlight upload, but the signed Mac archive and App Store Connect processing
+have not occurred. Source remains local and unpushed because the configured
+GitHub repository is public.
 
 ## Artifact identity
 
@@ -68,14 +71,24 @@ and visually inspected after packaging.
 ## Validation
 
 - Godot headless import: passed.
-- Complete deterministic matrix: 23 suites, 5,189 passed, 0 failed, using
+- Complete deterministic matrix: 24 suites, 5,208 passed, 0 failed, using
   isolated temporary AppData. Headless default customization is memory-only so
   legacy gameplay suites cannot write owner economy data.
-- Readiness: 96 artifacts, eight save fixtures, Core 0.5.1, Godot 4.7.
+- Readiness: 120 artifacts, eight save fixtures, Core 0.5.1, Godot 4.7.
 - Desktop/icon handoff: 43 checks passed before the final shortcut refresh.
-- App Generation Engine/Apple readiness audit: 25 checks passed; all ten
-  reusable foundation controls are present and Apple remains
-  `APPLE_PREPARATION_REQUIRED`.
+- App Generation Engine/Apple readiness audit: 27 checks passed; all ten
+  reusable foundation controls are present. Five of eleven Apple execution
+  items are locally prepared and Apple remains `APPLE_PREPARATION_REQUIRED`.
+- iOS preparation contract: ten checks passed for the unsigned iPhone+iPad
+  preset, version 1.0 build 1, source/production bundle split, no source signing
+  identity, official-plugin pin and two permanent Fred leaderboard IDs.
+- iOS generated-export helpers: seven checks passed; official Game Center
+  plugin validator: four checks passed; all three shell handoff/upload scripts
+  passed syntax validation.
+- Accurate App Store media: sixteen visually inspected RGB screenshots passed
+  exact-size/hash validation at 2868x1320 (6.9-inch iPhone landscape) and
+  2752x2064 (13-inch iPad landscape). Manifest SHA-256:
+  `4DE7F4565416FBFCCE144ABD6C6D99C2D89898C504FA4E0F5B212952662875E0`.
 - App Build 1 export contract: passed.
 - Physical-device safety fixtures: 60 passed, 0 failed.
 - Physical-device static safety contract: passed.
@@ -183,16 +196,20 @@ The owner primary and backup gameplay saves remained byte- and timestamp-identic
 - primary: 592 bytes, `20DE8645123BFECD973D3A1A1F82A4BE4F9731B3A015246C64908A07B40F1318`;
 - backup: 592 bytes, `89056C555969729AB89E17B78E82B0F632F55AA9FFF375B83DCBEC03C9793C76`.
 
-## Owner gate
+## Owner gates
 
-The next owner action is to connect one authorized Android phone with USB
-debugging, run the read-only preflight with its explicit serial, review the
-result, and separately approve install/launch. The guarded workflow forbids
-implicit target selection, uninstall, clear-data, downgrade, root, permission
-grant, bootloader, or broad log capture.
+Android physical-device acceptance still requires one explicitly authorized
+phone and the guarded serial-specific preflight. The workflow forbids implicit
+target selection, uninstall, clear-data, downgrade, root, permission grant,
+bootloader or broad log capture.
 
-Milestone percentages do not increase for packaging or planning alone. The
-next Apple engineering action is a local unsigned iOS preset plus exact
-macOS/Xcode handoff; production signing, Game Center/provider activation,
-TestFlight, submission, publication, and release remain separate protected
-future gates.
+For Apple, create a separate Fred App Store Connect record rather than reusing
+Snake Reactor's record, confirm `com.flinsvault.fredmyers`, create the two Game
+Center leaderboards, verify $2.99 agreements/storefronts and then run the exact
+Mac handoff. The owner has authorized signing and upload of version 1.0 build 1
+to TestFlight only. Simulator, physical iPhone/iPad, sandbox Game Center,
+archive privacy and TestFlight processing evidence remain open.
+
+Milestone percentages do not increase for packaging or planning alone. App
+Review submission, external/public availability and public release remain
+separate protected future gates.

@@ -10,6 +10,7 @@ const FredRigScene = preload("res://scenes/fred_rig.tscn")
 const MarshRouteLayout = preload("res://scripts/marsh_route_layout.gd")
 const FrogCustomization = preload("res://scripts/frog_customization.gd")
 const AppleGameScoring = preload("res://scripts/apple_game_scoring.gd")
+const GameCenterAdapter = preload("res://scripts/game_center_adapter.gd")
 const PredatorDepth = preload("res://scripts/predator_depth.gd")
 const WildlifeAnimationRig = preload("res://scripts/wildlife_animation_rig.gd")
 
@@ -72,6 +73,8 @@ var camera_follow: RefCounted = CameraFollow.new()
 var leaderboard := FredLocalLeaderboard.new()
 var customization: RefCounted = FrogCustomization.new()
 var game_scoring: RefCounted = AppleGameScoring.new()
+var game_center: Node
+var game_center_status := "OFFLINE MARSH BOARD"
 var menu_music: AudioStreamPlayer
 var chase_music: AudioStreamPlayer
 var audio_enabled := true
@@ -163,6 +166,18 @@ func _ready() -> void:
     if not fred_rig.validate_contract():
         push_warning("Fred rig is using its safe fallback: %s" % fred_rig.last_error)
     var result := saver.load_session(session)
+    game_center = GameCenterAdapter.new()
+    add_child(game_center)
+    var game_center_available := bool(game_center.configure())
+    game_scoring.configure(
+        OS.get_name(),
+        GameCenterAdapter.SCORE_LEADERBOARD_ID if game_center_available else "",
+        game_center_available
+    )
+    if game_center_available:
+        game_center.sign_in_completed.connect(_on_game_center_sign_in_completed)
+        game_center_status = "GAME CENTER READY"
+        game_center.begin_sign_in()
     boost.reset()
     _set_feedback(FredSaveFeedback.load_message(result))
     menu_music = AudioStreamPlayer.new()
@@ -179,6 +194,13 @@ func _ready() -> void:
     _sync_fred_style()
     _sync_music()
     set_process(true)
+
+func _on_game_center_sign_in_completed(result: Dictionary) -> void:
+    if bool(result.get("ok", false)):
+        game_center_status = "GAME CENTER CONNECTED"
+    else:
+        game_center_status = "OFFLINE MARSH BOARD"
+    queue_redraw()
     queue_redraw()
 
 func _process(delta: float) -> void:
@@ -264,7 +286,11 @@ func _fixed_tick(delta: float) -> void:
     if fred.distance_to(_level_exit_position()) < 55 and session.complete_level():
         leaderboard.submit(identity.profile_label, level_number, session.bug_count, session.health)
         customization.earn_coins(15 + mini(10, level_number / 10))
-        game_scoring.record_level_completion(level_number, session.bug_count, session.health, customization.coins)
+        var score_result: Dictionary = game_scoring.record_level_completion(
+            level_number, session.bug_count, session.health, customization.coins
+        )
+        if is_instance_valid(game_center):
+            game_center.submit_personal_records(int(score_result.event.score), level_number)
         _sync_fred_style()
         screen = Screen.COMPLETE; _save("Lily Leap is complete.")
 
@@ -1996,7 +2022,7 @@ func _draw_leaderboard() -> void:
     draw_circle(Vector2(180,120), 110, Color(0.2,0.75,0.55,0.08))
     draw_circle(Vector2(1100,600), 170, Color(0.5,0.3,0.8,0.07))
     _text(Vector2(640,70), "LOCAL MARSH LEADERS", 42, Color("f7d36a"), HORIZONTAL_ALIGNMENT_CENTER, 850)
-    _text(Vector2(640,112), "Offline-first scores • Apple Game Center adapter ready for iOS", 17, Color("d9f4e2"), HORIZONTAL_ALIGNMENT_CENTER, 850)
+    _text(Vector2(640,112), "Offline-first scores • %s" % game_center_status, 17, Color("d9f4e2"), HORIZONTAL_ALIGNMENT_CENTER, 850)
     draw_rect(Rect2(260,145,760,450), Color(0.01,0.07,0.10,0.90), true)
     draw_rect(Rect2(260,145,760,450), Color("70d6c2"), false, 3)
     _text(Vector2(300,180), "RANK", 16, Color("b9f5c7"), HORIZONTAL_ALIGNMENT_LEFT, 90)
@@ -2016,7 +2042,7 @@ func _draw_leaderboard() -> void:
             _text(Vector2(740,y), "%03d" % int(entry.get("level",1)), 17, Color.WHITE, HORIZONTAL_ALIGNMENT_LEFT, 90)
             _text(Vector2(875,y), str(entry.get("score",0)), 17, Color("fff0ae"), HORIZONTAL_ALIGNMENT_LEFT, 110)
     _button(Rect2(490,620,300,55), "HOME")
-    _text(Vector2(640,704), "Game Center activation and verified online submission remain Apple-build gates.", 13, Color("bfd8dc"), HORIZONTAL_ALIGNMENT_CENTER, 900)
+    _text(Vector2(640,704), "Game Center keeps guest play available when Apple services are offline.", 13, Color("bfd8dc"), HORIZONTAL_ALIGNMENT_CENTER, 900)
 
 func _button(rect: Rect2, label: String) -> void:
     draw_rect(Rect2(rect.position+Vector2(0,6),rect.size), Color(0.0,0.02,0.03,0.55), true)

@@ -14,26 +14,26 @@ claiming Fred iOS readiness.
 - Save: `fred_save` v1, offline-first with atomic backup recovery.
 - Orientation: landscape, preserving the current 1280 by 720 design and
   safe-area/touch layout contract.
-- Identity: guest play remains available. `FredAppleGameScoring` now defines
-  the platform-neutral `fred_marsh_adventure_progress` event and bounded
-  offline queue; the native Game Center bridge, leaderboard identifier and
-  entitlements stay disabled until an owner-approved macOS test.
+- Identity: guest play remains available. `FredAppleGameScoring` defines the
+  platform-neutral `fred_marsh_adventure_progress` event and bounded offline
+  queue. `FredGameCenterAdapter` uses the official native plugin only on iOS;
+  unavailable authentication falls back to the local board.
+- Production bundle: `com.flinsvault.fredmyers`; source preparation bundle:
+  `com.flinsvault.fredmyers.dev`.
+- Version/build: `1.0` (`1`).
+- Minimum OS and family: iOS/iPadOS 15.0; iPhone and iPad.
+- Game Center records: `com.flinsvault.fredmyers.adventure_score` and
+  `com.flinsvault.fredmyers.highest_level`.
 - Icon inputs: `fred-app-icon-v3-platform.png` is the 1024-pixel full-bleed
   platform master; `fred-moonpetal-crest-v3.png` is the transparent foreground
   source for later Icon Composer layering.
 - Release: manual. TestFlight and App Store release require separate approval.
 
-## Values that must be confirmed before the unsigned preset is frozen
-
-- Development and production bundle/App IDs.
-- Marketing version and next monotonic Apple build number.
-- Minimum iOS/iPadOS version and supported iPhone/iPad families.
-- Whether Game Center, Sign in with Apple, achievements, leaderboards, cloud
-  save, or haptics are enabled in the tested build.
-
-No portal mutation is needed merely to draft or validate an unsigned preset.
-Do not invent a team ID, certificate, profile, App ID, leaderboard ID, or
-achievement ID.
+The fixed values above are now the local Build 1 contract. App Store Connect
+must still confirm availability and that build 1 is unused. No team ID,
+certificate, profile, key or Apple credential is stored in source. Build 1
+enables Game Center personal records only; Sign in with Apple, achievements,
+cloud save and haptics remain off.
 
 ## Windows freeze and transfer
 
@@ -66,15 +66,15 @@ achievement ID.
 
 ## Protected follow-on gates
 
-- Owner confirms Apple team, bundle/App ID, signing custody, capabilities,
-  devices/testers, build number, and whether the next action is local device,
-  TestFlight, or submission.
+- Owner has authorized the first signed TestFlight upload and $2.99 U.S. base
+  price. The authenticated Mac must still prove team/signing custody, App ID,
+  capability and build-number availability.
 - Test representative physical iPhone and iPad before release-candidate credit.
 - Query App Store Connect before upload to prevent a build-number collision.
 - Upload once, then query processing state before any retry.
-- Internal TestFlight, external beta review, App Review submission, price,
-  territories, agreements, privacy answers, and manual public release are
-  individually approval-bound.
+- App Review submission and manual public release remain approval-bound. Price,
+  territories, agreements, privacy answers and tester access must still be
+  verified in App Store Connect.
 
 ## Stop conditions
 
