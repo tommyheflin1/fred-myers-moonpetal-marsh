@@ -2,6 +2,26 @@
 
 Date: 2026-07-24
 
+## Current App Build 1 revision 4
+
+The current guarded phone candidate supersedes the older artifact identities
+retained below for append-only history. Revision 4 is built from exact source
+`3f00fff76c568d35ec72913e03bce2714819faae` with direct touch-and-drag steering
+and the bottom Munch, Leap, Boost, and Dive/Surface action row.
+
+- artifact: `builds/android/fred-myers-app-build-1-debug.apk`;
+- SHA-256: `760971B1F10BBC8672030C5397CE1E477B9CE6F0B04FA596749BD46A98E3EF4F`;
+- size: 84,845,973 bytes;
+- version: `0.2.1-app-build-1-r4` (`20104`);
+- package: `com.flinsappvault.fredmyers.dev`;
+- ABI: arm64-v8a and x86_64;
+- permissions: zero requested;
+- signing: Godot development/debug certificate only.
+
+The same explicit serial and owner/save acknowledgement boundary applies. A
+zero-device result remains `DEVICE_NOT_CONNECTED / UNVERIFIED` and is not
+physical phone or tablet acceptance.
+
 ## Scope and result
 
 This Fred-only handoff begins from exact gameplay/APK source commit

@@ -5,12 +5,12 @@ Updated: 2026-08-18
 ## Scope and authorization
 
 The owner's explicit next-phase instruction starts App Build 1 as a local
-testing phase. Revision 3 packages the mobile-first product and presentation
-uplift on local branch `codex/app-build-1`: sporty Fred art, six full-screen
-formations/backgrounds, coin-backed cosmetics, a fresh-run Exit contract,
-non-overlapping phone controls, richer wildlife and the dormant Apple Game
-Center scoring adapter. The exact product source checkpoint is
-`c0495dcc4c67afc3f0818230e8d2b63c33a15fd4`; Core and save v1 remain unchanged.
+testing phase. Revision 4 packages the touch-first phone/tablet control uplift
+on local branch `codex/app-build-1`: direct playfield drag steering, a large
+bottom action row, sporty Fred art, six full-screen formations/backgrounds,
+coin-backed cosmetics, a fresh-run Exit contract, richer wildlife and the
+dormant Apple Game Center scoring adapter. The exact product source checkpoint
+is `3f00fff76c568d35ec72913e03bce2714819faae`; Core and save v1 remain unchanged.
 
 This build is not a production build, release, deployment, store submission,
 or physical-device acceptance result. It remains local and unpushed because
@@ -19,11 +19,11 @@ the configured GitHub repository is public.
 ## Artifact identity
 
 - Local artifact: `builds/android/fred-myers-app-build-1-debug.apk`
-- SHA-256: `C9FB181368524592918600235F1AE7B8083F5850CA5511BA61E6B0999F7CEB1B`
-- Size: 84,841,877 bytes
+- SHA-256: `760971B1F10BBC8672030C5397CE1E477B9CE6F0B04FA596749BD46A98E3EF4F`
+- Size: 84,845,973 bytes
 - Package: `com.flinsappvault.fredmyers.dev`
 - Label: `Fred Myers App Build 1`
-- Version: `0.2.1-app-build-1-r3` (`20103`)
+- Version: `0.2.1-app-build-1-r4` (`20104`)
 - Minimum/target/compile SDK: 24/36/36
 - Architectures: `arm64-v8a` and `x86_64`
 - Orientation: landscape
@@ -55,10 +55,10 @@ and visually inspected after packaging.
 ## Validation
 
 - Godot headless import: passed.
-- Complete deterministic matrix: 18 suites, 2,280 passed, 0 failed, using
+- Complete deterministic matrix: 19 suites, 2,335 passed, 0 failed, using
   isolated temporary AppData. Headless default customization is memory-only so
   legacy gameplay suites cannot write owner economy data.
-- Readiness: 74 artifacts, eight save fixtures, Core 0.5.1, Godot 4.7.
+- Readiness: 76 artifacts, eight save fixtures, Core 0.5.1, Godot 4.7.
 - Desktop/icon handoff: 43 checks passed before the final shortcut refresh.
 - App Generation Engine/Apple readiness audit: 25 checks passed; all ten
   reusable foundation controls are present and Apple remains
@@ -73,6 +73,13 @@ and visually inspected after packaging.
 - Mobile Game Core remains version 0.5.1 at tree
   `288d87420c5694f80c071f00aa71a0b581f9f60c`.
 - `fred_save` remains schema v1.
+
+The focused touch-first suite passed 55/55. Visible Windows review covered
+1280x720 normal motion, 960x540 reduced motion, and 1024x768 tablet scaling.
+The action row, steering guide, status, Objective, Lives, Energy, Pause, and
+Exit remained separated and readable. Mouse drag/button review uses the exact
+touch input path; real multitouch, a physical Android device, and an iPad remain
+separate owner/device gates.
 
 No phone was installed to, controlled, or captured. Emulator shader limits
 from the earlier M2 run are not relabeled as App Build 1 phone acceptance.

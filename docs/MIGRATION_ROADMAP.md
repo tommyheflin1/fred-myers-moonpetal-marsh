@@ -66,8 +66,8 @@ remain unchanged.
 
 Owner direction on 2026-08-03 starts the local App Build 1 testing phase. The
 exact latest desktop/icon candidate is packaged as a newer debug-only Android
-artifact, now refreshed as revision 3 version `0.2.1-app-build-1-r3`
-(`20103`), with the existing development
+artifact, now refreshed as touch-first revision 4 version
+`0.2.1-app-build-1-r4` (`20104`), with the existing development
 package identity, zero requested permissions, and a refreshed source/artifact
 hash guard. Package creation and automated checks do not substitute for
 physical-phone acceptance and do not unlock production or store actions.
