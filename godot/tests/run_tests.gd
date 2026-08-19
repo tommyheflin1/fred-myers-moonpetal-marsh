@@ -76,7 +76,9 @@ func _run() -> void:
     check(FredSaveAdapter.new(prefix).load_session(AdventureSession.new()).get("source") == "default", "offline startup with no backend and no save")
     var game: Node2D = load("res://scripts/main.gd").new(); game.saver = FredSaveAdapter.new(prefix); game.leaderboard = FredLocalLeaderboard.new(leaderboard_path); game.countdown_enabled = false; root.add_child(game); await process_frame
     check(game.screen == game.Screen.TITLE, "level initializes at title")
-    game._handle_click(game.TITLE_START_RECT.get_center()); check(game.screen == game.Screen.PLAYING, "desktop pointer starts game")
+    game._handle_click(game.TITLE_START_RECT.get_center()); check(game.screen == game.Screen.STORY, "desktop pointer opens Fred's hero story")
+    game._handle_click(game.STORY_CONTINUE_RECT.get_center()); check(game.screen == game.Screen.INSTRUCTIONS, "hero story continues to touch-first instructions")
+    game._handle_click(game.INSTRUCTIONS_PLAY_RECT.get_center()); check(game.screen == game.Screen.PLAYING, "instruction flow starts playable level")
     game.session.collect_bug(); game.session.collect_bug(); game.session.collect_bug(); game.fred = game.EXIT; game._fixed_tick(0.0)
     check(game.screen == game.Screen.COMPLETE, "playable level completion condition")
     game._handle_click(Vector2(640,530))

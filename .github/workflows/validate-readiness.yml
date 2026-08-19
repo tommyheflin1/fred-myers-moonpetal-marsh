@@ -65,6 +65,8 @@ jobs:
         run: ./Godot_v4.7.1-stable_linux.x86_64 --headless --path godot --script res://tests/run_lives_routes_phone_layout.gd
       - name: Run touch-first phone and tablet controls tests
         run: ./Godot_v4.7.1-stable_linux.x86_64 --headless --path godot --script res://tests/run_touch_first_controls.gd
+      - name: Run Fred hero story and instructions tests
+        run: ./Godot_v4.7.1-stable_linux.x86_64 --headless --path godot --script res://tests/run_story_instructions.gd
       - name: Verify exact Core agreement
         run: |
           test "$(cat godot/CORE_VERSION)" = "0.5.1"

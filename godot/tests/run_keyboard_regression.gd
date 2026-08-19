@@ -59,7 +59,11 @@ func _run() -> void:
     check(game.screen == game.Screen.TITLE, "keyboard harness starts at title")
 
     await tap_key(KEY_ENTER)
-    check(game.screen == game.Screen.PLAYING, "Enter starts the accepted M1 level")
+    check(game.screen == game.Screen.STORY, "Enter opens the required hero story")
+    await tap_key(KEY_ENTER)
+    check(game.screen == game.Screen.INSTRUCTIONS, "Enter advances to touch-first instructions")
+    await tap_key(KEY_ENTER)
+    check(game.screen == game.Screen.PLAYING, "Enter starts the accepted M1 level after onboarding")
 
     game.predator = Vector2(1200, 650)
     game.fred = Vector2(400, 400)
@@ -133,6 +137,10 @@ func _run() -> void:
         and game.session.current_checkpoint == AdventureSession.CHECKPOINTS[1],
         "new runtime restores midpoint save"
     )
+    await tap_key(KEY_ENTER)
+    check(game.screen == game.Screen.STORY, "restored session still opens the required hero story")
+    await tap_key(KEY_ENTER)
+    check(game.screen == game.Screen.INSTRUCTIONS, "restored session still opens instructions")
     await tap_key(KEY_ENTER)
     check(game.screen == game.Screen.PLAYING and game.fred == game._pad_position(3), "Enter resumes at restored checkpoint")
 

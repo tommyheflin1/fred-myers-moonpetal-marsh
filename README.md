@@ -9,7 +9,8 @@ the deterministic Fred rig, leap/swim/depth/tongue/boost/camera traversal,
 100-level progression foundation, stackable fairy lives, six rotating route
 formations and marsh treatments, coin-backed Fred customization, sport-character
 and wildlife presentation, mobile-first UI, an Apple Game Center scoring adapter,
-and a development-only Android debug artifact. The branch remains local because the configured GitHub
+the required Moonpetal hero story and touch-first instructions, and a
+development-only Android debug artifact. The branch remains local because the configured GitHub
 repository is public. No M2 push, production build, signing, deployment, store
 submission, or release is claimed.
 
@@ -66,6 +67,7 @@ This repository owns Fred gameplay. Core owns only reusable, game-neutral servic
 - [Fred iOS unsigned handoff plan](docs/IOS_HANDOFF_PLAN.md)
 - [M2 mobile-first product and visual uplift](docs/M2_PRODUCT_UPLIFT_REPORT.md)
 - [M2 touch-first phone and tablet controls](docs/M2_TOUCH_FIRST_PHONE_TABLET_CONTROLS.md)
+- [M2 Fred hero story and touch-first instructions](docs/M2_HERO_STORY_INSTRUCTIONS.md)
 
 ## Godot desktop owner candidate
 
@@ -93,6 +95,10 @@ Exit action, Fred start area, and landscape touch controls.
 App Build 1 uses a touch-first landscape control model on phones and tablets:
 touch and drag anywhere in the open marsh to steer Fred, then use the large
 bottom-row Munch, Leap, Boost, and Dive/Surface buttons. Pause and Exit remain
+isolated in the top HUD. Starting the adventure now requires two short,
+touch-friendly screens: the Moonpetal Promise explains why Fred must become the
+hero in every little frog's dreams, and How to Be a Marsh Hero teaches the
+movement, action, danger, life, fairy, objective, coin, and customization rules.
 separate at the top. The desktop owner shortcut displays this same interface
 and maps mouse dragging through the exact touch-control path for review.
 

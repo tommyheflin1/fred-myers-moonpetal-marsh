@@ -149,6 +149,8 @@ func _run() -> void:
     enter.keycode = KEY_ENTER
     enter.pressed = true
     game._unhandled_input(enter)
+    game._unhandled_input(enter)
+    game._unhandled_input(enter)
     game.fred = Vector2(500, 500)
     game._unhandled_input(enter)
     check(game.screen == game.Screen.PLAYING and game.fred == Vector2(500, 500), "repeated confirm does not restart navigation")

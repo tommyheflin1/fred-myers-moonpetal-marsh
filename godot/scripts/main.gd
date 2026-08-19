@@ -11,7 +11,7 @@ const MarshRouteLayout = preload("res://scripts/marsh_route_layout.gd")
 const FrogCustomization = preload("res://scripts/frog_customization.gd")
 const AppleGameScoring = preload("res://scripts/apple_game_scoring.gd")
 
-enum Screen { TITLE, PLAYING, FAILED, COMPLETE, LEADERBOARD, CUSTOMIZE }
+enum Screen { TITLE, STORY, INSTRUCTIONS, PLAYING, FAILED, COMPLETE, LEADERBOARD, CUSTOMIZE }
 const START := Vector2(135, 560)
 const EXIT := Vector2(1150, 165)
 const PADS := [Vector2(220,500), Vector2(350,420), Vector2(490,500), Vector2(630,390), Vector2(760,300), Vector2(900,225), Vector2(1040,165)]
@@ -25,6 +25,10 @@ const RESPAWN_COUNTDOWN_SECONDS := 2.0
 const TITLE_START_RECT := Rect2(90,405,390,68)
 const TITLE_CUSTOMIZE_RECT := Rect2(90,490,390,58)
 const TITLE_LEADERBOARD_RECT := Rect2(90,565,390,58)
+const STORY_HOME_RECT := Rect2(85,630,250,60)
+const STORY_CONTINUE_RECT := Rect2(815,630,380,60)
+const INSTRUCTIONS_HOME_RECT := Rect2(85,630,250,60)
+const INSTRUCTIONS_PLAY_RECT := Rect2(815,630,380,60)
 const CUSTOM_HOME_RECT := Rect2(490,635,300,56)
 const CUSTOM_CARDS := {
     "body": Rect2(120,205,245,165),
@@ -270,7 +274,7 @@ func _sync_music() -> void:
         menu_music.stop()
         chase_music.stop()
         return
-    var wants_menu := screen in [Screen.TITLE, Screen.LEADERBOARD, Screen.CUSTOMIZE]
+    var wants_menu := screen in [Screen.TITLE, Screen.STORY, Screen.INSTRUCTIONS, Screen.LEADERBOARD, Screen.CUSTOMIZE]
     if wants_menu:
         if chase_music.playing: chase_music.stop()
         if not menu_music.playing: menu_music.play()
@@ -582,7 +586,10 @@ func _unhandled_input(event: InputEvent) -> void:
     if not event is InputEventKey and event.is_action_pressed("interact") and screen == Screen.PLAYING:
         _request_tongue(last_aim_direction)
     if not event is InputEventKey and event.is_action_pressed("retry") and screen == Screen.FAILED: _retry()
-    if not event is InputEventKey and event.is_action_pressed("confirm") and screen == Screen.TITLE: _start()
+    if not event is InputEventKey and event.is_action_pressed("confirm"):
+        if screen == Screen.TITLE: _open_story()
+        elif screen == Screen.STORY: _open_instructions()
+        elif screen == Screen.INSTRUCTIONS: _start()
     if event is InputEventKey and event.pressed and not event.echo:
         match event.keycode:
             KEY_Q:
@@ -600,7 +607,9 @@ func _unhandled_input(event: InputEvent) -> void:
             KEY_H:
                 if screen in [Screen.FAILED, Screen.LEADERBOARD]: _go_home()
             KEY_ENTER:
-                if screen == Screen.TITLE: _start()
+                if screen == Screen.TITLE: _open_story()
+                elif screen == Screen.STORY: _open_instructions()
+                elif screen == Screen.INSTRUCTIONS: _start()
                 elif screen == Screen.COMPLETE: _advance_level()
 
 func _handle_touch(index: int, position: Vector2, pressed: bool) -> void:
@@ -668,11 +677,15 @@ func _refresh_touch_holds() -> void:
             touch_movement = delta.normalized()
 
 func _handle_click(position: Vector2) -> void:
-    if screen == Screen.TITLE and TITLE_START_RECT.has_point(position): _start()
+    if screen == Screen.TITLE and TITLE_START_RECT.has_point(position): _open_story()
     elif screen == Screen.TITLE and TITLE_CUSTOMIZE_RECT.has_point(position):
         screen = Screen.CUSTOMIZE; _sync_music(); queue_redraw()
     elif screen == Screen.TITLE and TITLE_LEADERBOARD_RECT.has_point(position):
         screen = Screen.LEADERBOARD; _sync_music(); queue_redraw()
+    elif screen == Screen.STORY and STORY_HOME_RECT.has_point(position): _go_home()
+    elif screen == Screen.STORY and STORY_CONTINUE_RECT.has_point(position): _open_instructions()
+    elif screen == Screen.INSTRUCTIONS and INSTRUCTIONS_HOME_RECT.has_point(position): _go_home()
+    elif screen == Screen.INSTRUCTIONS and INSTRUCTIONS_PLAY_RECT.has_point(position): _start()
     elif screen == Screen.CUSTOMIZE and CUSTOM_HOME_RECT.has_point(position): _go_home()
     elif screen == Screen.CUSTOMIZE:
         for category: String in CUSTOM_CARDS:
@@ -699,6 +712,18 @@ func _handle_click(position: Vector2) -> void:
     elif screen == Screen.LEADERBOARD and Rect2(490,620,300,55).has_point(position): _go_home()
     elif screen == Screen.COMPLETE and Rect2(490,500,300,60).has_point(position):
         _advance_level()
+
+func _open_story() -> void:
+    screen = Screen.STORY
+    _sync_music()
+    _set_feedback("[HERO STORY] Learn why Fred must cross Moonpetal Marsh.")
+    queue_redraw()
+
+func _open_instructions() -> void:
+    screen = Screen.INSTRUCTIONS
+    _sync_music()
+    _set_feedback("[HOW TO PLAY] Learn the hero moves, then begin.")
+    queue_redraw()
 
 func _start() -> void:
     if session.completed:
@@ -893,6 +918,8 @@ func _tick_feedback(delta: float) -> void:
 func _draw() -> void:
     draw_rect(Rect2(0,0,1280,720), Color("071d2d"))
     if screen == Screen.TITLE: _draw_title(); return
+    if screen == Screen.STORY: _draw_story(); return
+    if screen == Screen.INSTRUCTIONS: _draw_instructions(); return
     if screen == Screen.LEADERBOARD: _draw_leaderboard(); return
     if screen == Screen.CUSTOMIZE: _draw_customizer(); return
     _draw_level()
@@ -914,12 +941,93 @@ func _draw_title() -> void:
     draw_rect(Rect2(72,205,426,155),Color("70d6c2"),false,3)
     _text(Vector2(285,242), "RUN • LEAP • DIVE", 23, Color("fff0ae"), HORIZONTAL_ALIGNMENT_CENTER, 390)
     _text(Vector2(285,281), "MUNCH • DODGE • POWER UP", 19, Color.WHITE, HORIZONTAL_ALIGNMENT_CENTER, 390)
-    _text(Vector2(285,326), "Earn coins. Build your champion frog.", 16, Color("d9f4e2"), HORIZONTAL_ALIGNMENT_CENTER, 390)
-    _button(TITLE_START_RECT, "START ADVENTURE")
+    _text(Vector2(285,326), "Be the hero in every little frog's dreams.", 15, Color("d9f4e2"), HORIZONTAL_ALIGNMENT_CENTER, 390)
+    _button(TITLE_START_RECT, "BEGIN FRED'S STORY")
     _button(TITLE_CUSTOMIZE_RECT, "CUSTOMIZE FRED  •  %d COINS" % customization.coins)
     _button(TITLE_LEADERBOARD_RECT, "MARSH LEADERBOARDS")
     _status_panel(Rect2(70,640,440,42), 14)
     _text(Vector2(285,708), "THE MARSHLAND MARCH  •  PLAY INSTANTLY  •  ACCOUNT OPTIONAL", 11, Color("b9f5c7"), HORIZONTAL_ALIGNMENT_CENTER, 520)
+
+func _draw_story() -> void:
+    draw_texture_rect(title_art, Rect2(0,0,1280,720), false, Color(0.42,0.58,0.54,1.0))
+    draw_rect(Rect2(0,0,1280,720), Color(0.005,0.025,0.05,0.82), true)
+    draw_circle(Vector2(1120,92), 68.0, Color(0.95,0.88,0.48,0.13))
+    draw_circle(Vector2(1120,92), 45.0, Color(0.94,0.95,0.75,0.28))
+    _text(Vector2(640,58), "THE MOONPETAL PROMISE", 40, Color("ffe184"), HORIZONTAL_ALIGNMENT_CENTER, 1050)
+    _text(Vector2(640,98), "WHY FRED LEAPS, DIVES, MUNCHES, AND NEVER GIVES UP", 16, Color("b9f5c7"), HORIZONTAL_ALIGNMENT_CENTER, 1030)
+    _draw_story_card(Rect2(55,125,360,380), "THE LITTLE FROGS' DREAM", [
+        "Every little frog dreams of",
+        "a safe, glowing marsh and the",
+        "legendary Moonpetal beyond it.",
+    ], Color("76dcb0"), 0)
+    _draw_story_card(Rect2(460,125,360,380), "THE MARSH IN TROUBLE", [
+        "Wild currents, hungry predators,",
+        "and scattered bugs have broken",
+        "the safe lily paths apart.",
+    ], Color("ef9b57"), 1)
+    _draw_story_card(Rect2(865,125,360,380), "FRED'S HERO PROMISE", [
+        "Fred will cross all 100 levels,",
+        "protect the smaller frogs, and",
+        "carry their hope to the Moonpetal.",
+    ], Color("e7c65d"), 2)
+    _text(Vector2(640,558), "BECOME THE FROG HERO OF EVERY LITTLE FROG'S DREAMS", 23, Color("fff0ae"), HORIZONTAL_ALIGNMENT_CENTER, 1110)
+    _text(Vector2(640,595), "Gather bugs. Outsmart danger. Bring courage home.", 17, Color.WHITE, HORIZONTAL_ALIGNMENT_CENTER, 900)
+    _button(STORY_HOME_RECT, "HOME")
+    _button(STORY_CONTINUE_RECT, "SHOW ME HOW TO PLAY")
+
+func _draw_story_card(rect: Rect2, title: String, lines: Array[String], accent: Color, icon: int) -> void:
+    draw_rect(Rect2(rect.position + Vector2(0,8),rect.size), Color(0,0,0,0.46), true)
+    draw_rect(rect, Color(0.015,0.085,0.12,0.96), true)
+    draw_rect(rect, accent, false, 3.0)
+    var icon_center := Vector2(rect.get_center().x, rect.position.y + 64.0)
+    draw_circle(icon_center, 35.0, Color(accent,0.16))
+    draw_circle(icon_center, 24.0, Color(accent,0.34))
+    match icon:
+        0:
+            draw_circle(icon_center, 10.0, Color("fff0ae"))
+            for angle in range(0,360,72):
+                var ray := Vector2.from_angle(deg_to_rad(float(angle)))
+                draw_line(icon_center + ray * 15.0, icon_center + ray * 28.0, Color("fff0ae"), 3.0)
+        1:
+            for radius in [10.0,18.0,27.0]:
+                draw_arc(icon_center, radius, 0.2, TAU - 0.4, 22, Color("d8f4ff"), 3.0)
+        _:
+            draw_circle(icon_center + Vector2(-11,-4), 10.0, Color("79c86c"))
+            draw_circle(icon_center + Vector2(11,-4), 10.0, Color("79c86c"))
+            draw_colored_polygon(PackedVector2Array([icon_center+Vector2(-20,2),icon_center+Vector2(20,2),icon_center+Vector2(13,22),icon_center+Vector2(-13,22)]),Color("59ad59"))
+            draw_circle(icon_center + Vector2(-10,-6), 3.0, Color("071d2d"))
+            draw_circle(icon_center + Vector2(10,-6), 3.0, Color("071d2d"))
+    _text(Vector2(rect.get_center().x,rect.position.y+132),title,20,accent,HORIZONTAL_ALIGNMENT_CENTER,rect.size.x-24.0)
+    for index in lines.size():
+        _text(Vector2(rect.get_center().x,rect.position.y+190.0+float(index)*42.0),str(lines[index]),16,Color.WHITE,HORIZONTAL_ALIGNMENT_CENTER,rect.size.x-30.0)
+
+func _draw_instructions() -> void:
+    draw_texture_rect(gameplay_art, Rect2(0,0,1280,720), false, Color(0.56,0.68,0.64,1.0))
+    draw_rect(Rect2(0,0,1280,720), Color(0.005,0.025,0.05,0.78), true)
+    _text(Vector2(640,55), "HOW TO BE A MARSH HERO", 40, Color("ffe184"), HORIZONTAL_ALIGNMENT_CENTER, 1050)
+    _text(Vector2(640,93), "Touch the marsh to move. Use the big action buttons when Fred needs them.", 17, Color("d9f4e2"), HORIZONTAL_ALIGNMENT_CENTER, 1050)
+    _draw_instruction_card(Rect2(55,120,370,145), "TOUCH + DRAG", ["Steer Fred anywhere", "in the open marsh."], Color("70d6c2"))
+    _draw_instruction_card(Rect2(455,120,370,145), "MUNCH", ["Eat nearby bugs.", "Fairies can add a life."], Color("e67b4a"))
+    _draw_instruction_card(Rect2(855,120,370,145), "LEAP", ["Jump between lily pads", "and land on safe perches."], Color("67c96f"))
+    _draw_instruction_card(Rect2(55,295,370,145), "BOOST", ["Hold for a quick burst.", "Rest while energy refills."], Color("e4b943"))
+    _draw_instruction_card(Rect2(455,295,370,145), "DIVE / SURFACE", ["Explore above and below", "the Moonpetal water."], Color("4d9fd8"))
+    _draw_instruction_card(Rect2(855,295,370,145), "STAY SAFE", ["Dodge fish, snakes, birds,", "whirlpools, and bad landings."], Color("d984ad"))
+    draw_rect(Rect2(100,475,1080,112), Color(0.015,0.085,0.12,0.96), true)
+    draw_rect(Rect2(100,475,1080,112), Color("fff0ae"), false, 3.0)
+    _text(Vector2(640,510), "YOUR HERO MISSION", 19, Color("fff0ae"), HORIZONTAL_ALIGNMENT_CENTER, 900)
+    _text(Vector2(640,544), "MUNCH 3 BUGS  •  REACH THE MOONPETAL  •  EARN COINS  •  CUSTOMIZE FRED", 17, Color.WHITE, HORIZONTAL_ALIGNMENT_CENTER, 1000)
+    _text(Vector2(640,574), "Start with 3 lives. Every 10th level hides a fairy that can add one more.", 14, Color("d9f4e2"), HORIZONTAL_ALIGNMENT_CENTER, 980)
+    _button(INSTRUCTIONS_HOME_RECT, "HOME")
+    _button(INSTRUCTIONS_PLAY_RECT, "I'M READY — START LEVEL 1")
+
+func _draw_instruction_card(rect: Rect2, title: String, lines: Array[String], accent: Color) -> void:
+    draw_rect(Rect2(rect.position + Vector2(0,6),rect.size),Color(0,0,0,0.42),true)
+    draw_rect(rect,Color(0.015,0.085,0.12,0.95),true)
+    draw_rect(rect,accent,false,3.0)
+    draw_circle(rect.position + Vector2(32,32),10.0,accent)
+    _text(Vector2(rect.get_center().x,rect.position.y+38),title,19,accent,HORIZONTAL_ALIGNMENT_CENTER,rect.size.x-28.0)
+    for index in lines.size():
+        _text(Vector2(rect.get_center().x,rect.position.y+88.0+float(index)*29.0),str(lines[index]),15,Color.WHITE,HORIZONTAL_ALIGNMENT_CENTER,rect.size.x-26.0)
 
 func _draw_customizer() -> void:
     draw_texture_rect(title_art, Rect2(0,0,1280,720), false, Color(0.45,0.62,0.60,1.0))

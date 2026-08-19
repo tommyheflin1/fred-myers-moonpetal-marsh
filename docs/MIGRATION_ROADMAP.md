@@ -66,8 +66,12 @@ remain unchanged.
 
 Owner direction on 2026-08-03 starts the local App Build 1 testing phase. The
 exact latest desktop/icon candidate is packaged as a newer debug-only Android
-artifact, now refreshed as touch-first revision 4 version
-`0.2.1-app-build-1-r4` (`20104`), with the existing development
+artifact. The next local revision adds a required two-step hero-story and
+touch-first instruction path before Level 1. Fred's purpose is explicit: cross
+the marsh, restore safe Moonpetal paths, protect the smaller frogs and become
+the frog hero in every little frog's dreams. Story and instruction state is
+presentation-only and absent from `fred_save` v1. The artifact is refreshed as
+touch-first revision 5 version `0.2.1-app-build-1-r5` (`20105`), with the existing development
 package identity, zero requested permissions, and a refreshed source/artifact
 hash guard. Package creation and automated checks do not substitute for
 physical-phone acceptance and do not unlock production or store actions.
