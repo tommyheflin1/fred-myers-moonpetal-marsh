@@ -79,6 +79,7 @@ This repository owns Fred gameplay. Core owns only reusable, game-neutral servic
 - [M2 Fred hero story and touch-first instructions](docs/M2_HERO_STORY_INSTRUCTIONS.md)
 - [Campaign 1 touch-only, age-five, and PG contract](docs/M2_CAMPAIGN_ONE_TOUCH_PG.md)
 - [Fred rig and child-readable attire uplift](docs/M2_FRED_ATTIRE_VISUAL_UPLIFT.md)
+- [Fred tailored attire material and fit uplift](docs/M2_FRED_ATTIRE_MATERIAL_FIT_REPORT.md)
 - [Predator surface and underwater traversal](docs/M2_PREDATOR_DEPTH_TRAVERSAL.md)
 - [Fred and wildlife character-rig realism uplift](docs/M2_CHARACTER_RIG_REALISM_REPORT.md)
 - [All-character deterministic articulation uplift](docs/M2_ALL_CHARACTER_ARTICULATION_REPORT.md)

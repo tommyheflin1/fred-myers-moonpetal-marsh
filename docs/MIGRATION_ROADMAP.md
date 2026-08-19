@@ -64,6 +64,14 @@ prove fail-closed hash, package, device-state, API/ABI, ambiguity, and explicit
 serial behavior. No install or device capture occurred, and milestone scores
 remain unchanged.
 
+The Fred-owned presentation descendant now also replaces the four outfits'
+shared flat vest treatment with the deterministic tailoring contract in
+`M2_FRED_ATTIRE_MATERIAL_FIT_REPORT.md`. Each save-compatible outfit has a
+distinct fabric, fitted three-panel torso construction, mouth-clear ribbed
+collar, shoulder gussets, stitched seams, closures and layered eyewear. The
+work is presentation-only and retains collision, touch controls, fixed-tick
+gameplay, Core 0.5.1 and save v1.
+
 Owner direction on 2026-08-03 starts the local App Build 1 testing phase. The
 exact latest desktop/icon candidate is packaged as a newer debug-only Android
 artifact. The next local revision adds a required two-step hero-story and

@@ -2,22 +2,23 @@
 
 Updated: 2026-08-18
 
-## Current App Build 1 revision 15
+## Current App Build 1 revision 16
 
 The current guarded phone candidate supersedes the older artifact identities
-retained below for append-only history. Revision 15 is built from exact source
-`40f575033df9ba9ba00b5dcd8059a982d292c2cd` with the complete 100-level
+retained below for append-only history. Revision 16 is built from exact source
+`909e798c2f1bde96469dae915c53ba6f8536a96f` with the complete 100-level
 Campaign 1 profile set, touch-only player routing, age-five recovery floors,
 PG copy, the Moonpetal hero story, the bottom action row, mouth-clear aligned
 Fred gear, continuous touch leap traversal over predators without a round reset, deterministic
 surface/underwater routes for aquatic predators, upgraded Fred/wildlife
-anatomy, connected deterministic articulation, layered character volume and no floating
+anatomy, connected deterministic articulation, layered character volume,
+fitted multi-panel Fred attire and no floating
 locomotion/location text above Fred.
 
 - artifact: `builds/android/fred-myers-app-build-1-debug.apk`;
-- SHA-256: `4A85D9DF2A3DCC2D5A8C107C2BD446FECA4ADE15DE7ED4D5252F203CABB53728`;
-- size: 84,899,563 bytes;
-- version: `0.2.1-app-build-1-r15` (`20115`);
+- SHA-256: `2F05B4DAC8F6642875D23C13F6828BA451030FF83F409056C3D314A7C4F41DB4`;
+- size: 84,903,659 bytes;
+- version: `0.2.1-app-build-1-r16` (`20116`);
 - package: `com.flinsappvault.fredmyers.dev`;
 - ABI: arm64-v8a and x86_64;
 - permissions: zero requested;
@@ -25,7 +26,7 @@ locomotion/location text above Fred.
 
 The same explicit serial and owner/save acknowledgement boundary applies. A
 zero-device result remains `DEVICE_NOT_CONNECTED / UNVERIFIED` and is not
-physical phone or tablet acceptance. Revision 15's 60/60 fictional safety
+physical phone or tablet acceptance. Revision 16's 60/60 fictional safety
 fixtures pass. No install, launch, selected serial, diagnostics, or phone
 control is performed by this packaging refresh, so physical testing remains
 `UNVERIFIED`.

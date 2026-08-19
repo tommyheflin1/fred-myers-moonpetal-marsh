@@ -5,19 +5,20 @@ Updated: 2026-08-18
 ## Scope and authorization
 
 The owner's explicit next-phase instruction starts App Build 1 as a local
-testing phase. Revision 15 packages Campaign 1 as a touch-only, age-five-targeted
+testing phase. Revision 16 packages Campaign 1 as a touch-only, age-five-targeted
 PG family adventure with exactly 100 progressively harder levels. It retains
 the direct playfield drag steering, large bottom action row, sporty Fred art,
 six full-screen formations/backgrounds, coin-backed cosmetics, fresh-run Exit
 contract, wildlife, Moonpetal Promise story, touch instructions,
-child-readable mouth-clear Fred gear, continuous leap traversal over predators,
+child-readable mouth-clear Fred gear with fitted material construction, continuous leap traversal over predators,
 deterministic surface/underwater routes for naturally aquatic predators,
 depth-aware danger collisions, upgraded Fred/predator/bug/fairy anatomy and
 connected deterministic character articulation, layered vector body volume,
 integrated joints and facial depth, a clean
 label-free space above Fred's head, and a dormant Apple Game Center scoring adapter.
 The exact product source checkpoint is
-`40f575033df9ba9ba00b5dcd8059a982d292c2cd`; Core and save v1 remain unchanged.
+`909e798c2f1bde96469dae915c53ba6f8536a96f`; the focused attire implementation
+is `fad55a06cb4ad5b2555fed114edeaef8b4fecac9`. Core and save v1 remain unchanged.
 
 This build is not a production build, release, deployment, store submission,
 or physical-device acceptance result. It remains local and unpushed because
@@ -26,11 +27,11 @@ the configured GitHub repository is public.
 ## Artifact identity
 
 - Local artifact: `builds/android/fred-myers-app-build-1-debug.apk`
-- SHA-256: `4A85D9DF2A3DCC2D5A8C107C2BD446FECA4ADE15DE7ED4D5252F203CABB53728`
-- Size: 84,899,563 bytes
+- SHA-256: `2F05B4DAC8F6642875D23C13F6828BA451030FF83F409056C3D314A7C4F41DB4`
+- Size: 84,903,659 bytes
 - Package: `com.flinsappvault.fredmyers.dev`
 - Label: `Fred Myers App Build 1`
-- Version: `0.2.1-app-build-1-r15` (`20115`)
+- Version: `0.2.1-app-build-1-r16` (`20116`)
 - Minimum/target/compile SDK: 24/36/36
 - Architectures: `arm64-v8a` and `x86_64`
 - Orientation: landscape
@@ -65,7 +66,7 @@ and visually inspected after packaging.
 ## Validation
 
 - Godot headless import: passed.
-- Complete deterministic matrix: 22 suites, 4,321 passed, 0 failed in 15.47
+- Complete deterministic matrix: 22 suites, 4,454 passed, 0 failed in 15.99
   seconds, using
   isolated temporary AppData. Headless default customization is memory-only so
   legacy gameplay suites cannot write owner economy data.
@@ -77,7 +78,7 @@ and visually inspected after packaging.
 - App Build 1 export contract: passed.
 - Physical-device safety fixtures: 60 passed, 0 failed.
 - Physical-device static safety contract: passed.
-- Revision 15 physical-device state: `UNVERIFIED`; no phone install, control or
+- Revision 16 physical-device state: `UNVERIFIED`; no phone install, control or
   capture is claimed. The earlier bounded ADB probe timed
   out before device classification. No serial, install, launch, or diagnostic
   mode was requested, and the probe was stopped cleanly with no ADB residue.
@@ -96,10 +97,11 @@ with `LIVES 3` and the complete status `Same round, 3 lives, no restart
 countdown.` The focused
 Campaign 1 suite passed 1,328/1,328; the touch-only player-input
 suite passed 22/22; the M2 foundation suite passed 750/750; the authored rig
-suite passed 527/527; and the product-uplift suite passed 94/94. Four actual
-1280x720 Godot customizer frames cover every mouth-clear face/body gear set.
-Prior revision evidence also
-covers constrained 960x540. The title's
+suite passed 660/660; and the product-uplift suite passed 94/94. Four actual
+1280x720 Godot customizer frames cover every mouth-clear fitted face/body gear
+set, with distinct mesh, canvas, satin and reinforced-knit materials.
+Live attire motion review also covers 960x540 and reduced-motion 640x360 leap
+and dive states without gear drift or control overlap. The title's
 Campaign 1 / 100 levels / PG identity, Moonpetal Promise, three story cards and
 six touch instructions remained readable. Level 1 showed one introductory
 predator, no whirlpool, the five-second countdown and separated Objective,
