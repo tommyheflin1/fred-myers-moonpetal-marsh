@@ -6,6 +6,7 @@ Fred Myers is a story-driven frog adventure currently playable as a five-level b
 
 Milestone M1 is accepted on `main`; the current local M2 owner candidate adds
 the deterministic Fred rig, leap/swim/depth/tongue/boost/camera traversal,
+surface/diving/underwater predator traversal with depth-aware collisions,
 100-level progression foundation, stackable fairy lives, six rotating route
 formations and marsh treatments, coin-backed Fred customization, sport-character
 and wildlife presentation, safe missed-leap recovery, mobile-first UI, an Apple Game Center scoring adapter,
@@ -77,6 +78,7 @@ This repository owns Fred gameplay. Core owns only reusable, game-neutral servic
 - [M2 Fred hero story and touch-first instructions](docs/M2_HERO_STORY_INSTRUCTIONS.md)
 - [Campaign 1 touch-only, age-five, and PG contract](docs/M2_CAMPAIGN_ONE_TOUCH_PG.md)
 - [Fred rig and child-readable attire uplift](docs/M2_FRED_ATTIRE_VISUAL_UPLIFT.md)
+- [Predator surface and underwater traversal](docs/M2_PREDATOR_DEPTH_TRAVERSAL.md)
 
 ## Godot desktop owner candidate
 

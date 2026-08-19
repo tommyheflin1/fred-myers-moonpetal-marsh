@@ -114,6 +114,15 @@ and whirlpool contact remain damaging. The same fixed behavior is packaged in
 the local Android debug candidate; no physical-device or release credit is
 claimed.
 
+Revision 10 gives naturally aquatic predators their own deterministic depth
+routes. Bass, pike, muskie and marsh snakes surface, dive, patrol underwater
+and surface again; herons remain above water. Predator damage now requires
+both position and depth overlap, so Fred can dive beneath surface danger or
+stay above submerged danger while same-depth contact remains harmful. Bubble,
+ripple, tint and explicit state labels keep the mechanic readable without
+color alone. The 22-suite matrix passes 4,093 checks; physical-phone and owner
+control acceptance remain separate gates.
+
 ## M1 sequencing
 
 1. Expand the repository source tree and retain the legacy build under `legacy-web/` or a tagged legacy branch.

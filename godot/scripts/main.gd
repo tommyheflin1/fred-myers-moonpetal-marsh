@@ -10,6 +10,7 @@ const FredRigScene = preload("res://scenes/fred_rig.tscn")
 const MarshRouteLayout = preload("res://scripts/marsh_route_layout.gd")
 const FrogCustomization = preload("res://scripts/frog_customization.gd")
 const AppleGameScoring = preload("res://scripts/apple_game_scoring.gd")
+const PredatorDepth = preload("res://scripts/predator_depth.gd")
 
 enum Screen { TITLE, STORY, INSTRUCTIONS, PLAYING, FAILED, COMPLETE, LEADERBOARD, CUSTOMIZE }
 const START := Vector2(135, 560)
@@ -20,6 +21,7 @@ const SAFE_LOCATION := Vector2(720,570)
 const PREDATOR_START := Vector2(850,520)
 const WHIRLPOOLS := [Vector2(500,405), Vector2(790,315), Vector2(960,500)]
 const FAIRY_POSITIONS := [Vector2(455,205), Vector2(835,545), Vector2(1080,365)]
+const PREDATOR_SPECIES: Array[String] = ["BASS", "PIKE", "HERON", "SNAKE", "MUSKIE"]
 const RESPAWN_COUNTDOWN_SECONDS := 2.0
 const TITLE_START_RECT := Rect2(90,405,390,68)
 const TITLE_CUSTOMIZE_RECT := Rect2(90,490,390,58)
@@ -441,19 +443,33 @@ func _active_predator_positions() -> Array[Vector2]:
         positions.append(secondary_predators[index])
     return positions
 
+func _predator_depth_snapshot(index: int) -> Dictionary:
+    if index < 0 or index >= PREDATOR_SPECIES.size():
+        return PredatorDepth.snapshot("HERON", index, level_number, simulation_time)
+    return PredatorDepth.snapshot(PREDATOR_SPECIES[index], index, level_number, simulation_time)
+
+func _predator_can_hit(index: int) -> bool:
+    return PredatorDepth.shares_depth(float(depth.depth), _predator_depth_snapshot(index))
+
+func _predator_danger_message(index: int) -> String:
+    var species := PREDATOR_SPECIES[index] if index >= 0 and index < PREDATOR_SPECIES.size() else "PREDATOR"
+    var predator_snapshot := _predator_depth_snapshot(index)
+    var location := "underwater" if float(predator_snapshot.depth) > 0.5 else "at the surface"
+    return "[DANGER] A %s met Fred %s!" % [species.to_lower(), location]
+
 func _check_danger_collision() -> bool:
     if danger_cooldown_seconds > 0.0 or in_safe_location:
         return false
-    if fred.distance_to(predator) < float(level_profile.danger_radius):
-        _apply_danger_hit("[DANGER] A marsh predator bumped Fred back!")
+    if _predator_can_hit(0) and fred.distance_to(predator) < float(level_profile.danger_radius):
+        _apply_danger_hit(_predator_danger_message(0))
         return true
     if not hazards_enabled:
         return false
     var active_positions := _active_predator_positions()
     for index in range(1, active_positions.size()):
         var position: Vector2 = active_positions[index]
-        if fred.distance_to(position) < float(level_profile.danger_radius):
-            _apply_danger_hit("[DANGER] A marsh predator bumped Fred back!")
+        if _predator_can_hit(index) and fred.distance_to(position) < float(level_profile.danger_radius):
+            _apply_danger_hit(_predator_danger_message(index))
             return true
     for index in range(mini(int(level_profile.whirlpool_count), WHIRLPOOLS.size())):
         if fred.distance_to(_whirlpool_position(index)) < 50.0:
@@ -1012,7 +1028,7 @@ func _draw_instructions() -> void:
     _draw_instruction_card(Rect2(855,120,370,145), "LEAP", ["Jump between lily pads", "and land on safe perches."], Color("67c96f"))
     _draw_instruction_card(Rect2(55,295,370,145), "BOOST", ["Hold for a quick burst.", "Rest while energy refills."], Color("e4b943"))
     _draw_instruction_card(Rect2(455,295,370,145), "DIVE / SURFACE", ["Explore above and below", "the Moonpetal water."], Color("4d9fd8"))
-    _draw_instruction_card(Rect2(855,295,370,145), "STAY SAFE", ["Dodge fish, snakes, birds,", "and whirlpools. Missed leaps are safe."], Color("d984ad"))
+    _draw_instruction_card(Rect2(855,295,370,145), "STAY SAFE", ["Dive under surface predators.", "Bubbles mean danger is underwater."], Color("d984ad"))
     draw_rect(Rect2(100,475,1080,112), Color(0.015,0.085,0.12,0.96), true)
     draw_rect(Rect2(100,475,1080,112), Color("fff0ae"), false, 3.0)
     _text(Vector2(640,510), "YOUR HERO MISSION", 19, Color("fff0ae"), HORIZONTAL_ALIGNMENT_CENTER, 900)
@@ -1168,10 +1184,9 @@ func _draw_level() -> void:
         var assisted_position := Vector2(assisted_target.position)
         draw_arc(assisted_position, 29, 0, TAU, 24, Color("ffe980"), 3)
         _text(assisted_position + Vector2(0,-35), "[MUNCH READY]", 12, Color("fff5b0"), HORIZONTAL_ALIGNMENT_CENTER, 125)
-    var predator_names := ["BASS", "PIKE", "HERON", "SNAKE", "MUSKIE"]
     var active_positions := _active_predator_positions()
     for index in active_positions.size():
-        _draw_predator(active_positions[index], predator_names[index])
+        _draw_predator(active_positions[index], PREDATOR_SPECIES[index], _predator_depth_snapshot(index))
     var exit_radius := 45.0 * float(visual.exit_pulse)
     _draw_moonpetal_exit(_level_exit_position(), exit_radius)
     var fred_draw_position := fred - Vector2(0,leap.visual_height)
@@ -1393,16 +1408,37 @@ func _draw_whirlpools() -> void:
         ]), Color(0.0,0.02,0.04,0.9))
         _text(center + Vector2(0,72), "WHIRLPOOL", 11, Color("cdefff"), HORIZONTAL_ALIGNMENT_CENTER, 110)
 
-func _draw_predator(position: Vector2, species: String) -> void:
-    draw_colored_polygon(_ellipse_points(position + Vector2(8,13), Vector2(55,22), 0.0), Color(0.005,0.025,0.035,0.48))
-    draw_arc(position + Vector2(0,7), 49, 0.2, PI - 0.2, 24, Color(0.60,0.90,0.94,0.16), 2)
+func _draw_predator(position: Vector2, species: String, predator_snapshot: Dictionary = {}) -> void:
+    var snapshot := predator_snapshot if not predator_snapshot.is_empty() else PredatorDepth.snapshot(species, 0, level_number, simulation_time)
+    var predator_depth := float(snapshot.get("depth", 0.0))
+    var drawn_position := position + Vector2(0.0, predator_depth * 9.0)
+    draw_colored_polygon(_ellipse_points(drawn_position + Vector2(8,13), Vector2(55,22), 0.0), Color(0.005,0.025,0.035,0.48))
+    draw_arc(drawn_position + Vector2(0,7), 49, 0.2, PI - 0.2, 24, Color(0.60,0.90,0.94,0.16), 2)
     if species == "HERON":
-        _draw_heron(position)
+        _draw_heron(drawn_position)
     elif species == "SNAKE":
-        _draw_snake(position)
+        _draw_snake(drawn_position)
     else:
-        _draw_fish(position, species)
-    _text(position+Vector2(0,55), species, 11, Color("fff2dc"), HORIZONTAL_ALIGNMENT_CENTER, 90)
+        _draw_fish(drawn_position, species)
+    _draw_predator_depth_cues(drawn_position, snapshot)
+    _text(drawn_position+_predator_label_offset(drawn_position), "%s • %s" % [species, str(snapshot.get("cue", "SURFACE"))], 10, Color("fff2dc"), HORIZONTAL_ALIGNMENT_CENTER, 150)
+
+func _predator_label_offset(position: Vector2) -> Vector2:
+    return Vector2(0,-58) if position.y > 480.0 else Vector2(0,55)
+
+func _draw_predator_depth_cues(position: Vector2, predator_snapshot: Dictionary) -> void:
+    var predator_depth := clampf(float(predator_snapshot.get("depth", 0.0)), 0.0, 1.0)
+    var state := int(predator_snapshot.get("state", PredatorDepth.State.ABOVE_WATER))
+    if state == PredatorDepth.State.ABOVE_WATER:
+        draw_line(position + Vector2(-32,34), position + Vector2(32,34), Color(0.76,0.94,1.0,0.38), 2)
+        return
+    var ripple_alpha := 0.68 if state in [PredatorDepth.State.DIVING, PredatorDepth.State.SURFACING] else 0.34
+    draw_arc(position + Vector2(0,25), 32.0 + predator_depth * 8.0, 0, TAU, 24, Color(0.56,0.92,1.0,ripple_alpha), 3)
+    if predator_depth > 0.05:
+        draw_circle(position, 47.0, Color(0.01,0.18,0.31,0.12 + predator_depth * 0.28))
+        for bubble_index in range(3):
+            var bubble_offset := Vector2(-30.0 + float(bubble_index) * 18.0, -25.0 - float(bubble_index % 2) * 11.0)
+            draw_circle(position + bubble_offset, 3.0 + float(bubble_index), Color(0.72,0.96,1.0,0.48 + predator_depth * 0.30))
 
 func _draw_fish(position: Vector2, species: String) -> void:
     var body := Color("d76145")

@@ -41,29 +41,35 @@ used on phones and tablets. Keyboard gameplay is disabled.
    changes while the countdown or pause overlay owns input. Deliberately miss
    a lily pad and confirm Fred splashes safely back to the current checkpoint
    or starting perch without losing a life, including when only one life remains.
-5. Take one danger hit. Confirm exactly one life is removed and Fred remains on
+5. Watch a bass, pike, muskie, or marsh snake cycle through `SURFACE`,
+   `DIVING`, `UNDERWATER`, and `SURFACING`. Dive Fred beneath a surface
+   predator and confirm he passes safely below it. Stay at the surface while
+   the predator is underwater and confirm it passes safely below Fred. Then
+   meet one at the same depth and confirm the normal danger hit occurs. The
+   heron must remain above water, and bubbles must identify underwater danger.
+6. Take one danger hit. Confirm exactly one life is removed and Fred remains on
    the same level, returning to the level start or earned midpoint checkpoint.
    Repeat with a second life; the full failure screen must not appear early.
-6. At zero lives, confirm the full-screen `OH NO FRED!!!` choice appears.
+7. At zero lives, confirm the full-screen `OH NO FRED!!!` choice appears.
    `Try Again?` starts level one with three lives; `Go Home` returns to the title.
-7. Finish an odd level and confirm the next even level runs right to left.
+8. Finish an odd level and confirm the next even level runs right to left.
    Continue through the first six transitions and confirm the route direction
    alternates while River Arc, Zigzag Sprint, Moon Ring, Cross Current,
    Firefly Spiral, and Island Scatter change the full play space without
    overlapping the HUD.
-8. On every tenth level, eat the one eligible fairy and confirm exactly one
+9. On every tenth level, eat the one eligible fairy and confirm exactly one
    extra life is added even when Fred already has three lives. The campaign cap
    remains thirteen lives; ordinary damage never erases previously stacked
    lives except by consuming one life per accepted hit.
-9. Use `Exit` from active gameplay and confirm the title returns. Starting again
+10. Use `Exit` from active gameplay and confirm the title returns. Starting again
    must begin a fresh level-one, three-life run while coins and cosmetics stay.
-10. Open `Customize Fred`, earn/spend fictional coins, and confirm color, build,
+11. Open `Customize Fred`, earn/spend fictional coins, and confirm color, build,
     tongue color, and the named Runner Goggles, Explorer Glasses, Moon Champion
     Visor, and Firefly Hero Goggles alter presentation only. Each face item
     should remain centered across Fred's eyes and move with his head; each vest,
     scarf, medal, badge, or cape should remain attached to his body. Fred's
     mouth, jaw and cheeks must remain visible above every collar and scarf.
-11. Resize the window. Confirm objective, lives, Pause, Exit, energy, status, and the
+12. Resize the window. Confirm objective, lives, Pause, Exit, energy, status, and the
     phone-oriented touch targets stay separated and inside the play area.
 
 ## Evidence boundaries
