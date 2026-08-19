@@ -11,6 +11,9 @@ muskie, marsh snake, heron, marsh bugs, and the tenth-level life fairy. The
 work remains local and unpushed because the configured GitHub repository is
 public.
 
+The exact focused product-source commit is
+`76aa673bdfb0c719336e7421d552f1c239fa5baf`.
+
 This is a focused presentation pass, not final art, a renderer replacement, or
 a collision/physics redesign. It adds no networking, account, production
 signing, store, deployment, release, or player-data behavior.
@@ -57,7 +60,7 @@ cannot award prey, lives, coins, damage, progression, or saves.
 - Predator-depth/identity suite: 167 passed, 0 failed. It covers five distinct
   predator identities, bugs/fairy, 100 deterministic depth traces, 10,000
   identity reads, and 10,000 depth updates with no canonical save change.
-- Complete deterministic matrix: 22 suites, 4,140 passed, 0 failed in 13.50
+- Complete deterministic matrix: 22 suites, 4,140 passed, 0 failed in 13.53
   seconds.
 - Fred's 10,000-update rig loop completed in 376 ms with 4,620 bytes measured
   static-memory growth, zero retained resources, zero nodes, and zero orphan
