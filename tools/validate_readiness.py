@@ -68,6 +68,7 @@ REQUIRED = [
     "docs/M2_CAMPAIGN_ONE_TOUCH_PG.md",
     "docs/M2_FRED_ATTIRE_VISUAL_UPLIFT.md",
     "docs/M2_PREDATOR_DEPTH_TRAVERSAL.md",
+    "docs/M2_CHARACTER_RIG_REALISM_REPORT.md",
     "godot/assets/art/fred-moonpetal-crest-v3.png",
     "godot/assets/art/fred-moonpetal-crest-v3.png.import",
     "godot/assets/art/fred-app-icon-v3-platform.png",

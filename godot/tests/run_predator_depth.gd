@@ -74,7 +74,9 @@ func _run() -> void:
 	for species: String in Main.PREDATOR_SPECIES:
 		var identity: Dictionary = game._predator_identity_profile(species)
 		identity_silhouettes[str(identity.silhouette)] = true
-		check(Array(identity.anatomy).size() == 3, "%s has three explicit species anatomy cues" % species.to_lower())
+		check(Array(identity.anatomy).size() >= 6, "%s has at least six explicit species anatomy cues" % species.to_lower())
+		check(Array(identity.motion_channels).size() >= 3, "%s has layered species-specific motion channels" % species.to_lower())
+		check(int(identity.detail_layers) >= 8 and bool(identity.phone_readable), "%s realism remains detailed and phone-readable" % species.to_lower())
 	check(identity_silhouettes.size() == Main.PREDATOR_SPECIES.size(), "every named predator has a distinct rendered silhouette contract")
 	var bass_identity: Dictionary = game._predator_identity_profile("BASS")
 	check(str(bass_identity.silhouette) == "deep_largemouth", "bass uses a deep-bodied largemouth silhouette")
@@ -87,7 +89,21 @@ func _run() -> void:
 	var snake_identity: Dictionary = game._predator_identity_profile("SNAKE")
 	check("forked tongue" in Array(snake_identity.anatomy) and str(snake_identity.silhouette) == "scaled_serpentine", "snake keeps a scaled body, flattened head and forked tongue")
 	var heron_identity: Dictionary = game._predator_identity_profile("HERON")
-	check("S-curved neck" in Array(heron_identity.anatomy) and "long legs and toes" in Array(heron_identity.anatomy), "heron keeps its wading-bird neck, bill, legs and toes")
+	check("S-curved neck" in Array(heron_identity.anatomy) and "long legs and toes" in Array(heron_identity.anatomy) and "layered primary feathers" in Array(heron_identity.anatomy), "heron keeps its wading-bird neck, bill, layered feathers, legs and toes")
+	var bug_identity: Dictionary = game._wildlife_identity_profile("BUG")
+	check(Array(bug_identity.anatomy).size() >= 5 and "six jointed legs" in Array(bug_identity.anatomy), "marsh bugs expose recognizable insect anatomy")
+	check("four veined wings" in Array(bug_identity.anatomy) and int(bug_identity.detail_layers) >= 8, "marsh bugs use a four-wing detailed vector rig")
+	var fairy_identity: Dictionary = game._wildlife_identity_profile("FAIRY")
+	check(Array(fairy_identity.anatomy).size() >= 5 and "moonpetal crown" in Array(fairy_identity.anatomy), "life fairy exposes a distinct child-readable anatomy contract")
+	check("four veined wings" in Array(fairy_identity.anatomy) and bool(fairy_identity.presentation_only), "life fairy detail remains four-wing and presentation-only")
+	var stable_identity_snapshot: Dictionary = game.session.to_save("2000-01-01T00:00:00Z")
+	var identity_hash := 0
+	for identity_iteration in range(10000):
+		var sampled_predator: Dictionary = game._predator_identity_profile(Main.PREDATOR_SPECIES[identity_iteration % Main.PREDATOR_SPECIES.size()])
+		var sampled_wildlife: Dictionary = game._wildlife_identity_profile("BUG" if identity_iteration % 2 == 0 else "FAIRY")
+		identity_hash = hash([identity_hash,str(sampled_predator.silhouette),int(sampled_predator.detail_layers),str(sampled_wildlife.silhouette)])
+	check(identity_hash != 0, "10,000 realism profile reads produce a stable observation")
+	check(game.session.to_save("2000-01-01T00:00:00Z") == stable_identity_snapshot, "realism profiles cannot mutate canonical gameplay or saves")
 	var main_source := FileAccess.get_file_as_string("res://scripts/main.gd")
 	check(not main_source.contains("animation.cue()"), "Fred's locomotion and location text is hidden above his head")
 	game.screen = game.Screen.PLAYING

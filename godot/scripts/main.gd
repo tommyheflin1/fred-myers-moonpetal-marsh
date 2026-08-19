@@ -1442,7 +1442,10 @@ func _predator_identity_profile(species: String) -> Dictionary:
                 "snout_length": 45.0,
                 "facing": -1.0,
                 "pattern": "broken_lateral_band",
-                "anatomy": ["large hinged jaw", "spiny dorsal fin", "dark lateral band"],
+                "anatomy": ["large hinged jaw", "spiny dorsal fin", "dark lateral band", "rounded operculum", "paired pectoral fins", "forked caudal fin"],
+                "motion_channels": ["tail flex", "pectoral sweep", "body lift"],
+                "detail_layers": 9,
+                "phone_readable": true,
             }
         "PIKE":
             return {
@@ -1455,7 +1458,10 @@ func _predator_identity_profile(species: String) -> Dictionary:
                 "snout_length": 55.0,
                 "facing": 1.0,
                 "pattern": "pale_chain_spots",
-                "anatomy": ["duckbill snout", "rear dorsal fin", "long torpedo body"],
+                "anatomy": ["duckbill snout", "rear dorsal fin", "long torpedo body", "paired pelvic fins", "lateral line", "forked caudal fin"],
+                "motion_channels": ["tail flex", "pectoral sweep", "body lift"],
+                "detail_layers": 9,
+                "phone_readable": true,
             }
         "MUSKIE":
             return {
@@ -1468,7 +1474,10 @@ func _predator_identity_profile(species: String) -> Dictionary:
                 "snout_length": 56.0,
                 "facing": -1.0,
                 "pattern": "vertical_bars",
-                "anatomy": ["long predator jaw", "rear dorsal fin", "vertical flank bars"],
+                "anatomy": ["long predator jaw", "rear dorsal fin", "vertical flank bars", "paired pelvic fins", "lateral line", "forked caudal fin"],
+                "motion_channels": ["tail flex", "pectoral sweep", "body lift"],
+                "detail_layers": 9,
+                "phone_readable": true,
             }
         "SNAKE":
             return {
@@ -1477,7 +1486,10 @@ func _predator_identity_profile(species: String) -> Dictionary:
                 "belly": Color("cbbb70"),
                 "marking": Color("364326"),
                 "pattern": "dorsal_blobs",
-                "anatomy": ["tapered scale body", "flattened head", "forked tongue"],
+                "anatomy": ["tapered scale body", "flattened head", "forked tongue", "overlapping dorsal scales", "belly scutes", "hinged jaw line"],
+                "motion_channels": ["spinal wave", "head lead", "tongue flick"],
+                "detail_layers": 8,
+                "phone_readable": true,
             }
         "HERON":
             return {
@@ -1486,7 +1498,10 @@ func _predator_identity_profile(species: String) -> Dictionary:
                 "wing": Color("718d9a"),
                 "marking": Color("263b43"),
                 "pattern": "layered_flight_feathers",
-                "anatomy": ["S-curved neck", "spear bill", "long legs and toes"],
+                "anatomy": ["S-curved neck", "spear bill", "long legs and toes", "layered primary feathers", "shoulder mantle", "crown plume"],
+                "motion_channels": ["wing breathing", "neck poise", "toe balance"],
+                "detail_layers": 9,
+                "phone_readable": true,
             }
     return {
         "silhouette": "generic_predator",
@@ -1499,6 +1514,38 @@ func _predator_identity_profile(species: String) -> Dictionary:
         "facing": 1.0,
         "pattern": "plain",
         "anatomy": [],
+        "motion_channels": [],
+        "detail_layers": 1,
+        "phone_readable": false,
+    }
+
+func _wildlife_identity_profile(kind: String) -> Dictionary:
+    match kind.to_upper():
+        "BUG":
+            return {
+                "silhouette": "four_wing_marsh_fly",
+                "anatomy": ["compound eyes", "head thorax abdomen", "six jointed legs", "paired antennae", "four veined wings"],
+                "motion_channels": ["opposed wing beat", "abdomen hover"],
+                "detail_layers": 8,
+                "phone_readable": true,
+                "presentation_only": true,
+            }
+        "FAIRY":
+            return {
+                "silhouette": "marsh_light_fairy",
+                "anatomy": ["head thorax abdomen", "four veined wings", "paired antennae", "jointed arms and legs", "moonpetal crown"],
+                "motion_channels": ["paired wing beat", "glow pulse", "hover lift"],
+                "detail_layers": 9,
+                "phone_readable": true,
+                "presentation_only": true,
+            }
+    return {
+        "silhouette": "unknown_wildlife",
+        "anatomy": [],
+        "motion_channels": [],
+        "detail_layers": 0,
+        "phone_readable": false,
+        "presentation_only": true,
     }
 
 func _draw_fish(position: Vector2, species: String, profile: Dictionary) -> void:
@@ -1520,7 +1567,16 @@ func _draw_fish(position: Vector2, species: String, profile: Dictionary) -> void
         tail_root - Vector2(tail_length * facing, radii.y * 0.92 + tail_flex),
         tail_root - Vector2((tail_length - 5.0) * facing, -radii.y * 0.95 + tail_flex),
     ]), back)
+    var tail_upper := tail_root - Vector2(tail_length * facing, radii.y * 0.92 + tail_flex)
+    var tail_lower := tail_root - Vector2((tail_length - 5.0) * facing, -radii.y * 0.95 + tail_flex)
+    for ray_ratio in [0.2, 0.4, 0.6, 0.8]:
+        var ray_tip := tail_upper.lerp(tail_lower, float(ray_ratio))
+        draw_line(tail_root, ray_tip, back.lightened(0.35), 1.2, true)
+    draw_polyline(PackedVector2Array([tail_root,tail_upper,tail_lower,tail_root]), Color("d2cf9d"), 1.6, true)
     draw_colored_polygon(_ellipse_points(fish_position, radii, 0.0), body)
+    draw_colored_polygon(_ellipse_points(fish_position + Vector2(-5.0 * facing,-radii.y*0.28), Vector2(radii.x*0.80,radii.y*0.48), 0.0), Color(back,0.54))
+    draw_colored_polygon(_ellipse_points(fish_position + Vector2(7.0*facing,radii.y*0.33), Vector2(radii.x*0.72,radii.y*0.42), 0.0), Color(belly.lightened(0.12),0.48))
+    draw_arc(fish_position + Vector2(-5.0*facing,-radii.y*0.12), radii.x*0.70, 3.48, 5.83, 24, Color(0.92,1.0,0.76,0.20), 2.0, true)
     draw_colored_polygon(PackedVector2Array([
         fish_position - Vector2((radii.x - 4.0) * facing, -2.0),
         fish_position + Vector2(0, radii.y * 0.45),
@@ -1545,6 +1601,17 @@ func _draw_fish(position: Vector2, species: String, profile: Dictionary) -> void
             fish_position - Vector2(36.0 * facing,-radii.y-12.0),
             fish_position - Vector2(43.0 * facing,-radii.y*0.44),
         ]), back.lightened(0.08))
+    var pectoral_root := fish_position + Vector2(8.0*facing,8.0)
+    var pectoral_tip := pectoral_root + Vector2(-18.0*facing,20.0)
+    draw_colored_polygon(PackedVector2Array([
+        pectoral_root + Vector2(0,-4), pectoral_tip, pectoral_root + Vector2(9.0*facing,6),
+    ]), Color(belly.darkened(0.20),0.90))
+    for fin_ray in range(3):
+        draw_line(pectoral_root + Vector2(float(fin_ray)*2.5*facing,0), pectoral_tip + Vector2(float(fin_ray)*4.0*facing,-float(fin_ray)*2.0), Color(0.93,0.89,0.66,0.46), 1.0, true)
+    var pelvic_root := fish_position - Vector2(13.0*facing,-radii.y*0.72)
+    draw_colored_polygon(PackedVector2Array([
+        pelvic_root, pelvic_root + Vector2(-13.0*facing,12.0), pelvic_root + Vector2(8.0*facing,5.0),
+    ]), Color(back.lightened(0.10),0.88))
     if pattern == "broken_lateral_band":
         draw_line(fish_position-Vector2(31.0*facing,0), fish_position+Vector2(25.0*facing,1), marking, 5.0)
         for blotch in range(5):
@@ -1558,12 +1625,19 @@ func _draw_fish(position: Vector2, species: String, profile: Dictionary) -> void
         for bar in range(5):
             var bar_x := -30.0 + float(bar)*15.0
             draw_line(fish_position+Vector2(bar_x*facing,-radii.y*0.72), fish_position+Vector2((bar_x+5.0)*facing,radii.y*0.72), marking, 3.5)
-    for scale_x in [-18.0,-5.0,8.0]:
-        draw_arc(fish_position+Vector2(scale_x*facing,7.0),5.0,0.1,PI-0.1,8,Color(1,0.96,0.78,0.28),1.2)
+    for scale_row in range(3):
+        for scale_column in range(5):
+            var scale_x := -27.0 + float(scale_column) * 13.0 + float(scale_row % 2) * 5.0
+            var scale_y := -9.0 + float(scale_row) * 8.0
+            draw_arc(fish_position+Vector2(scale_x*facing,scale_y),4.4,0.12,PI-0.12,8,Color(1,0.96,0.78,0.24),1.1,true)
+    draw_line(fish_position-Vector2((radii.x-6.0)*facing,0),fish_position+Vector2((radii.x-13.0)*facing,1.0),Color(marking,0.50),1.5,true)
     var eye := fish_position + Vector2((radii.x-15.0)*facing,-radii.y*0.28)
-    draw_circle(eye, 5.2, Color("f7e9bc"))
-    draw_circle(eye + Vector2(1.4*facing,0), 2.5, Color("101818"))
-    draw_line(fish_position + Vector2((radii.x-21.0)*facing,-radii.y*0.72), fish_position + Vector2((radii.x-20.0)*facing,radii.y*0.72), back, 2.2)
+    draw_circle(eye, 6.0, Color("d6ba63"))
+    draw_circle(eye + Vector2(1.2*facing,0), 3.4, Color("101818"))
+    draw_circle(eye + Vector2(2.1*facing,-1.5), 1.1, Color(1.0,1.0,0.94,0.94))
+    var gill_center := fish_position + Vector2((radii.x-22.0)*facing,1.0)
+    draw_arc(gill_center, radii.y*0.73, -1.35, 1.25, 16, back.darkened(0.18), 2.6, true)
+    draw_arc(gill_center - Vector2(3.0*facing,0), radii.y*0.52, -1.15, 1.05, 12, Color(0.90,0.94,0.72,0.34), 1.3, true)
     if species == "BASS":
         var jaw_hinge := fish_position + Vector2(9.0*facing,8.0)
         draw_line(nose+Vector2(0,8), jaw_hinge, Color("efe2b5"), 5.0)
@@ -1572,6 +1646,9 @@ func _draw_fish(position: Vector2, species: String, profile: Dictionary) -> void
     else:
         draw_line(nose+Vector2(0,4), nose-Vector2(22.0*facing,-3.0), marking, 2.5)
         draw_circle(nose-Vector2(6.0*facing,5.0),1.5,Color("172026"))
+        for tooth_index in range(4):
+            var tooth := nose - Vector2((7.0+float(tooth_index)*5.0)*facing,-3.0)
+            draw_line(tooth,tooth+Vector2(-1.5*facing,3.2),Color("f5efd5"),1.2,true)
     draw_polyline(_ellipse_points(fish_position,radii,0.0,true), Color("e9e0b4"), 2.0, true)
 
 func _draw_snake(position: Vector2, profile: Dictionary) -> void:
@@ -1579,36 +1656,51 @@ func _draw_snake(position: Vector2, profile: Dictionary) -> void:
     var belly := Color(profile.belly)
     var marking := Color(profile.marking)
     var spine := PackedVector2Array()
-    for segment in range(12):
-        spine.append(position + Vector2(-65 + segment * 11, sin(float(segment) * 0.92 + simulation_time * 2.0) * 16))
-    draw_polyline(spine,Color(0.01,0.04,0.02,0.52),29.0,true)
-    for segment in range(12):
+    var wave_time := 0.0 if reduced_motion else simulation_time * 2.0
+    for segment in range(16):
+        var taper_wave := sin(float(segment) * 0.72 + wave_time) * (14.0 - float(segment) * 0.22)
+        spine.append(position + Vector2(-76.0 + float(segment) * 9.2,taper_wave))
+    draw_polyline(spine,Color(0.01,0.04,0.02,0.52),31.0,true)
+    for segment in range(16):
         var offset := spine[segment] - position
-        var radius := 12.0 - absf(float(segment)-5.5)*0.55
+        var radius := clampf(8.0 + sin(float(segment) / 15.0 * PI) * 6.0,7.0,14.0)
         draw_circle(position + offset + Vector2(0,4), radius + 2.0, Color(0.03,0.08,0.05,0.32))
         draw_circle(position + offset, radius, body.darkened(float(segment % 2) * 0.08))
-        draw_arc(position + offset + Vector2(0,3), radius * 0.70, 0.15, PI-0.15, 10, belly, 2.4)
+        draw_arc(position + offset + Vector2(0,3), radius * 0.70, 0.15, PI-0.15, 10, Color(belly,0.86), 2.8,true)
         if segment % 2 == 0:
             draw_colored_polygon(PackedVector2Array([
                 position+offset+Vector2(-4,-1),position+offset+Vector2(0,-6),
                 position+offset+Vector2(5,-1),position+offset+Vector2(0,5)
             ]),marking)
-        draw_arc(position+offset,radius*0.84,3.25,6.05,10,Color(0.92,0.86,0.52,0.28),1.4)
-    var head := position + Vector2(62, -5)
+        draw_arc(position+offset,radius*0.84,3.25,6.05,10,Color(0.92,0.86,0.52,0.30),1.4,true)
+        draw_arc(position+offset+Vector2(0,4),radius*0.50,0.18,PI-0.18,8,Color(0.98,0.90,0.61,0.34),1.0,true)
+        if segment < 15:
+            var next_direction := (spine[segment+1]-spine[segment]).normalized()
+            var scale_side := Vector2(-next_direction.y,next_direction.x)
+            draw_line(position+offset-scale_side*radius*0.55,position+offset+scale_side*radius*0.55,Color(0.10,0.18,0.08,0.22),0.8,true)
+    var head := position + Vector2(67,-4)
+    draw_colored_polygon(_ellipse_points(head+Vector2(-13,5),Vector2(27,15),0.0),Color(0.01,0.04,0.02,0.42))
     draw_colored_polygon(PackedVector2Array([
-        head+Vector2(-21,-14), head+Vector2(8,-18), head+Vector2(29,-7),
-        head+Vector2(31,8), head+Vector2(8,17), head+Vector2(-21,12),
+        head+Vector2(-24,-12), head+Vector2(4,-18), head+Vector2(27,-10),
+        head+Vector2(34,-2), head+Vector2(27,10), head+Vector2(5,17), head+Vector2(-24,11),
     ]), body.lightened(0.08))
-    draw_polyline(PackedVector2Array([head+Vector2(-21,-14),head+Vector2(8,-18),head+Vector2(29,-7),head+Vector2(31,8),head+Vector2(8,17),head+Vector2(-21,12),head+Vector2(-21,-14)]), belly,2.2,true)
+    draw_colored_polygon(PackedVector2Array([head+Vector2(-21,4),head+Vector2(26,1),head+Vector2(27,10),head+Vector2(5,17),head+Vector2(-24,11)]),Color(belly,0.44))
+    draw_polyline(PackedVector2Array([head+Vector2(-24,-12),head+Vector2(4,-18),head+Vector2(27,-10),head+Vector2(34,-2),head+Vector2(27,10),head+Vector2(5,17),head+Vector2(-24,11),head+Vector2(-24,-12)]), belly,2.2,true)
+    for scale_index in range(5):
+        var scale_center := head + Vector2(-13.0+float(scale_index)*8.0,-5.0+float(scale_index%2)*5.0)
+        draw_arc(scale_center,4.0,3.3,6.0,8,Color(0.95,0.89,0.52,0.38),1.1,true)
     for eye_y in [-7.0,7.0]:
         var eye := head + Vector2(12,eye_y)
-        draw_circle(eye,4.3,Color("f4e077"))
-        draw_line(eye+Vector2(0,-2.4),eye+Vector2(0,2.4),Color("170f08"),2.0)
+        draw_circle(eye,5.0,Color("d9b63f"))
+        draw_circle(eye,3.4,Color("7f943a"))
+        draw_line(eye+Vector2(0,-2.7),eye+Vector2(0,2.7),Color("170f08"),2.0,true)
+        draw_circle(eye+Vector2(-1.3,-1.5),0.9,Color(1.0,1.0,0.88,0.92))
     draw_circle(head+Vector2(24,-3),1.7,Color("312019"))
     draw_circle(head+Vector2(24,3),1.7,Color("312019"))
-    draw_line(head+Vector2(30,2),head+Vector2(44,2),Color("e45d62"),2.2)
-    draw_line(head+Vector2(44,2),head+Vector2(52,-5),Color("e45d62"),2.2)
-    draw_line(head+Vector2(44,2),head+Vector2(52,9),Color("e45d62"),2.2)
+    draw_arc(head+Vector2(5,1),28.0,-0.18,0.52,16,Color("2b2216"),2.0,true)
+    draw_line(head+Vector2(32,2),head+Vector2(46,2),Color("e45d62"),2.2,true)
+    draw_line(head+Vector2(46,2),head+Vector2(54,-5),Color("e45d62"),2.2,true)
+    draw_line(head+Vector2(46,2),head+Vector2(54,9),Color("e45d62"),2.2,true)
 
 func _draw_impact_burst() -> void:
     var lifetime := 0.62
@@ -1631,33 +1723,51 @@ func _draw_heron(position: Vector2, profile: Dictionary) -> void:
     var wing := Color(profile.wing)
     var marking := Color(profile.marking)
     var wing_lift := 0.0 if reduced_motion else sin(visual_time * 3.0) * 10.0
+    draw_colored_polygon(_ellipse_points(position+Vector2(3,8),Vector2(36,25),-0.12),Color(0.01,0.04,0.05,0.38))
     draw_colored_polygon(_ellipse_points(position,Vector2(31,23),-0.12),feathers)
+    draw_colored_polygon(_ellipse_points(position+Vector2(7,5),Vector2(23,15),-0.16),Color(feathers.lightened(0.22),0.48))
     draw_colored_polygon(PackedVector2Array([
         position+Vector2(-25,7),position+Vector2(-54,-8-wing_lift*0.35),position+Vector2(-37,21),position+Vector2(14,15),position+Vector2(8,-15),
     ]),wing)
-    for feather in range(5):
-        var feather_start := position+Vector2(-33+float(feather)*8.0,-2+float(feather)*4.0)
-        draw_line(feather_start,feather_start+Vector2(-24+float(feather)*3.0,18-wing_lift*0.28),Color("dcebf0"),2.4)
+    for feather in range(7):
+        var feather_start := position+Vector2(-37+float(feather)*7.0,-3+float(feather)*3.2)
+        var feather_end := feather_start+Vector2(-27+float(feather)*3.0,20-wing_lift*0.28)
+        draw_line(feather_start,feather_end,Color("dcebf0"),3.0,true)
+        draw_line(feather_start+Vector2(1,2),feather_end+Vector2(3,-1),Color(0.18,0.28,0.32,0.42),1.1,true)
+    draw_arc(position+Vector2(-5,1),24.0,2.8,5.7,22,Color(0.90,0.97,0.98,0.40),2.0,true)
     var neck_points := PackedVector2Array([
         position+Vector2(18,-11),position+Vector2(30,-25),position+Vector2(25,-41),position+Vector2(38,-56),
     ])
     draw_polyline(neck_points,marking,13.0,true)
     draw_polyline(neck_points,feathers.lightened(0.12),9.0,true)
+    var neck_highlight := PackedVector2Array([
+        position+Vector2(16,-12),position+Vector2(27,-26),position+Vector2(22,-41),position+Vector2(35,-55),
+    ])
+    draw_polyline(neck_highlight,Color(0.95,1.0,1.0,0.46),2.2,true)
     var head := position+Vector2(42,-59)
+    draw_colored_polygon(_ellipse_points(head+Vector2(2,3),Vector2(17,12),-0.12),Color(0.01,0.04,0.05,0.35))
     draw_colored_polygon(_ellipse_points(head,Vector2(15,11),-0.12),feathers.lightened(0.18))
-    draw_line(head+Vector2(-11,-8),head+Vector2(2,-16),marking,4.0)
+    draw_line(head+Vector2(-13,-8),head+Vector2(1,-17),marking,5.0,true)
+    draw_line(head+Vector2(-11,-10),head+Vector2(-22,-17),marking,2.2,true)
+    draw_line(head+Vector2(-8,-11),head+Vector2(-17,-21),marking,1.7,true)
     draw_colored_polygon(PackedVector2Array([head+Vector2(11,-2),head+Vector2(54,2),head+Vector2(11,7)]),Color("e7b94e"))
+    draw_colored_polygon(PackedVector2Array([head+Vector2(13,-1),head+Vector2(52,2),head+Vector2(13,2)]),Color(1.0,0.85,0.34,0.68))
     draw_line(head+Vector2(13,1),head+Vector2(52,2),Color("5b492a"),1.6)
+    draw_circle(head+Vector2(41,0.8),1.1,Color("6b4a22"))
     draw_circle(head+Vector2(5,-4),3.6,Color("fff3c2"))
-    draw_circle(head+Vector2(6,-4),1.8,Color("172026"))
+    draw_circle(head+Vector2(6,-4),2.1,Color("172026"))
+    draw_circle(head+Vector2(5.4,-4.8),0.7,Color(1.0,1.0,0.94,0.94))
     for leg_x in [-9.0,9.0]:
         var knee := position+Vector2(leg_x,42)
         var ankle := position+Vector2(leg_x+3.0,61)
         draw_line(position+Vector2(leg_x,19),knee,Color("d7b253"),3.2)
         draw_line(knee,ankle,Color("d7b253"),2.6)
+        draw_circle(knee,2.8,Color("a97d32"))
         draw_line(ankle,ankle+Vector2(-13,5),Color("d7b253"),2.0)
         draw_line(ankle,ankle+Vector2(13,5),Color("d7b253"),2.0)
         draw_line(ankle,ankle+Vector2(2,-7),Color("d7b253"),1.7)
+        for toe_tip in [ankle+Vector2(-13,5),ankle+Vector2(13,5),ankle+Vector2(2,-7)]:
+            draw_circle(toe_tip,1.5,Color("f0cb6d"))
 
 func _draw_reeds(sway: float) -> void:
     for x in range(55,1240,95):
@@ -1669,27 +1779,37 @@ func _draw_bug(position: Vector2, index: int, flutter: float) -> void:
     var wing := absf(flutter) + 5.0
     draw_colored_polygon(_ellipse_points(position + Vector2(7,20), Vector2(20,7), 0.0), Color(0.005,0.02,0.025,0.42))
     draw_circle(position, 27, Color(0.98,0.82,0.28,0.055))
-    var left_wing := PackedVector2Array([
-        position + Vector2(-3,-4), position + Vector2(-23,-wing-7),
-        position + Vector2(-30,-wing+4), position + Vector2(-8,4),
-    ])
-    var right_wing := PackedVector2Array([
-        position + Vector2(3,-4), position + Vector2(23,-wing-7),
-        position + Vector2(30,-wing+4), position + Vector2(8,4),
-    ])
-    draw_colored_polygon(left_wing, Color(0.86,0.97,1.0,0.62))
-    draw_colored_polygon(right_wing, Color(0.86,0.97,1.0,0.62))
-    draw_polyline(PackedVector2Array([left_wing[0],left_wing[1],left_wing[2],left_wing[3],left_wing[0]]), Color(0.95,1.0,1.0,0.78), 1.5)
-    draw_polyline(PackedVector2Array([right_wing[0],right_wing[1],right_wing[2],right_wing[3],right_wing[0]]), Color(0.95,1.0,1.0,0.78), 1.5)
-    draw_line(position + Vector2(-5,-1), position + Vector2(-24,-wing+1), Color(0.63,0.82,0.85,0.56), 1)
-    draw_line(position + Vector2(5,-1), position + Vector2(24,-wing+1), Color(0.63,0.82,0.85,0.56), 1)
-    draw_colored_polygon(_ellipse_points(position + Vector2(0,4), Vector2(9,15), 0.0), Color("eab23d"))
-    draw_circle(position + Vector2(0,-10), 7, Color("59401d"))
-    draw_circle(position + Vector2(-2,-12), 2, Color("f9e7a6"))
-    draw_line(position + Vector2(-3,-15), position + Vector2(-8,-22), Color("59401d"), 2)
-    draw_line(position + Vector2(3,-15), position + Vector2(8,-22), Color("59401d"), 2)
+    var wing_pairs: Array[PackedVector2Array] = [
+        PackedVector2Array([position+Vector2(-3,-5),position+Vector2(-23,-wing-8),position+Vector2(-31,-wing+2),position+Vector2(-8,3)]),
+        PackedVector2Array([position+Vector2(3,-5),position+Vector2(23,-wing-8),position+Vector2(31,-wing+2),position+Vector2(8,3)]),
+        PackedVector2Array([position+Vector2(-5,1),position+Vector2(-24,wing+2),position+Vector2(-17,wing+13),position+Vector2(-5,7)]),
+        PackedVector2Array([position+Vector2(5,1),position+Vector2(24,wing+2),position+Vector2(17,wing+13),position+Vector2(5,7)]),
+    ]
+    for wing_shape in wing_pairs:
+        draw_colored_polygon(wing_shape,Color(0.79,0.95,1.0,0.58))
+        draw_polyline(PackedVector2Array([wing_shape[0],wing_shape[1],wing_shape[2],wing_shape[3],wing_shape[0]]),Color(0.95,1.0,1.0,0.82),1.4,true)
+        draw_line(wing_shape[0],wing_shape[2],Color(0.48,0.73,0.79,0.54),0.9,true)
+        draw_line(wing_shape[1],wing_shape[3],Color(0.48,0.73,0.79,0.42),0.8,true)
+    draw_colored_polygon(_ellipse_points(position+Vector2(0,8),Vector2(8,13),0.0),Color("eab23d"))
+    draw_colored_polygon(_ellipse_points(position+Vector2(0,-1),Vector2(9,8),0.0),Color("7d5523"))
+    draw_circle(position+Vector2(0,-11),7,Color("59401d"))
+    draw_circle(position+Vector2(-3,-12),2.6,Color("8fc6a2"))
+    draw_circle(position+Vector2(3,-12),2.6,Color("8fc6a2"))
+    for eye_x in [-3.0,3.0]:
+        draw_circle(position+Vector2(eye_x-0.5,-13.0),0.7,Color(1.0,1.0,0.86,0.88))
+    draw_line(position+Vector2(-3,-16),position+Vector2(-10,-23),Color("59401d"),1.7,true)
+    draw_line(position+Vector2(3,-16),position+Vector2(10,-23),Color("59401d"),1.7,true)
+    draw_circle(position+Vector2(-10,-23),1.4,Color("d4a94b"))
+    draw_circle(position+Vector2(10,-23),1.4,Color("d4a94b"))
+    for side in [-1.0,1.0]:
+        for leg_index in range(3):
+            var leg_root := position+Vector2(5.0*side,-2.0+float(leg_index)*6.0)
+            var knee := leg_root+Vector2((8.0+float(leg_index))*side,2.0+float(leg_index)*2.0)
+            var foot := knee+Vector2(5.0*side,4.0)
+            draw_polyline(PackedVector2Array([leg_root,knee,foot]),Color("493218"),1.4,true)
     for stripe_y in [-1.0, 5.0, 10.0]:
         draw_line(position + Vector2(-7,stripe_y), position + Vector2(7,stripe_y), Color("59401d"), 2)
+    draw_arc(position+Vector2(0,7),6.2,3.3,6.0,9,Color(1.0,0.91,0.45,0.42),1.0,true)
     _text(position+Vector2(0,30), "BUG %d" % (index + 1), 11, Color("fff7cb"), HORIZONTAL_ALIGNMENT_CENTER, 70)
 
 func _draw_fairy(position: Vector2) -> void:
@@ -1697,13 +1817,32 @@ func _draw_fairy(position: Vector2) -> void:
     draw_colored_polygon(_ellipse_points(position + Vector2(5,26), Vector2(25,8), 0.0), Color(0.01,0.02,0.05,0.36))
     draw_circle(position, 44, Color(0.92,0.84,1.0,0.07))
     draw_circle(position, 31, Color(0.92,0.84,1.0,0.12))
-    draw_colored_polygon(_ellipse_points(position + Vector2(-16,-5-flutter), Vector2(18,10), -0.55), Color(0.88,0.96,1.0,0.68))
-    draw_colored_polygon(_ellipse_points(position + Vector2(16,-5+flutter), Vector2(18,10), 0.55), Color(0.88,0.96,1.0,0.68))
-    draw_colored_polygon(_ellipse_points(position + Vector2(0,4), Vector2(8,16), 0.0), Color("f8df67"))
-    draw_circle(position + Vector2(0,-11), 6, Color("fff4d5"))
-    draw_circle(position + Vector2(-2,-13), 2, Color("fffdf2"))
-    draw_line(position + Vector2(0,8), position + Vector2(0,20), Color("f8df67"), 3)
-    draw_line(position + Vector2(-8,11), position + Vector2(8,11), Color("f8df67"), 2)
+    var fairy_wings: Array[Dictionary] = [
+        {"center":Vector2(-17,-8-flutter),"radii":Vector2(19,10),"angle":-0.55},
+        {"center":Vector2(17,-8+flutter),"radii":Vector2(19,10),"angle":0.55},
+        {"center":Vector2(-13,7+flutter*0.4),"radii":Vector2(14,8),"angle":0.52},
+        {"center":Vector2(13,7-flutter*0.4),"radii":Vector2(14,8),"angle":-0.52},
+    ]
+    for wing_data in fairy_wings:
+        var wing_center := position+Vector2(wing_data.center)
+        var wing_radii := Vector2(wing_data.radii)
+        draw_colored_polygon(_ellipse_points(wing_center,wing_radii,float(wing_data.angle)),Color(0.86,0.95,1.0,0.66))
+        draw_arc(wing_center,wing_radii.x*0.72,2.9,6.0,14,Color(0.96,1.0,1.0,0.68),1.0,true)
+        draw_line(position+Vector2(0,-1),wing_center,Color(0.69,0.83,0.93,0.62),1.0,true)
+    draw_colored_polygon(_ellipse_points(position+Vector2(0,7),Vector2(8,14),0.0),Color("f8df67"))
+    draw_colored_polygon(_ellipse_points(position+Vector2(0,-1),Vector2(9,8),0.0),Color("c89b3a"))
+    draw_colored_polygon(_ellipse_points(position+Vector2(-2,4),Vector2(3,9),-0.18),Color(1.0,0.96,0.64,0.50))
+    draw_circle(position+Vector2(0,-12),7,Color("fff4d5"))
+    draw_circle(position+Vector2(-2,-13),2,Color("987b42"))
+    draw_circle(position+Vector2(-2.5,-13.5),0.7,Color("fffdf2"))
+    draw_line(position+Vector2(-3,-18),position+Vector2(-8,-24),Color("a77b3b"),1.4,true)
+    draw_line(position+Vector2(3,-18),position+Vector2(8,-24),Color("a77b3b"),1.4,true)
+    draw_circle(position+Vector2(-8,-24),1.8,Color("f7d85a"))
+    draw_circle(position+Vector2(8,-24),1.8,Color("f7d85a"))
+    draw_polyline(PackedVector2Array([position+Vector2(-7,-18),position+Vector2(0,-24),position+Vector2(7,-18)]),Color("f6c44d"),2.0,true)
+    for side in [-1.0,1.0]:
+        draw_polyline(PackedVector2Array([position+Vector2(5.0*side,1),position+Vector2(10.0*side,8),position+Vector2(15.0*side,5)]),Color("f8df67"),2.0,true)
+        draw_polyline(PackedVector2Array([position+Vector2(4.0*side,15),position+Vector2(7.0*side,23),position+Vector2(11.0*side,25)]),Color("f8df67"),2.0,true)
     _text(position+Vector2(0,50), "FAIRY  +1 STACKING LIFE", 11, Color("fff0ae"), HORIZONTAL_ALIGNMENT_CENTER, 190)
 
 func _draw_eating_effect(origin: Vector2, target: Vector2) -> void:

@@ -139,6 +139,16 @@ predators; grounded contact and whirlpools remain dangerous. The touch-first
 instruction card now teaches this purpose. The focused leap suite passes 65
 checks and the 22-suite matrix passes 4,116 checks.
 
+Revision 13 performs a cohesive Fred-and-wildlife character-rig realism pass.
+Fred gains recognizable frog skin folds, tympanums, horizontal pupils, body
+volume, jointed limbs, webbed digits and mottling while preserving the same
+34-node rig and 23 deterministic poses. Bass, pike, muskie, snake, heron, bugs
+and the life fairy gain layered species anatomy, surface detail and motion cues
+that remain readable at phone scale. All additions are presentation-only;
+collision, fixed-tick rules, touch hit targets, save v1 and Core 0.5.1 remain
+unchanged. The 22-suite matrix passes 4,140 checks. Physical-phone and owner
+visual acceptance remain separate gates.
+
 ## M1 sequencing
 
 1. Expand the repository source tree and retain the legacy build under `legacy-web/` or a tagged legacy branch.

@@ -102,6 +102,18 @@ const ATTIRE_EYEWEAR := {
 	"moon_champion": "moon_visor",
 	"firefly_hero": "hero_goggles",
 }
+const REALISM_FEATURES: Array[String] = [
+	"layered skin lighting",
+	"dorsolateral folds",
+	"visible tympanum",
+	"nictitating eye rim",
+	"horizontal frog pupils",
+	"throat and belly volume",
+	"jointed forelimbs",
+	"hind-leg muscle contours",
+	"webbed fingers and toe pads",
+	"mottled skin texture",
+]
 
 var last_error := ""
 var contract_valid := false
@@ -264,12 +276,25 @@ func attire_snapshot() -> Dictionary:
 		"child_readable": attire in ATTIRE_IDS,
 	}
 
+func realism_snapshot() -> Dictionary:
+	return {
+		"features": REALISM_FEATURES.duplicate(),
+		"feature_count": REALISM_FEATURES.size(),
+		"presentation_only": true,
+		"phone_safe_vector_rig": true,
+		"collision_mutation": false,
+		"save_fields": 0,
+	}
+
 func _draw_ground_shadow(canvas: Node2D, world_position: Vector2) -> void:
 	var contacts := ground_contacts()
 	var center := world_position + (contacts[0] + contacts[1]) * 0.5 + Vector2(0.0, 2.5)
 	var width := 35.0 * float(_style.size_scale)
 	canvas.draw_colored_polygon(_ellipse_points(center, Vector2(width, 8.0), 22), Color(0.005, 0.03, 0.04, 0.38))
+	canvas.draw_colored_polygon(_ellipse_points(center + Vector2(-4.0,-1.0), Vector2(width * 0.67, 4.2), 20), Color(0.12, 0.42, 0.31, 0.16))
 	canvas.draw_polyline(_closed_points(_ellipse_points(center, Vector2(width - 4.0, 5.0), 22)), Color(0.36, 0.93, 0.72, 0.12), 1.4, true)
+	for contact in contacts:
+		canvas.draw_arc(world_position + contact, 5.2 * float(_style.size_scale), 0.05, PI - 0.05, 10, Color(0.66,0.96,0.74,0.22), 1.2, true)
 
 func _draw_attire_back(canvas: Node2D, world_position: Vector2) -> void:
 	if str(_style.attire) != "firefly_hero":
@@ -288,13 +313,27 @@ func _draw_skin_dimension(canvas: Node2D, world_position: Vector2) -> void:
 	var shadow := body_color.darkened(0.32)
 	_draw_transformed_ellipse(canvas, _body_joint, Vector2(9.0, 7.0), Vector2(12.0, 17.0), Color(shadow, 0.34), world_position)
 	_draw_transformed_ellipse(canvas, _body_joint, Vector2(-9.0, -9.0), Vector2(8.0, 5.0), Color(highlight, 0.34), world_position)
+	_draw_transformed_ellipse(canvas, _body_joint, Vector2(0.0, 13.0), Vector2(13.0, 11.0), Color(body_color.lightened(0.30), 0.16), world_position)
 	_draw_transformed_ellipse(canvas, _head_joint, Vector2(0.0, 9.0), Vector2(22.0, 8.0), Color(shadow, 0.20), world_position)
 	_draw_transformed_ellipse(canvas, _head_joint, Vector2(-8.0, -12.0), Vector2(10.0, 5.0), Color(highlight, 0.26), world_position)
+	_draw_transformed_ellipse(canvas, _head_joint, Vector2(0.0, 12.0), Vector2(17.0, 6.5), Color(head_color.lightened(0.34), 0.18), world_position)
+	for ear_x in [-23.0, 23.0]:
+		var tympanum := world_position + _node_point(_head_joint, Vector2(ear_x, 1.5))
+		canvas.draw_circle(tympanum, 5.2 * float(_style.size_scale), Color(shadow, 0.30))
+		canvas.draw_arc(tympanum, 4.0 * float(_style.size_scale), 0.25, TAU - 0.25, 16, Color(highlight, 0.42), 1.3 * float(_style.size_scale), true)
+	var left_fold := _transformed_points(_body_joint, PackedVector2Array([Vector2(-19,-17),Vector2(-18,-5),Vector2(-15,9),Vector2(-11,19)]), world_position)
+	var right_fold := _transformed_points(_body_joint, PackedVector2Array([Vector2(19,-17),Vector2(18,-5),Vector2(15,9),Vector2(11,19)]), world_position)
+	canvas.draw_polyline(left_fold, Color(highlight,0.34), 1.7 * float(_style.size_scale), true)
+	canvas.draw_polyline(right_fold, Color(shadow,0.28), 1.7 * float(_style.size_scale), true)
 	for spot in [Vector2(-19.0, 1.0), Vector2(18.0, -1.0), Vector2(-10.0, 11.0), Vector2(11.0, 12.0)]:
 		_draw_transformed_ellipse(canvas, _head_joint, spot, Vector2(2.2, 1.5), Color(shadow, 0.30), world_position)
+	for spot in [Vector2(-13.0,-8.0),Vector2(11.0,-13.0),Vector2(-7.0,17.0),Vector2(14.0,9.0)]:
+		_draw_transformed_ellipse(canvas, _body_joint, spot, Vector2(2.0,1.2), Color(shadow,0.22), world_position)
 	for node in [_hind_left, _hind_right]:
 		var muscle := _transformed_points(node, PackedVector2Array([Vector2(-2,-3),Vector2(-17,1),Vector2(-29,12)]), world_position)
 		canvas.draw_polyline(muscle, Color(highlight, 0.48), 2.2 * float(_style.size_scale), true)
+		var lower_muscle := _transformed_points(node, PackedVector2Array([Vector2(-27,13),Vector2(-32,19),Vector2(-31,25)]), world_position)
+		canvas.draw_polyline(lower_muscle, Color(shadow,0.34), 1.5 * float(_style.size_scale), true)
 
 func _draw_front_limbs(canvas: Node2D, world_position: Vector2) -> void:
 	var fill := (get_node("RootJoint/BodyJoint/Fill") as Polygon2D).color
@@ -305,9 +344,21 @@ func _draw_front_limbs(canvas: Node2D, world_position: Vector2) -> void:
 		var width_scale := float(_style.size_scale)
 		canvas.draw_polyline(points, outline, 9.0 * width_scale, true)
 		canvas.draw_polyline(points, fill.lightened(0.05), 5.2 * width_scale, true)
+		var elbow := points[1]
+		canvas.draw_circle(elbow, 5.0 * width_scale, outline)
+		canvas.draw_circle(elbow - Vector2(1.2,1.2), 3.0 * width_scale, fill.lightened(0.16))
 		var hand := points[points.size() - 1]
 		canvas.draw_colored_polygon(_ellipse_points(hand, Vector2(6.0, 4.0) * width_scale, 14), fill.lightened(0.10))
 		canvas.draw_polyline(_closed_points(_ellipse_points(hand, Vector2(6.0, 4.0) * width_scale, 14)), outline, 1.5 * width_scale, true)
+		var forward := (hand - points[points.size() - 2]).normalized()
+		var sideways := Vector2(-forward.y, forward.x)
+		var finger_tips := PackedVector2Array()
+		for spread: float in [-1.0, 0.0, 1.0]:
+			var tip: Vector2 = hand + forward * (7.0 + (1.0 - absf(spread)) * 2.0) * width_scale + sideways * spread * 5.0 * width_scale
+			finger_tips.append(tip)
+			canvas.draw_line(hand, tip, fill.lightened(0.18), 2.8 * width_scale, true)
+			canvas.draw_circle(tip, 2.0 * width_scale, Color("b9e67d"))
+		canvas.draw_colored_polygon(PackedVector2Array([hand,finger_tips[0],finger_tips[1],finger_tips[2]]), Color(fill.lightened(0.22),0.28))
 
 func _draw_face_finish(canvas: Node2D, world_position: Vector2) -> void:
 	var head_color := (get_node("RootJoint/HeadJoint/Fill") as Polygon2D).color
@@ -315,9 +366,16 @@ func _draw_face_finish(canvas: Node2D, world_position: Vector2) -> void:
 	_draw_transformed_ellipse(canvas, _head_joint, Vector2(0.0, 13.0), Vector2(14.0, 3.2), Color(head_color.lightened(0.34), 0.24), world_position)
 	for eye in [_eye_left, _eye_right]:
 		var iris_center := world_position + _node_point(eye, Vector2(2.0, 0.0))
-		canvas.draw_arc(iris_center, 4.8 * float(_style.size_scale), 0.0, TAU, 18, Color("78b84f"), 1.5 * float(_style.size_scale), true)
+		canvas.draw_circle(iris_center, 5.2 * float(_style.size_scale), Color("a6c95e"))
+		canvas.draw_arc(iris_center, 4.8 * float(_style.size_scale), 0.0, TAU, 18, Color("456d35"), 1.5 * float(_style.size_scale), true)
+		canvas.draw_line(iris_center + Vector2(-3.6,0), iris_center + Vector2(3.6,0), Color("13241d"), 2.2 * float(_style.size_scale), true)
+		canvas.draw_arc(iris_center + Vector2(0,1.2), 5.8 * float(_style.size_scale), 0.18, PI - 0.18, 14, Color(0.78,0.94,0.74,0.42), 1.0 * float(_style.size_scale), true)
 		var glint := world_position + _node_point(eye, Vector2(-1.0, -3.0))
 		canvas.draw_circle(glint, 1.8 * float(_style.size_scale), Color(1.0, 1.0, 0.92, 0.92))
+	for nostril_x in [-5.0,5.0]:
+		var nostril := world_position + _node_point(_head_joint, Vector2(nostril_x,-0.5))
+		canvas.draw_circle(nostril,1.5 * float(_style.size_scale),Color(outline,0.72))
+		canvas.draw_circle(nostril+Vector2(-0.4,-0.5),0.55 * float(_style.size_scale),Color(0.86,1.0,0.82,0.52))
 	var cheek_color := Color(Color("f0a37f"), 0.28)
 	_draw_transformed_ellipse(canvas, _head_joint, Vector2(-20.0, 7.0), Vector2(4.0, 2.3), cheek_color, world_position)
 	_draw_transformed_ellipse(canvas, _head_joint, Vector2(20.0, 7.0), Vector2(4.0, 2.3), cheek_color, world_position)

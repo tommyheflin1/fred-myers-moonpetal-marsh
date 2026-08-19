@@ -80,6 +80,7 @@ This repository owns Fred gameplay. Core owns only reusable, game-neutral servic
 - [Campaign 1 touch-only, age-five, and PG contract](docs/M2_CAMPAIGN_ONE_TOUCH_PG.md)
 - [Fred rig and child-readable attire uplift](docs/M2_FRED_ATTIRE_VISUAL_UPLIFT.md)
 - [Predator surface and underwater traversal](docs/M2_PREDATOR_DEPTH_TRAVERSAL.md)
+- [Fred and wildlife character-rig realism uplift](docs/M2_CHARACTER_RIG_REALISM_REPORT.md)
 
 ## Godot desktop owner candidate
 
