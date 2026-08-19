@@ -102,10 +102,13 @@ func _run() -> void:
 		check(str(right_gear.eyewear) != "none", "%s includes aligned eyewear" % attire_id)
 		check(str(right_gear.material) != "unknown", "%s exposes a specific garment material" % attire_id)
 		attire_materials[str(right_gear.material)] = true
-		check(Array(right_gear.fit_features).size() == 8, "%s exposes eight tailored fit features" % attire_id)
-		for fit_feature: String in ["contoured torso panels", "ribbed mouth-clear collar", "articulated shoulder gussets", "layered eyewear gasket", "attire-specific closures"]:
+		check(str(right_gear.finish) != "unknown" and str(right_gear.drape) != "unknown", "%s exposes a specific material finish and drape" % attire_id)
+		check(float(right_gear.roughness) >= 0.0 and float(right_gear.roughness) <= 1.0, "%s material roughness remains physically bounded" % attire_id)
+		check(float(right_gear.flex) >= 0.5 and float(right_gear.flex) <= 1.0, "%s garment flex supports articulated frog movement" % attire_id)
+		check(Array(right_gear.fit_features).size() == 11, "%s exposes eleven tailored fit features" % attire_id)
+		for fit_feature: String in ["contoured torso panels", "ribbed mouth-clear collar", "articulated shoulder gussets", "layered eyewear gasket", "attire-specific closures", "pose-aware cloth folds", "joint-mounted sleeves and bracers", "soft anatomical armholes"]:
 			check(fit_feature in Array(right_gear.fit_features), "%s attire contract includes %s" % [attire_id, fit_feature])
-		check(int(right_gear.fabric_layers) >= 7 and int(right_gear.eyewear_depth_layers) >= 5, "%s uses layered fabric and eyewear depth" % attire_id)
+		check(int(right_gear.fabric_layers) >= 10 and int(right_gear.eyewear_depth_layers) >= 5, "%s uses layered fabric and eyewear depth" % attire_id)
 		check(int(right_gear.tailored_panels) == 3 and bool(right_gear.functional_seams) and bool(right_gear.limb_fit), "%s clothing is fitted around Fred's torso and limbs" % attire_id)
 		check(bool(right_gear.presentation_only) and not bool(right_gear.collision_mutation) and int(right_gear.save_fields) == 0, "%s attire cannot alter collision or save-v1 authority" % attire_id)
 		check(Vector2(right_gear.left_eye_anchor).is_finite() and Vector2(right_gear.right_eye_anchor).is_finite(), "%s eyewear anchors remain finite" % attire_id)
@@ -119,6 +122,11 @@ func _run() -> void:
 			rig.apply_pose(_pose_for(state_value, 1.0))
 			check(float(rig.attire_snapshot().mouth_clearance_pixels) >= 5.0, "%s keeps mouth clearance in state %02d" % [attire_id, state_value])
 			check(rig.attire_snapshot() == rig.attire_snapshot(), "%s fit snapshot stays deterministic in state %02d" % [attire_id, state_value])
+			var attire_motion: Dictionary = rig.attire_motion_snapshot()
+			check(is_finite(float(attire_motion.stretch)) and is_finite(float(attire_motion.compression)) and is_finite(float(attire_motion.fold_bias)), "%s cloth deformation stays finite in state %02d" % [attire_id, state_value])
+			check(float(attire_motion.stretch) >= -0.32 and float(attire_motion.stretch) <= 0.42, "%s cloth stretch stays bounded in state %02d" % [attire_id, state_value])
+			check(float(attire_motion.compression) >= 0.0 and float(attire_motion.compression) <= 0.42, "%s cloth compression stays bounded in state %02d" % [attire_id, state_value])
+			check(bool(attire_motion.presentation_only) and not bool(attire_motion.collision_mutation) and int(attire_motion.save_fields) == 0, "%s cloth deformation cannot mutate gameplay in state %02d" % [attire_id, state_value])
 	check(attire_materials.size() == rig.ATTIRE_IDS.size(), "all four attire choices use distinct readable garment materials")
 	attire_style.attire = "floating_paper_hat"
 	check(not rig.apply_style(attire_style), "unknown attire cannot bypass the aligned gear catalog")
