@@ -62,10 +62,10 @@ Executed local evidence:
 - Objective, Lives, Energy, status, Pause, Exit, steering guide, and all four
   bottom action buttons remained readable and non-overlapping;
 - Core 0.5.1 tree and both owner-save bytes/timestamps remained unchanged.
-- Android development revision 4 exported successfully from source
-  `3f00fff76c568d35ec72913e03bce2714819faae`: version
-  `0.2.1-app-build-1-r4` (`20104`), 84,845,973 bytes, SHA-256
-  `760971B1F10BBC8672030C5397CE1E477B9CE6F0B04FA596749BD46A98E3EF4F`,
+- Android development revision 5 exported successfully from source
+  `abe2890feb063c0daf8ce181e14ffa0b72b83be5`: version
+  `0.2.1-app-build-1-r5` (`20105`), 84,850,069 bytes, SHA-256
+  `916CECBEE7243768A786979A2D6A48B110AF59453BA9E8CBB46F6901EA4F6224`,
   arm64-v8a plus x86_64, zero requested permissions, and debug signing only.
 - The guarded default device preflight returned
   `DEVICE_NOT_CONNECTED / UNVERIFIED` and performed no mutation.

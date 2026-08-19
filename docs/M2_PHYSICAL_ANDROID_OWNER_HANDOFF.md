@@ -1,18 +1,19 @@
 # M2 physical Android owner-acceptance handoff
 
-Date: 2026-07-24
+Updated: 2026-08-18
 
-## Current App Build 1 revision 4
+## Current App Build 1 revision 5
 
 The current guarded phone candidate supersedes the older artifact identities
-retained below for append-only history. Revision 4 is built from exact source
-`3f00fff76c568d35ec72913e03bce2714819faae` with direct touch-and-drag steering
+retained below for append-only history. Revision 5 is built from exact source
+`abe2890feb063c0daf8ce181e14ffa0b72b83be5` with direct touch-and-drag steering,
+the required Moonpetal hero story and touch-first instructions,
 and the bottom Munch, Leap, Boost, and Dive/Surface action row.
 
 - artifact: `builds/android/fred-myers-app-build-1-debug.apk`;
-- SHA-256: `760971B1F10BBC8672030C5397CE1E477B9CE6F0B04FA596749BD46A98E3EF4F`;
-- size: 84,845,973 bytes;
-- version: `0.2.1-app-build-1-r4` (`20104`);
+- SHA-256: `916CECBEE7243768A786979A2D6A48B110AF59453BA9E8CBB46F6901EA4F6224`;
+- size: 84,850,069 bytes;
+- version: `0.2.1-app-build-1-r5` (`20105`);
 - package: `com.flinsappvault.fredmyers.dev`;
 - ABI: arm64-v8a and x86_64;
 - permissions: zero requested;
