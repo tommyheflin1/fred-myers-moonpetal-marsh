@@ -36,11 +36,11 @@ func _capture() -> void:
 		game.queue_redraw()
 		await process_frame
 		await process_frame
-		await _save("res://docs/evidence/app-build-1-r8-attire-%s.png" % attire_id)
+		await _save("res://docs/evidence/app-build-1-r16-attire-%s.png" % attire_id)
 	game.queue_free()
 	await process_frame
 	_clean()
-	print("CAPTURED 4 mouth-clear Fred attire screenshots")
+	print("CAPTURED 4 tailored, mouth-clear Fred attire screenshots")
 	quit()
 
 func _save(path: String) -> void:
