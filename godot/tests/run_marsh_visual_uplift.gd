@@ -53,10 +53,10 @@ func _run() -> void:
 
 	var move_touch := InputEventScreenTouch.new()
 	move_touch.index = 1
-	move_touch.position = MarshRouteLayout.DPAD_CENTER + Vector2(MarshRouteLayout.DPAD_OFFSET,0)
+	move_touch.position = game.fred + Vector2(200.0,0.0)
 	move_touch.pressed = true
 	game._unhandled_input(move_touch)
-	check(game.touch_controls_visible and game.touch_movement == Vector2.RIGHT, "real screen touch holds the mobile movement control")
+	check(game.touch_controls_visible and game.touch_movement == Vector2.RIGHT, "real screen touch steers Fred directly across the playfield")
 	move_touch.pressed = false
 	game._unhandled_input(move_touch)
 	check(game.touch_movement == Vector2.ZERO and game.touch_contacts.is_empty(), "touch release clears mobile movement without drift")

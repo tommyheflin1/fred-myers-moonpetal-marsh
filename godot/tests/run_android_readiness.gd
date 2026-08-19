@@ -44,7 +44,7 @@ func _run() -> void:
 
 	var move_touch := InputEventScreenTouch.new()
 	move_touch.index = 11
-	move_touch.position = MarshRouteLayout.DPAD_CENTER + Vector2(MarshRouteLayout.DPAD_OFFSET,0)
+	move_touch.position = game.fred + Vector2(200.0,0.0)
 	move_touch.pressed = true
 	game._unhandled_input(move_touch)
 	var boost_touch := InputEventScreenTouch.new()
@@ -52,7 +52,7 @@ func _run() -> void:
 	boost_touch.position = Vector2(MarshRouteLayout.touch_centers().boost)
 	boost_touch.pressed = true
 	game._unhandled_input(boost_touch)
-	check(game.touch_movement == Vector2.RIGHT and game.touch_boost, "simultaneous movement and boost touch zones remain independent")
+	check(game.touch_movement == Vector2.RIGHT and game.touch_boost, "simultaneous drag steering and bottom-row Boost remain independent")
 
 	var state_before_pause := [
 		game.fred,

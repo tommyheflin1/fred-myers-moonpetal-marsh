@@ -67,7 +67,7 @@ One Fred-owned layout contract now drives both drawing and hit testing:
   logical safe rectangles;
 - lives moved into a persistent top badge instead of the clipped bottom edge;
 - the Moonpetal exit is below the header;
-- `MUNCH`, `LEAP`, `DEPTH`, `BOOST`, and the directional pad use shared
+- `MUNCH`, `LEAP`, `DIVE/SURFACE`, `BOOST`, and the direct drag surface use shared
   centers/radii for rendering and `InputEventScreenTouch` routing;
 - action circles do not overlap, remain inside the 1280 by 720 logical canvas,
   and measure at least 48 dp on the tested 420-dpi phone profile; and

@@ -81,8 +81,10 @@ var animation: RefCounted = AnimationCoordinator.new()
 var fred_rig: Node2D
 var touch_controls_visible := false
 var touch_contacts: Dictionary = {}
+var touch_positions: Dictionary = {}
 var touch_movement := Vector2.ZERO
 var touch_boost := false
+var pointer_touch_active := false
 var application_backgrounded := false
 
 func _notification(what: int) -> void:
@@ -100,6 +102,8 @@ func _handle_application_paused() -> void:
         return
     application_backgrounded = true
     touch_contacts.clear()
+    touch_positions.clear()
+    pointer_touch_active = false
     _refresh_touch_holds()
     _fixed_accumulator = 0.0
     if screen == Screen.PLAYING:
@@ -111,6 +115,8 @@ func _handle_application_resumed() -> void:
         return
     application_backgrounded = false
     touch_contacts.clear()
+    touch_positions.clear()
+    pointer_touch_active = false
     _refresh_touch_holds()
     _fixed_accumulator = 0.0
     if screen == Screen.PLAYING:
@@ -119,6 +125,8 @@ func _handle_application_resumed() -> void:
 
 func _handle_back_request() -> String:
     touch_contacts.clear()
+    touch_positions.clear()
+    pointer_touch_active = false
     _refresh_touch_holds()
     if screen == Screen.PLAYING:
         if session.paused:
@@ -466,6 +474,8 @@ func _apply_danger_hit(message: String) -> void:
         danger_cooldown_seconds = 0.0
         countdown_seconds = 0.0
         touch_contacts.clear()
+        touch_positions.clear()
+        pointer_touch_active = false
         _refresh_touch_holds()
         _set_feedback("[OUT OF LIVES] " + message)
         screen = Screen.FAILED
@@ -548,8 +558,16 @@ func _unhandled_input(event: InputEvent) -> void:
     if event is InputEventScreenDrag:
         _move_touch(event.index, event.position)
         return
-    if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
-        _handle_click(event.position)
+    if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
+        if touch_controls_visible:
+            pointer_touch_active = event.pressed
+            _handle_touch(-1, event.position, event.pressed)
+        elif event.pressed:
+            _handle_click(event.position)
+        return
+    if event is InputEventMouseMotion and pointer_touch_active and touch_controls_visible:
+        _move_touch(-1, event.position)
+        return
     if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_RIGHT and event.pressed and screen == Screen.PLAYING:
         _request_tongue(event.position - fred)
     if not event is InputEventKey and event.is_action_pressed("pause") and screen == Screen.PLAYING:
@@ -589,13 +607,20 @@ func _handle_touch(index: int, position: Vector2, pressed: bool) -> void:
     touch_controls_visible = true
     if not pressed:
         touch_contacts.erase(index)
+        touch_positions.erase(index)
         _refresh_touch_holds()
         return
     if screen != Screen.PLAYING:
         _handle_click(position)
         return
     var action := _touch_action_at(position)
+    if action.is_empty():
+        return
+    if session.paused and action not in ["pause", "home"]:
+        return
     touch_contacts[index] = action
+    if action == "steer":
+        touch_positions[index] = MarshRouteLayout.clamp_touch_target(position)
     _refresh_touch_holds()
     match action:
         "tongue":
@@ -612,13 +637,15 @@ func _handle_touch(index: int, position: Vector2, pressed: bool) -> void:
             _set_feedback("[PAUSED] Your last checkpoint is safe." if session.paused else "[PLAYING] Adventure resumed.")
         "home":
             _go_home()
-        "":
-            _request_leap(position - fred)
 
 func _move_touch(index: int, position: Vector2) -> void:
     if not touch_contacts.has(index):
         return
-    touch_contacts[index] = _touch_action_at(position)
+    var original_action := str(touch_contacts[index])
+    if original_action == "steer":
+        touch_positions[index] = MarshRouteLayout.clamp_touch_target(position)
+    else:
+        touch_contacts[index] = original_action if _touch_action_at(position) == original_action else ""
     _refresh_touch_holds()
 
 func _touch_action_at(position: Vector2) -> String:
@@ -627,14 +654,18 @@ func _touch_action_at(position: Vector2) -> String:
 func _refresh_touch_holds() -> void:
     touch_movement = Vector2.ZERO
     touch_boost = false
-    for value: Variant in touch_contacts.values():
-        match str(value):
-            "left": touch_movement.x -= 1.0
-            "right": touch_movement.x += 1.0
-            "up": touch_movement.y -= 1.0
-            "down": touch_movement.y += 1.0
-            "boost": touch_boost = true
-    touch_movement = touch_movement.normalized()
+    var steering_index := 2147483647
+    for raw_index: Variant in touch_contacts:
+        var value := str(touch_contacts[raw_index])
+        if value == "boost":
+            touch_boost = true
+        elif value == "steer" and int(raw_index) < steering_index and touch_positions.has(raw_index):
+            steering_index = int(raw_index)
+    if steering_index != 2147483647:
+        var target := Vector2(touch_positions[steering_index])
+        var delta := target - fred
+        if delta.length() >= MarshRouteLayout.TOUCH_MOVEMENT_DEADZONE:
+            touch_movement = delta.normalized()
 
 func _handle_click(position: Vector2) -> void:
     if screen == Screen.TITLE and TITLE_START_RECT.has_point(position): _start()
@@ -682,6 +713,8 @@ func _start() -> void:
     boost.reset()
     animation.reset()
     touch_contacts.clear()
+    touch_positions.clear()
+    pointer_touch_active = false
     _refresh_touch_holds()
     _sync_music()
     fred = _checkpoint_respawn_position()
@@ -701,6 +734,8 @@ func _retry() -> void:
     boost.reset()
     animation.reset()
     touch_contacts.clear()
+    touch_positions.clear()
+    pointer_touch_active = false
     _refresh_touch_holds()
     session.set_underwater(false)
     fred = _level_start_position()
@@ -723,6 +758,8 @@ func _go_home() -> void:
     boost.reset()
     animation.reset()
     touch_contacts.clear()
+    touch_positions.clear()
+    pointer_touch_active = false
     _refresh_touch_holds()
     countdown_seconds = 0.0
     if leaving_gameplay:
@@ -768,6 +805,8 @@ func _advance_level() -> void:
     boost.reset()
     animation.reset()
     touch_contacts.clear()
+    touch_positions.clear()
+    pointer_touch_active = false
     _refresh_touch_holds()
     fairy_collected = false
     countdown_seconds = 5.0 if countdown_enabled else 0.0
@@ -1061,7 +1100,8 @@ func _draw_level() -> void:
     draw_rect(MarshRouteLayout.LIVES_RECT, Color("06151f"), true)
     draw_rect(MarshRouteLayout.LIVES_RECT, Color("f7d36a"), false, 3)
     _text(Vector2(MarshRouteLayout.LIVES_RECT.get_center().x,49), "LIVES %d  •  COINS %d" % [session.health, customization.coins], 14, Color("fff0ae"), HORIZONTAL_ALIGNMENT_CENTER, MarshRouteLayout.LIVES_RECT.size.x - 10.0)
-    _text(MarshRouteLayout.TELEMETRY_ANCHOR, "BUGS %d/3   %s %d%%   %s   %s" % [session.bug_count, depth.cue(), roundi(float(depth.depth) * 100.0), tongue.cue(), boost.cue()], 15, Color.WHITE, HORIZONTAL_ALIGNMENT_LEFT, 810)
+    if not touch_controls_visible:
+        _text(MarshRouteLayout.TELEMETRY_ANCHOR, "BUGS %d/3   %s %d%%   %s   %s" % [session.bug_count, depth.cue(), roundi(float(depth.depth) * 100.0), tongue.cue(), boost.cue()], 15, Color.WHITE, HORIZONTAL_ALIGNMENT_LEFT, 810)
     _draw_energy_meter()
     _status_panel(MarshRouteLayout.status_rect(touch_controls_visible), 15)
     _button(MarshRouteLayout.PAUSE_RECT, "PAUSE")
@@ -1140,25 +1180,40 @@ func _nearest_assisted_target() -> Dictionary:
 
 func _draw_touch_controls() -> void:
     var held: Array = touch_contacts.values()
-    var center := MarshRouteLayout.DPAD_CENTER
-    var offset := MarshRouteLayout.DPAD_OFFSET
-    var dpad_radius := MarshRouteLayout.DPAD_RADIUS
-    _draw_touch_button(center + Vector2(-offset,0), dpad_radius, "<", "left" in held)
-    _draw_touch_button(center + Vector2(offset,0), dpad_radius, ">", "right" in held)
-    _draw_touch_button(center + Vector2(0,-offset), dpad_radius, "^", "up" in held)
-    _draw_touch_button(center + Vector2(0,offset), dpad_radius, "v", "down" in held)
-    var centers := MarshRouteLayout.touch_centers()
-    var radii := MarshRouteLayout.touch_radii()
-    _draw_touch_button(Vector2(centers.tongue), float(radii.tongue), "MUNCH", "tongue" in held)
-    _draw_touch_button(Vector2(centers.leap), float(radii.leap), "LEAP", "leap" in held)
-    _draw_touch_button(Vector2(centers.depth), float(radii.depth), "DEPTH", "depth" in held)
-    _draw_touch_button(Vector2(centers.boost), float(radii.boost), "BOOST", "boost" in held)
+    var guide := MarshRouteLayout.TOUCH_GUIDE_RECT
+    draw_rect(guide, Color(0.01,0.08,0.11,0.88), true)
+    draw_rect(guide, Color("70d6c2"), false, 3.0)
+    _text(guide.position + Vector2(guide.size.x / 2.0, 35.0), "TOUCH + DRAG", 19, Color("fff0ae"), HORIZONTAL_ALIGNMENT_CENTER, guide.size.x - 20.0)
+    _text(guide.position + Vector2(guide.size.x / 2.0, 65.0), "TO STEER FRED", 15, Color.WHITE, HORIZONTAL_ALIGNMENT_CENTER, guide.size.x - 20.0)
+    var action_rects := MarshRouteLayout.touch_action_rects()
+    _draw_touch_action_button(Rect2(action_rects.tongue), "MUNCH", "tongue" in held, Color("e67b4a"))
+    _draw_touch_action_button(Rect2(action_rects.leap), "LEAP", "leap" in held, Color("67c96f"))
+    _draw_touch_action_button(Rect2(action_rects.boost), "BOOST", "boost" in held, Color("e4b943"))
+    var depth_label := "SURFACE" if depth.state != DepthTraversal.State.SURFACE else "DIVE"
+    _draw_touch_action_button(Rect2(action_rects.depth), depth_label, "depth" in held, Color("4d9fd8"))
+    var steering_target := _active_touch_target()
+    if steering_target != Vector2.ZERO:
+        draw_line(fred, steering_target, Color(0.72,1.0,0.88,0.38), 4.0)
+        draw_circle(steering_target, 22.0, Color(0.12,0.85,0.57,0.22))
+        draw_arc(steering_target, 28.0, 0.0, TAU, 28, Color("b9f5c7"), 3.0)
 
-func _draw_touch_button(center: Vector2, radius: float, label: String, active: bool) -> void:
-    var fill := Color(0.98,0.88,0.38,0.46) if active else Color(0.02,0.10,0.13,0.24)
-    draw_circle(center, radius, fill)
-    draw_arc(center, radius, 0, TAU, 28, Color(0.93,1.0,0.86,0.78), 2.0)
-    _text(center + Vector2(0,6), label, 12, Color("ffffff"), HORIZONTAL_ALIGNMENT_CENTER, radius * 1.8)
+func _active_touch_target() -> Vector2:
+    var steering_index := 2147483647
+    for raw_index: Variant in touch_contacts:
+        if str(touch_contacts[raw_index]) == "steer" and int(raw_index) < steering_index and touch_positions.has(raw_index):
+            steering_index = int(raw_index)
+    return Vector2(touch_positions[steering_index]) if steering_index != 2147483647 else Vector2.ZERO
+
+func _draw_touch_action_button(rect: Rect2, label: String, active: bool, accent: Color) -> void:
+    var shadow := Rect2(rect.position + Vector2(0.0, 5.0), rect.size)
+    draw_rect(shadow, Color(0.0,0.02,0.03,0.62), true)
+    var fill := accent.lightened(0.16) if active else accent.darkened(0.34)
+    draw_rect(rect, fill, true)
+    draw_rect(rect.grow(-4.0), fill.lightened(0.08), true)
+    draw_rect(rect, Color("fff4bd"), false, 3.0)
+    draw_line(rect.position + Vector2(8.0,8.0), rect.position + Vector2(rect.size.x - 8.0,8.0), Color(1,1,1,0.44), 3.0)
+    draw_circle(rect.position + Vector2(28.0, 24.0), 8.0, Color(1,1,1,0.38))
+    _text(rect.get_center() + Vector2(0.0, 8.0), label, 20, Color.WHITE, HORIZONTAL_ALIGNMENT_CENTER, rect.size.x - 18.0)
 
 func _draw_current_trails() -> void:
     if level_number < 2:

@@ -104,9 +104,9 @@ try {
 
     # Keep the project argument relative to the verified working directory so
     # Windows PowerShell 5.1 cannot split the App Vault path at spaces.
-    $arguments = @("--path", "godot", "--resolution", "1280x720")
+    $arguments = @("--path", "godot", "--resolution", "1280x720", "--", "--show-touch-controls")
     if ($ReducedMotion) {
-        $arguments += @("--", "--reduced-motion")
+        $arguments += "--reduced-motion"
     }
 
     $originalAppData = $env:APPDATA

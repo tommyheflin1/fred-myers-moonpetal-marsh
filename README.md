@@ -65,6 +65,7 @@ This repository owns Fred gameplay. Core owns only reusable, game-neutral servic
 - [App Generation Engine adoption and Apple readiness](docs/APP_GENERATION_ENGINE_APPLE_READINESS_STATUS.md)
 - [Fred iOS unsigned handoff plan](docs/IOS_HANDOFF_PLAN.md)
 - [M2 mobile-first product and visual uplift](docs/M2_PRODUCT_UPLIFT_REPORT.md)
+- [M2 touch-first phone and tablet controls](docs/M2_TOUCH_FIRST_PHONE_TABLET_CONTROLS.md)
 
 ## Godot desktop owner candidate
 
@@ -88,6 +89,12 @@ life loss, resumes from the midpoint checkpoint when reached, alternates
 left-to-right and right-to-left routes, cycles six whole-screen formations and
 six marsh treatments, and uses one non-overlapping layout contract for the HUD,
 Exit action, Fred start area, and landscape touch controls.
+
+App Build 1 uses a touch-first landscape control model on phones and tablets:
+touch and drag anywhere in the open marsh to steer Fred, then use the large
+bottom-row Munch, Leap, Boost, and Dive/Surface buttons. Pause and Exit remain
+separate at the top. The desktop owner shortcut displays this same interface
+and maps mouse dragging through the exact touch-control path for review.
 
 The physical-phone handoff is hash guarded and read-only by default. With no
 authorized phone connected it returns `DEVICE_NOT_CONNECTED / UNVERIFIED`;

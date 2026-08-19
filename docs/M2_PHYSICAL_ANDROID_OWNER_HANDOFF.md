@@ -142,7 +142,8 @@ player information.
 1. Verify Fred's development label/package, landscape orientation, offline
    launch, title art, music, and no permission prompt.
 2. Inspect the top cutout/safe area and confirm objective, lives, Pause,
-   energy, status, directional pad, MUNCH, LEAP, DEPTH, and BOOST do not clip
+   energy, status, touch-and-drag steering guide, MUNCH, LEAP, DIVE/SURFACE,
+   and BOOST do not clip
    or overlap.
 3. Exercise real touch movement, reversal, leap/landing, tongue hit/miss,
    boost/exhaustion/recovery, dive/underwater/surface, and pause/resume. Confirm

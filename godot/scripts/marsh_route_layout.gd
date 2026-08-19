@@ -8,12 +8,13 @@ const LIVES_RECT := Rect2(795.0, 14.0, 185.0, 56.0)
 const PAUSE_RECT := Rect2(995.0, 14.0, 115.0, 56.0)
 const HOME_RECT := Rect2(1125.0, 14.0, 125.0, 56.0)
 const ENERGY_RECT := Rect2(900.0, 78.0, 330.0, 18.0)
-const STATUS_TOUCH_RECT := Rect2(340.0, 642.0, 500.0, 42.0)
+const STATUS_TOUCH_RECT := Rect2(340.0, 568.0, 500.0, 42.0)
 const STATUS_DESKTOP_RECT := Rect2(820.0, 642.0, 410.0, 42.0)
 const TELEMETRY_ANCHOR := Vector2(25.0, 700.0)
-const DPAD_CENTER := Vector2(150.0, 400.0)
-const DPAD_OFFSET := 58.0
-const DPAD_RADIUS := 34.0
+const TOUCH_MOVEMENT_RECT := Rect2(25.0, 115.0, 1230.0, 495.0)
+const TOUCH_GUIDE_RECT := Rect2(20.0, 620.0, 310.0, 88.0)
+const TOUCH_ACTION_BAR_RECT := Rect2(340.0, 620.0, 910.0, 88.0)
+const TOUCH_MOVEMENT_DEADZONE := 18.0
 
 const BACKGROUND_LABELS: Array[String] = [
 	"Firefly Glade",
@@ -119,37 +120,50 @@ static func status_rect(touch_visible: bool) -> Rect2:
 	return STATUS_TOUCH_RECT if touch_visible else STATUS_DESKTOP_RECT
 
 static func touch_centers() -> Dictionary:
+	var rects := touch_action_rects()
 	return {
-		"tongue": Vector2(1160.0, 460.0),
-		"leap": Vector2(1040.0, 580.0),
-		"depth": Vector2(935.0, 470.0),
-		"boost": Vector2(1160.0, 595.0),
+		"tongue": Rect2(rects.tongue).get_center(),
+		"leap": Rect2(rects.leap).get_center(),
+		"boost": Rect2(rects.boost).get_center(),
+		"depth": Rect2(rects.depth).get_center(),
 	}
 
 static func touch_radii() -> Dictionary:
 	return {
-		"tongue": 48.0,
-		"leap": 48.0,
-		"depth": 46.0,
-		"boost": 48.0,
+		"tongue": 42.0,
+		"leap": 42.0,
+		"boost": 42.0,
+		"depth": 42.0,
 	}
+
+static func touch_action_rects() -> Dictionary:
+	return {
+		"tongue": Rect2(350.0, 622.0, 205.0, 84.0),
+		"leap": Rect2(575.0, 622.0, 205.0, 84.0),
+		"boost": Rect2(800.0, 622.0, 205.0, 84.0),
+		"depth": Rect2(1025.0, 622.0, 205.0, 84.0),
+	}
+
+static func touch_movement_at(position: Vector2) -> bool:
+	return TOUCH_MOVEMENT_RECT.has_point(position)
+
+static func clamp_touch_target(position: Vector2) -> Vector2:
+	return position.clamp(
+		TOUCH_MOVEMENT_RECT.position,
+		TOUCH_MOVEMENT_RECT.end - Vector2.ONE
+	)
 
 static func touch_action_at(position: Vector2) -> String:
 	if HOME_RECT.has_point(position):
 		return "home"
 	if PAUSE_RECT.has_point(position):
 		return "pause"
-	if position.x < 320.0 and position.y > 315.0:
-		var delta := position - DPAD_CENTER
-		if delta.length() <= 150.0:
-			if absf(delta.x) > absf(delta.y):
-				return "right" if delta.x >= 0.0 else "left"
-			return "down" if delta.y >= 0.0 else "up"
-	var centers := touch_centers()
-	var radii := touch_radii()
-	for action: String in centers:
-		if position.distance_to(Vector2(centers[action])) <= float(radii[action]) + 12.0:
+	var rects := touch_action_rects()
+	for action: String in rects:
+		if Rect2(rects[action]).has_point(position):
 			return action
+	if touch_movement_at(position):
+		return "steer"
 	return ""
 
 static func essential_rects(touch_visible: bool) -> Dictionary:
@@ -160,6 +174,8 @@ static func essential_rects(touch_visible: bool) -> Dictionary:
 		"home": HOME_RECT,
 		"energy": ENERGY_RECT,
 		"status": status_rect(touch_visible),
+		"touch_guide": TOUCH_GUIDE_RECT if touch_visible else Rect2(),
+		"touch_actions": TOUCH_ACTION_BAR_RECT if touch_visible else Rect2(),
 	}
 
 static func rect_inside_canvas(rect: Rect2, margin: float = 0.0) -> bool:

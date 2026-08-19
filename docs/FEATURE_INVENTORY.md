@@ -7,7 +7,7 @@
 | Story | Recover the Sunken Acorn before dawn to save Fred's family pond; ending restores the Moonpetal and dawn | Preserve and expand through data-driven story beats |
 | Levels | Five sequential chapters: Lily Leap, The Deep, Firefly Fen, Predator Pass, Moonpetal Rise | Preserve IDs/titles; redesign as testable level resources |
 | Frog | Custom-drawn green frog with head, body, eyes, pupils, legs and facing | Rebuild as authored 3D frog model/rig; current visual is reference only |
-| Movement | Arrow keys/WASD, pointer/tap target, on-screen D-pad | Map to input intents; add gamepad and remappable actions |
+| Movement | Device-neutral intent adapter plus touch-and-drag playfield steering | Preserve direct touch steering; add remappable controller actions without changing gameplay |
 | Eating | Collision and nearby click/tap consume bugs; bugs restore energy | Implement tongue/targeting with readable range/cooldown |
 | Energy boost | Space/Shift or touch; drains energy and regenerates | Preserve; make rates data-driven and deterministic |
 | Surface/dive | Q/E described; surface/dive UI; fish active underwater | Preserve as explicit state machine with depth limits |

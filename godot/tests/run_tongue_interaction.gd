@@ -2,6 +2,7 @@ extends SceneTree
 
 const TongueTargeting = preload("res://scripts/tongue_targeting.gd")
 const Main = preload("res://scripts/main.gd")
+const Layout = preload("res://scripts/marsh_route_layout.gd")
 
 const SAVE_PREFIX := "user://m2_tongue_test"
 const BOARD_PATH := "user://m2_tongue_board.json"
@@ -243,7 +244,7 @@ func _run() -> void:
     game.fred = game._bug_position(1) + Vector2(TongueTargeting.PROXIMITY_ASSIST_RANGE - 1.0, 0)
     var screen_touch := InputEventScreenTouch.new()
     screen_touch.index = 7
-    screen_touch.position = Vector2(1135,500)
+    screen_touch.position = Rect2(Layout.touch_action_rects().tongue).get_center()
     screen_touch.pressed = true
     game._unhandled_input(screen_touch)
     check(1 in game.collected and game.touch_controls_visible, "real screen-touch MUNCH control uses close-range tongue assist")

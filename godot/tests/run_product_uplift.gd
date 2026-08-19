@@ -84,13 +84,9 @@ func _run() -> void:
 	check(Layout.formation_label(7) == Layout.formation_label(1), "formation rotation repeats predictably after six levels")
 	check(not Layout.HOME_RECT.intersects(Layout.PAUSE_RECT) and not Layout.HOME_RECT.intersects(Layout.LIVES_RECT), "Exit, Pause and Lives remain non-overlapping")
 	check(Layout.touch_action_at(Layout.HOME_RECT.get_center()) == "home", "the visible gameplay Exit button shares the touch hit contract")
-	for direction_center in [
-		Layout.DPAD_CENTER + Vector2(-Layout.DPAD_OFFSET,0),
-		Layout.DPAD_CENTER + Vector2(Layout.DPAD_OFFSET,0),
-		Layout.DPAD_CENTER + Vector2(0,-Layout.DPAD_OFFSET),
-		Layout.DPAD_CENTER + Vector2(0,Layout.DPAD_OFFSET),
-	]:
-		check(not Layout.circles_overlap(direction_center,Layout.DPAD_RADIUS,Main.START,42.0,8.0), "touch movement controls keep Fred's starting silhouette clear")
+	var fred_start_bounds := Rect2(Main.START - Vector2(42.0,42.0), Vector2(84.0,84.0))
+	check(not Layout.TOUCH_GUIDE_RECT.intersects(fred_start_bounds), "touch steering guide keeps Fred's starting silhouette clear")
+	check(Layout.touch_action_at(Vector2(620.0,330.0)) == "steer", "the open playfield is the direct touch steering surface")
 
 	var game: Node2D = Main.new()
 	game.audio_enabled = false
