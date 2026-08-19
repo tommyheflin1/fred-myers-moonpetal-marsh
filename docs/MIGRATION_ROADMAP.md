@@ -190,6 +190,14 @@ closely to Fred's eye spacing. Reduced motion preserves the same information
 with sharply restrained secondary cloth response. Gameplay, collisions,
 touch controls, progression, save v1, and Core remain unchanged.
 
+Revision 18 removes the remaining shared armor-like cut. Marsh Runner, Trail
+Scout, Moon Champion, and Firefly Hero now use distinct typed garment cuts,
+sleeve lengths, hem drapes, structure levels, and outfit-appropriate limb
+accessories. Soft material-dependent bindings replace heavy uniform outlines;
+curved hems follow Fred's belly; emblems and eyewear are restrained; and the
+Firefly cape bends and drops with deterministic pose state. All presentation
+values remain transient, reduced-motion safe, and isolated from gameplay.
+
 ## M1 sequencing
 
 1. Expand the repository source tree and retain the legacy build under `legacy-web/` or a tagged legacy branch.

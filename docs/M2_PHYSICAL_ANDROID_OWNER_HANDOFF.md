@@ -2,23 +2,23 @@
 
 Updated: 2026-08-18
 
-## Current App Build 1 revision 17
+## Current App Build 1 revision 18
 
 The current guarded phone candidate supersedes the older artifact identities
-retained below for append-only history. Revision 17 is built from exact source
-`b56005e1ec4f2024330bdeb11b1cb24d4dc2b4a8` with the complete 100-level
+retained below for append-only history. Revision 18 is built from exact source
+`72e6678d3038df666f1b2f562a94568d85ead378` with the complete 100-level
 Campaign 1 profile set, touch-only player routing, age-five recovery floors,
 PG copy, the Moonpetal hero story, the bottom action row, mouth-clear aligned
 Fred gear, continuous touch leap traversal over predators without a round reset, deterministic
 surface/underwater routes for aquatic predators, upgraded Fred/wildlife
 anatomy, connected deterministic articulation, layered character volume,
-pose-aware, limb-mounted Fred attire with fitted materials and no floating
+garment-specific anatomical Fred attire with soft fitted materials and no floating
 locomotion/location text above Fred.
 
 - artifact: `builds/android/fred-myers-app-build-1-debug.apk`;
-- SHA-256: `46F188D68058B58D697A950CA3C0EE41BF5575AA6FAE242BAB429EAFF8CB3798`;
+- SHA-256: `62E9BA3B105C264160D3F6810AB942A49AA666B75676D7BE9BD042FEC33A4D59`;
 - size: 84,907,755 bytes;
-- version: `0.2.1-app-build-1-r17` (`20117`);
+- version: `0.2.1-app-build-1-r18` (`20118`);
 - package: `com.flinsappvault.fredmyers.dev`;
 - ABI: arm64-v8a and x86_64;
 - permissions: zero requested;
@@ -26,7 +26,7 @@ locomotion/location text above Fred.
 
 The same explicit serial and owner/save acknowledgement boundary applies. A
 zero-device result remains `DEVICE_NOT_CONNECTED / UNVERIFIED` and is not
-physical phone or tablet acceptance. Revision 17's 60/60 fictional safety
+physical phone or tablet acceptance. Revision 18's 60/60 fictional safety
 fixtures pass. No install, launch, selected serial, diagnostics, or phone
 control is performed by this packaging refresh, so physical testing remains
 `UNVERIFIED`.
