@@ -70,6 +70,26 @@ func _run() -> void:
 	root.add_child(game)
 	await process_frame
 	game.set_process(false)
+	var identity_silhouettes: Dictionary = {}
+	for species: String in Main.PREDATOR_SPECIES:
+		var identity: Dictionary = game._predator_identity_profile(species)
+		identity_silhouettes[str(identity.silhouette)] = true
+		check(Array(identity.anatomy).size() == 3, "%s has three explicit species anatomy cues" % species.to_lower())
+	check(identity_silhouettes.size() == Main.PREDATOR_SPECIES.size(), "every named predator has a distinct rendered silhouette contract")
+	var bass_identity: Dictionary = game._predator_identity_profile("BASS")
+	check(str(bass_identity.silhouette) == "deep_largemouth", "bass uses a deep-bodied largemouth silhouette")
+	check(str(bass_identity.pattern) == "broken_lateral_band", "bass uses its recognizable broken lateral band")
+	check("large hinged jaw" in Array(bass_identity.anatomy) and "spiny dorsal fin" in Array(bass_identity.anatomy), "bass exposes its large jaw and spiny dorsal anatomy")
+	var pike_identity: Dictionary = game._predator_identity_profile("PIKE")
+	check(str(pike_identity.silhouette) == "long_duckbill" and str(pike_identity.pattern) == "pale_chain_spots", "pike uses a long duckbill body with pale chain spots")
+	var muskie_identity: Dictionary = game._predator_identity_profile("MUSKIE")
+	check(str(muskie_identity.silhouette) == "long_barred" and str(muskie_identity.pattern) == "vertical_bars", "muskie uses a long barred predator silhouette")
+	var snake_identity: Dictionary = game._predator_identity_profile("SNAKE")
+	check("forked tongue" in Array(snake_identity.anatomy) and str(snake_identity.silhouette) == "scaled_serpentine", "snake keeps a scaled body, flattened head and forked tongue")
+	var heron_identity: Dictionary = game._predator_identity_profile("HERON")
+	check("S-curved neck" in Array(heron_identity.anatomy) and "long legs and toes" in Array(heron_identity.anatomy), "heron keeps its wading-bird neck, bill, legs and toes")
+	var main_source := FileAccess.get_file_as_string("res://scripts/main.gd")
+	check(not main_source.contains("animation.cue()"), "Fred's locomotion and location text is hidden above his head")
 	game.screen = game.Screen.PLAYING
 	game.level_number = 1
 	game.level_profile = FredLevelIntensity.profile(1)

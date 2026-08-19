@@ -47,6 +47,11 @@ used on phones and tablets. Keyboard gameplay is disabled.
    the predator is underwater and confirm it passes safely below Fred. Then
    meet one at the same depth and confirm the normal danger hit occurs. The
    heron must remain above water, and bubbles must identify underwater danger.
+   Confirm the bass has a large jaw, deep olive body, dorsal spines and dark
+   lateral band; pike are long and spotted, muskies are long and barred, the
+   snake is scaled with a forked tongue, and the heron has a curved neck,
+   spear bill, long legs and toes. Fred should have no locomotion/location text
+   floating above his head.
 6. Take one danger hit. Confirm exactly one life is removed and Fred remains on
    the same level, returning to the level start or earned midpoint checkpoint.
    Repeat with a second life; the full failure screen must not appear early.

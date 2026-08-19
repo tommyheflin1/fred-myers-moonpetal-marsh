@@ -123,6 +123,14 @@ ripple, tint and explicit state labels keep the mechanic readable without
 color alone. The 22-suite matrix passes 4,093 checks; physical-phone and owner
 control acceptance remain separate gates.
 
+Revision 11 strengthens predator identity without changing gameplay. Bass,
+pike and muskie now use distinct body proportions, mouths, fins and markings;
+the snake gains tapered scales, a flattened head and forked tongue; and the
+heron gains a curved neck, spear bill, layered feathers, jointed legs and toes.
+Fred's floating locomotion/location words are removed from above his head,
+while the touch depth action and bottom status panel retain the necessary
+state information. The 22-suite matrix passes 4,107 checks.
+
 ## M1 sequencing
 
 1. Expand the repository source tree and retain the legacy build under `legacy-web/` or a tagged legacy branch.

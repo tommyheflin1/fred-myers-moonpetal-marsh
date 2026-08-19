@@ -33,6 +33,8 @@ func _review() -> void:
 	game._start()
 	if scenario == "level1":
 		game.level_number = 1
+	elif scenario == "predators":
+		game.level_number = 100
 	else:
 		game.level_number = 2
 	game.level_profile = FredLevelIntensity.profile(game.level_number)
@@ -45,7 +47,11 @@ func _review() -> void:
 	game._set_feedback(
 		"[PHONE REVIEW] Two lives remain after one hit."
 		if scenario == "lives"
-		else "[PHONE REVIEW] %s route with touch controls." % Layout.route_label(game.level_number)
+		else (
+			"[SPECIES REVIEW] Bass, pike, heron, snake and muskie use distinct anatomy."
+			if scenario == "predators"
+			else "[PHONE REVIEW] %s route with touch controls." % Layout.route_label(game.level_number)
+		)
 	)
 	game.queue_redraw()
 
