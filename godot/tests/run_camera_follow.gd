@@ -160,6 +160,7 @@ func _run() -> void:
 	game.saver = FredSaveAdapter.new(SAVE_PREFIX)
 	game.hazards_enabled = false
 	game.countdown_enabled = false
+	game.device_intent_adapter_enabled = true
 	root.add_child(game)
 	await process_frame
 	game.set_process(false)
@@ -171,7 +172,7 @@ func _run() -> void:
 	Input.action_press("move_right")
 	game._fixed_tick(1.0 / 60.0)
 	Input.action_release("move_right")
-	check(game.camera_offset.x < 0.0, "keyboard movement intent drives shared camera anticipation")
+	check(game.camera_offset.x < 0.0, "synthetic platform movement drives shared camera anticipation")
 	var paused_offset: Vector2 = game.camera_offset
 	game.session.paused = true
 	game._process(0.5)

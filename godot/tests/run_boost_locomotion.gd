@@ -118,6 +118,7 @@ func _run() -> void:
 	game.saver = FredSaveAdapter.new(SAVE_PREFIX)
 	game.hazards_enabled = false
 	game.countdown_enabled = false
+	game.device_intent_adapter_enabled = true
 	root.add_child(game)
 	await process_frame
 	game.set_process(false)
@@ -129,7 +130,7 @@ func _run() -> void:
 	Input.action_press("move_right")
 	Input.action_press("boost")
 	game._fixed_tick(1.0 / 60.0)
-	check(game.boost.state == BoostLocomotion.State.BURST and game.session.boost_energy == 99, "keyboard starts one surface burst")
+	check(game.boost.state == BoostLocomotion.State.BURST and game.session.boost_energy == 99, "synthetic platform action starts one surface burst")
 	check(game.fred.x - surface_start.x > 210.0 / 60.0, "surface burst exceeds base speed")
 	check(game.save_feedback.begins_with("[BOOST BURST]"), "start feedback is readable")
 	check(game.camera_response_y < 0.0, "normal motion has restrained camera response")
@@ -146,7 +147,7 @@ func _run() -> void:
 	Input.action_release("move_right")
 	Input.action_release("boost")
 	game._fixed_tick(1.0 / 60.0)
-	check(not game.boost.is_active(), "keyboard release cancels boost")
+	check(not game.boost.is_active(), "platform-action release cancels boost")
 
 	game.boost.reset()
 	game.session.boost_energy = 100

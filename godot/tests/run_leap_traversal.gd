@@ -1,6 +1,7 @@
 extends SceneTree
 
 const LeapTraversal = preload("res://scripts/leap_traversal.gd")
+const MarshRouteLayout = preload("res://scripts/marsh_route_layout.gd")
 
 var passed := 0
 var failed := 0
@@ -55,12 +56,13 @@ func _run() -> void:
 	for suffix in [".json", ".backup.json", ".tmp.json"]:
 		DirAccess.remove_absolute(ProjectSettings.globalize_path(prefix + suffix))
 	game.saver = FredSaveAdapter.new(prefix)
+	game.device_intent_adapter_enabled = true
 	root.add_child(game)
 	await process_frame
 	game.screen = game.Screen.PLAYING
 	game.hazards_enabled = false
 	game.predator = Vector2(1200, 650)
-	check(game._request_leap(Vector2.RIGHT), "game accepts explicit keyboard/controller-ready leap intent")
+	check(game._request_leap(Vector2.RIGHT), "game accepts explicit touch-ready leap intent")
 	var airborne_elapsed: float = game.leap.elapsed
 	game.session.paused = true
 	game._process(0.25)
@@ -93,10 +95,13 @@ func _run() -> void:
 	check(game.leap.is_airborne(), "synthetic adapter event launches the same mechanic")
 
 	game.leap.reset()
-	game._handle_click(game.fred + Vector2(150, 0))
-	check(game.leap.is_airborne(), "mouse pond click launches toward the pointer")
+	game.device_intent_adapter_enabled = false
+	game.touch_movement = Vector2.RIGHT
+	game._handle_touch(7, Rect2(MarshRouteLayout.touch_action_rects().leap).get_center(), true)
+	check(game.leap.is_airborne(), "screen-touch LEAP launches through the player control path")
+	game._handle_touch(7, Rect2(MarshRouteLayout.touch_action_rects().leap).get_center(), false)
 	game._apply_danger_hit("[DANGER] Test predator contact.")
-	check(game.leap.state == LeapTraversal.State.GROUNDED and game.danger_cooldown_seconds == game.DAMAGE_GRACE_SECONDS, "predator contact cancels leap and preserves cooldown")
+	check(game.leap.state == LeapTraversal.State.GROUNDED and game.danger_cooldown_seconds == float(game.level_profile.mistake_grace_seconds), "predator contact cancels leap and preserves level-scaled cooldown")
 
 	var save_snapshot: Dictionary = game.session.to_save("2000-01-01T00:00:00Z")
 	game.leap.request(Vector2.RIGHT)

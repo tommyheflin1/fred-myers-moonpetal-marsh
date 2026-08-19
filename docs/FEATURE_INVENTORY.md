@@ -7,7 +7,7 @@
 | Story | Recover the Sunken Acorn before dawn to save Fred's family pond; ending restores the Moonpetal and dawn | Preserve and expand through data-driven story beats |
 | Levels | Five sequential chapters: Lily Leap, The Deep, Firefly Fen, Predator Pass, Moonpetal Rise | Preserve IDs/titles; redesign as testable level resources |
 | Frog | Custom-drawn green frog with head, body, eyes, pupils, legs and facing | Rebuild as authored 3D frog model/rig; current visual is reference only |
-| Movement | Device-neutral intent adapter plus touch-and-drag playfield steering | Preserve direct touch steering; add remappable controller actions without changing gameplay |
+| Movement | Device-neutral intent adapter plus touch-and-drag playfield steering | Preserve direct touch steering; keep future platform adapters disabled until separately reviewed |
 | Eating | Collision and nearby click/tap consume bugs; bugs restore energy | Implement tongue/targeting with readable range/cooldown |
 | Energy boost | Space/Shift or touch; drains energy and regenerates | Preserve; make rates data-driven and deterministic |
 | Surface/dive | Q/E described; surface/dive UI; fish active underwater | Preserve as explicit state machine with depth limits |
@@ -30,4 +30,6 @@
 
 ## Reference acceptance baseline
 
-The migration must retain all five chapters, both water layers, four predator families, bug eating, limited boost, holes, three-heart failure, story opening/ending, pointer/keyboard/touch play, and a visibly frog-like Fred before the legacy prototype can be considered behaviorally superseded.
+Superseding owner direction defines Campaign 1 as a touch-only, 100-level,
+age-five-accessible PG adventure. The Windows pointer must emulate the same
+touch path; direct keyboard gameplay is not part of the player contract.

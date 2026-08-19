@@ -17,6 +17,8 @@ func _init() -> void:
 func _run() -> void:
 	var previous := FredLevelIntensity.profile(1)
 	check(previous.level == 1 and previous.chapter == 1, "level one starts in chapter one")
+	check(previous.campaign_id == "campaign_1" and previous.campaign_name == "Campaign 1: The Moonpetal Promise", "all levels belong to the named Campaign 1")
+	check(previous.content_rating == "PG" and previous.target_min_age == 5, "Campaign 1 declares its PG age-five design target")
 	check(FredLevelIntensity.profile(0) == previous, "levels below one clamp safely")
 	check(FredLevelIntensity.profile(101) == FredLevelIntensity.profile(100), "levels above 100 clamp safely")
 	for level in range(2, 101):
@@ -25,19 +27,24 @@ func _run() -> void:
 		check(float(current.intensity) - float(previous.intensity) <= 0.02, "level %03d increase remains bounded" % level)
 		check(float(current.predator_speed_scale) >= float(previous.predator_speed_scale), "level %03d predator pressure is monotonic" % level)
 		check(float(current.reaction_window_seconds) <= float(previous.reaction_window_seconds), "level %03d reaction window is monotonic" % level)
+		check(int(current.difficulty_step) == level, "level %03d owns one explicit progressive difficulty step" % level)
 		check(current == FredLevelIntensity.profile(level), "level %03d profile is deterministic" % level)
 		previous = current
 	check(float(FredLevelIntensity.profile(100).intensity) > float(FredLevelIntensity.profile(80).intensity), "final twenty levels retain increasing intensity")
-	check(float(FredLevelIntensity.profile(100).intensity) >= 2.0, "level 100 reaches the stronger approved intensity")
+	check(float(FredLevelIntensity.profile(100).intensity) == 1.5, "level 100 reaches the bounded age-five campaign intensity")
 	check(FredLevelIntensity.profile(100).label == "Moonpetal Mastery", "level 100 has mastery identity")
+	check(float(FredLevelIntensity.profile(100).reaction_window_seconds) >= 1.35, "even Level 100 preserves a readable reaction window")
+	check(float(FredLevelIntensity.profile(100).mistake_grace_seconds) >= 1.8, "even Level 100 preserves recovery grace")
+	check(float(FredLevelIntensity.profile(100).safe_radius) >= 50.0, "even Level 100 preserves a child-readable safe island")
 	for level in range(1, 101):
 		var twist := str(FredLevelIntensity.profile(level).new_twist)
 		check(not twist.is_empty(), "level %03d declares a complexity twist" % level)
-	check(FredLevelIntensity.profile(2).new_twist == "Marsh current", "level two introduces the current")
-	check(FredLevelIntensity.profile(3).weaving_patrol, "level three introduces weaving patrol")
-	check(FredLevelIntensity.profile(4).reversing_current, "level four introduces reversing flow")
+	check(FredLevelIntensity.profile(2).new_twist == "Land on the lily path", "level two teaches landing before adding pressure")
+	check(not FredLevelIntensity.profile(8).weaving_patrol and FredLevelIntensity.profile(9).weaving_patrol, "the first moving patrol waits until level nine")
+	check(not FredLevelIntensity.profile(13).reversing_current and FredLevelIntensity.profile(14).reversing_current, "reversing flow waits until the second chapter")
 	check(float(FredLevelIntensity.profile(6).danger_radius) > float(FredLevelIntensity.profile(5).danger_radius), "level six widens danger reach")
-	check(int(FredLevelIntensity.profile(1).predator_count) == 2, "level one starts with multiple predators")
+	check(int(FredLevelIntensity.profile(1).predator_count) == 1, "level one starts with one readable predator")
+	check(int(FredLevelIntensity.profile(15).whirlpool_count) == 0 and int(FredLevelIntensity.profile(16).whirlpool_count) == 1, "whirlpools wait until the child learns the first chapter")
 	check(int(FredLevelIntensity.profile(100).predator_count) == 5, "late levels reach five active predators")
 	check(int(FredLevelIntensity.profile(100).whirlpool_count) == 3, "late levels combine three whirlpools")
 	check(float(FredLevelIntensity.profile(100).lily_drift) > float(FredLevelIntensity.profile(1).lily_drift), "lily drift grows progressively")
@@ -74,15 +81,21 @@ func _run() -> void:
 	game._advance_level()
 	check(game.level_number == 2 and game.screen == game.Screen.PLAYING, "completion flow enters level two without title")
 	check(float(game.level_profile.intensity) >= float(FredLevelIntensity.profile(1).intensity), "level two applies its increased intensity")
+	game.level_number = 4
+	game.level_profile = FredLevelIntensity.profile(4)
 	game.visual_time = 1.0
-	check(game._current_vector().x < 0.0, "level two current supports its deterministic right-to-left route")
+	check(game._current_vector().x < 0.0, "level four gently introduces current on its deterministic right-to-left route")
+	game.level_number = 2
+	game.level_profile = FredLevelIntensity.profile(2)
 	game._advance_level()
-	check(game.level_number == 3 and game.level_profile.weaving_patrol, "level three adds weaving patrol complexity")
-	check(game.direct_route_has_danger(), "straight-line route intersects a telegraphed hazard")
+	check(game.level_number == 3 and not game.level_profile.weaving_patrol, "level three keeps the early campaign focused on bug skills")
+	game.level_number = 16
+	game.level_profile = FredLevelIntensity.profile(16)
+	check(game.direct_route_has_danger(), "later routes add a telegraphed current hazard")
 	game.level_number = 1
 	game.level_profile = FredLevelIntensity.profile(1)
 	game._update_secondary_predators()
-	check(game._active_predator_positions().size() == 2, "level one activates bass and pike")
+	check(game._active_predator_positions().size() == 1, "level one activates one readable fish patrol")
 	var pad_one_start: Vector2 = game._pad_position(0)
 	var bug_one_start: Vector2 = game._bug_position(0)
 	game.simulation_time = 3.0
@@ -97,10 +110,12 @@ func _run() -> void:
 	game.level_number = 1
 	game.level_profile = FredLevelIntensity.profile(1)
 	game.session = AdventureSession.new(1337)
-	game.fred = game.WHIRLPOOLS[0]
+	game.level_number = 17
+	game.level_profile = FredLevelIntensity.profile(17)
+	game.fred = game._whirlpool_position(0)
 	var health_before: int = game.session.health
 	game._fixed_tick(0.0)
-	check(game.session.health == health_before - 1 and game.fred == game.START, "whirlpool costs one heart and returns Fred safely")
+	check(game.session.health == health_before - 1 and game.fred == game._level_start_position(), "whirlpool costs one heart and returns Fred safely")
 	check(game.impact_burst_seconds > 0.0 and game.impact_burst_kind == "CURRENT BURST", "whirlpool triggers a visible current burst")
 	var impact_save_before: Dictionary = game.session.to_save("2000-01-01T00:00:00Z")
 	game._advance_visual(0.2)

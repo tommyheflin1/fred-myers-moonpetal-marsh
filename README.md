@@ -14,6 +14,13 @@ development-only Android debug artifact. The branch remains local because the co
 repository is public. No M2 push, production build, signing, deployment, store
 submission, or release is claimed.
 
+Campaign 1 is the complete 100-level Moonpetal Promise arc. Each numbered
+level has a deterministic difficulty step, while the early chapters teach one
+idea at a time and the Level 100 caps preserve reaction time, recovery grace,
+safe landing space, and bounded hazards for the age-five design target. The
+current player build is touch-only and PG; the Windows mouse follows the same
+touch path for owner testing.
+
 Owner direction on 2026-08-03 starts **App Build 1** as a local testing phase.
 It packages the exact validated candidate under the existing development-only
 Android identity. App Build 1 is not a production build, store submission,
@@ -68,6 +75,7 @@ This repository owns Fred gameplay. Core owns only reusable, game-neutral servic
 - [M2 mobile-first product and visual uplift](docs/M2_PRODUCT_UPLIFT_REPORT.md)
 - [M2 touch-first phone and tablet controls](docs/M2_TOUCH_FIRST_PHONE_TABLET_CONTROLS.md)
 - [M2 Fred hero story and touch-first instructions](docs/M2_HERO_STORY_INSTRUCTIONS.md)
+- [Campaign 1 touch-only, age-five, and PG contract](docs/M2_CAMPAIGN_ONE_TOUCH_PG.md)
 
 ## Godot desktop owner candidate
 

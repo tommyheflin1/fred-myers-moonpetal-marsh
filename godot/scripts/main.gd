@@ -20,7 +20,6 @@ const SAFE_LOCATION := Vector2(720,570)
 const PREDATOR_START := Vector2(850,520)
 const WHIRLPOOLS := [Vector2(500,405), Vector2(790,315), Vector2(960,500)]
 const FAIRY_POSITIONS := [Vector2(455,205), Vector2(835,545), Vector2(1080,365)]
-const DAMAGE_GRACE_SECONDS := 1.75
 const RESPAWN_COUNTDOWN_SECONDS := 2.0
 const TITLE_START_RECT := Rect2(90,405,390,68)
 const TITLE_CUSTOMIZE_RECT := Rect2(90,490,390,58)
@@ -83,7 +82,8 @@ var last_aim_direction := Vector2.RIGHT
 var boost: RefCounted = BoostLocomotion.new()
 var animation: RefCounted = AnimationCoordinator.new()
 var fred_rig: Node2D
-var touch_controls_visible := false
+var touch_controls_visible := true
+var device_intent_adapter_enabled := false
 var touch_contacts: Dictionary = {}
 var touch_positions: Dictionary = {}
 var touch_movement := Vector2.ZERO
@@ -204,22 +204,20 @@ func _fixed_tick(delta: float) -> void:
             return
         _set_feedback("[GO!] Leap into the marsh!")
     tongue.advance(delta)
-    var direction := FredInputIntent.movement() + touch_movement
-    if Input.is_key_pressed(KEY_A) or Input.is_key_pressed(KEY_LEFT): direction.x -= 1.0
-    if Input.is_key_pressed(KEY_D) or Input.is_key_pressed(KEY_RIGHT): direction.x += 1.0
-    if Input.is_key_pressed(KEY_W) or Input.is_key_pressed(KEY_UP): direction.y -= 1.0
-    if Input.is_key_pressed(KEY_S) or Input.is_key_pressed(KEY_DOWN): direction.y += 1.0
+    var direction := touch_movement
+    if device_intent_adapter_enabled:
+        direction += FredInputIntent.movement()
     direction = direction.normalized()
     if direction != Vector2.ZERO:
         last_aim_direction = direction
-    if FredInputIntent.pressed(FredInputIntent.Intent.LEAP):
+    if device_intent_adapter_enabled and FredInputIntent.pressed(FredInputIntent.Intent.LEAP):
         _request_leap(direction)
-    if FredInputIntent.pressed(FredInputIntent.Intent.INTERACT):
+    if device_intent_adapter_enabled and FredInputIntent.pressed(FredInputIntent.Intent.INTERACT):
         _request_tongue(last_aim_direction)
     var boost_allowed: bool = not depth.is_transitioning() and not tongue.is_busy() and leap.state != LeapTraversal.State.LANDING
     var boost_moving: bool = direction != Vector2.ZERO or leap.state == LeapTraversal.State.AIRBORNE
     var boost_step: Dictionary = boost.advance(
-        FredInputIntent.held(FredInputIntent.Intent.BOOST) or touch_boost,
+        touch_boost or (device_intent_adapter_enabled and FredInputIntent.held(FredInputIntent.Intent.BOOST)),
         boost_moving,
         boost_allowed,
         session.boost_energy
@@ -447,7 +445,7 @@ func _check_danger_collision() -> bool:
     if danger_cooldown_seconds > 0.0 or in_safe_location:
         return false
     if fred.distance_to(predator) < float(level_profile.danger_radius):
-        _apply_danger_hit("[DANGER] A marsh predator caught Fred!")
+        _apply_danger_hit("[DANGER] A marsh predator bumped Fred back!")
         return true
     if not hazards_enabled:
         return false
@@ -455,7 +453,7 @@ func _check_danger_collision() -> bool:
     for index in range(1, active_positions.size()):
         var position: Vector2 = active_positions[index]
         if fred.distance_to(position) < float(level_profile.danger_radius):
-            _apply_danger_hit("[DANGER] A marsh predator caught Fred!")
+            _apply_danger_hit("[DANGER] A marsh predator bumped Fred back!")
             return true
     for index in range(mini(int(level_profile.whirlpool_count), WHIRLPOOLS.size())):
         if fred.distance_to(_whirlpool_position(index)) < 50.0:
@@ -466,7 +464,7 @@ func _check_danger_collision() -> bool:
 func _apply_danger_hit(message: String) -> void:
     impact_burst_origin = fred
     impact_burst_seconds = 0.62
-    impact_burst_kind = "CURRENT BURST" if message.begins_with("[WHIRLPOOL]") else ("LANDING SPLASH" if message.begins_with("[LANDING]") else "PREDATOR HIT")
+    impact_burst_kind = "CURRENT BURST" if message.begins_with("[WHIRLPOOL]") else ("LANDING SPLASH" if message.begins_with("[LANDING]") else "PREDATOR BUMP")
     leap.reset()
     depth.reset("surface")
     tongue.reset()
@@ -486,7 +484,7 @@ func _apply_danger_hit(message: String) -> void:
         return
     fred = _checkpoint_respawn_position()
     _reset_camera()
-    danger_cooldown_seconds = DAMAGE_GRACE_SECONDS
+    danger_cooldown_seconds = float(level_profile.mistake_grace_seconds)
     countdown_seconds = RESPAWN_COUNTDOWN_SECONDS if countdown_enabled else 0.0
     var recovery_point := "the midpoint checkpoint" if session.checkpoint_sequence > 0 else "this level's starting perch"
     _save("[LIFE LOST] %d lives remain. Fred returns to %s." % [session.health, recovery_point])
@@ -572,45 +570,24 @@ func _unhandled_input(event: InputEvent) -> void:
     if event is InputEventMouseMotion and pointer_touch_active and touch_controls_visible:
         _move_touch(-1, event.position)
         return
-    if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_RIGHT and event.pressed and screen == Screen.PLAYING:
-        _request_tongue(event.position - fred)
-    if not event is InputEventKey and event.is_action_pressed("pause") and screen == Screen.PLAYING:
+    if event is InputEventKey:
+        return
+    if device_intent_adapter_enabled and event.is_action_pressed("pause") and screen == Screen.PLAYING:
         session.paused = not session.paused
         _set_feedback("[PAUSED] Your last checkpoint is safe." if session.paused else "[PLAYING] Adventure resumed.")
-    if not event is InputEventKey and event.is_action_pressed("dive") and screen == Screen.PLAYING:
+    if device_intent_adapter_enabled and event.is_action_pressed("dive") and screen == Screen.PLAYING:
         _request_dive()
-    if not event is InputEventKey and event.is_action_pressed("surface") and screen == Screen.PLAYING:
+    if device_intent_adapter_enabled and event.is_action_pressed("surface") and screen == Screen.PLAYING:
         _request_surface()
-    if not event is InputEventKey and event.is_action_pressed("leap") and screen == Screen.PLAYING:
+    if device_intent_adapter_enabled and event.is_action_pressed("leap") and screen == Screen.PLAYING:
         _request_leap(FredInputIntent.movement())
-    if not event is InputEventKey and event.is_action_pressed("interact") and screen == Screen.PLAYING:
+    if device_intent_adapter_enabled and event.is_action_pressed("interact") and screen == Screen.PLAYING:
         _request_tongue(last_aim_direction)
-    if not event is InputEventKey and event.is_action_pressed("retry") and screen == Screen.FAILED: _retry()
-    if not event is InputEventKey and event.is_action_pressed("confirm"):
+    if device_intent_adapter_enabled and event.is_action_pressed("retry") and screen == Screen.FAILED: _retry()
+    if device_intent_adapter_enabled and event.is_action_pressed("confirm"):
         if screen == Screen.TITLE: _open_story()
         elif screen == Screen.STORY: _open_instructions()
         elif screen == Screen.INSTRUCTIONS: _start()
-    if event is InputEventKey and event.pressed and not event.echo:
-        match event.keycode:
-            KEY_Q:
-                if screen == Screen.PLAYING: _request_dive()
-            KEY_E:
-                if screen == Screen.PLAYING: _request_surface()
-            KEY_F:
-                if screen == Screen.PLAYING: _request_tongue(last_aim_direction)
-            KEY_P, KEY_ESCAPE:
-                if screen == Screen.PLAYING:
-                    session.paused = not session.paused
-                    _set_feedback("[PAUSED] Your last checkpoint is safe." if session.paused else "[PLAYING] Adventure resumed.")
-            KEY_R:
-                if screen == Screen.FAILED: _retry()
-            KEY_H:
-                if screen in [Screen.FAILED, Screen.LEADERBOARD]: _go_home()
-            KEY_ENTER:
-                if screen == Screen.TITLE: _open_story()
-                elif screen == Screen.STORY: _open_instructions()
-                elif screen == Screen.INSTRUCTIONS: _start()
-                elif screen == Screen.COMPLETE: _advance_level()
 
 func _handle_touch(index: int, position: Vector2, pressed: bool) -> void:
     touch_controls_visible = true
@@ -808,6 +785,10 @@ func _sync_fred_style() -> void:
         fred_rig.apply_style(customization.current_style())
 
 func _advance_level() -> void:
+    if level_number >= FredLevelIntensity.MAX_LEVEL:
+        _go_home()
+        _set_feedback("[CAMPAIGN 1 COMPLETE] Fred is the hero in every little frog's dreams!")
+        return
     var carried_lives := session.health
     var carried_energy := session.boost_energy
     level_number = mini(FredLevelIntensity.MAX_LEVEL, level_number + 1)
@@ -924,7 +905,11 @@ func _draw() -> void:
     if screen == Screen.CUSTOMIZE: _draw_customizer(); return
     _draw_level()
     if screen == Screen.FAILED: _draw_failure()
-    elif screen == Screen.COMPLETE: _draw_overlay("Lily Leap Complete!", "Level %03d is ready." % mini(100, level_number + 1), "Next Level", Rect2(490,500,300,60), "LEVEL CLEAR")
+    elif screen == Screen.COMPLETE:
+        if level_number >= FredLevelIntensity.MAX_LEVEL:
+            _draw_overlay("Campaign 1 Complete!", "Fred is the hero in every little frog's dreams!", "Celebrate at Home", Rect2(490,500,300,60), "100 / 100")
+        else:
+            _draw_overlay("Lily Leap Complete!", "Level %03d is ready." % (level_number + 1), "Next Level", Rect2(490,500,300,60), "LEVEL CLEAR")
     elif session.paused: _draw_overlay("Marsh Paused", "Your checkpoint is safe.", "Resume", Rect2(490,410,300,65), "PAUSED")
     elif countdown_seconds > 0.0: _draw_countdown()
 
@@ -936,7 +921,7 @@ func _draw_title() -> void:
     draw_line(Vector2(635,0),Vector2(555,720),Color(0.45,0.94,0.80,0.58),4)
     _text(Vector2(285,70), "FRED MYERS", 52, Color("ffe184"), HORIZONTAL_ALIGNMENT_CENTER, 500)
     _text(Vector2(285,120), "and the Moonpetal Marsh", 27, Color("edfdf5"), HORIZONTAL_ALIGNMENT_CENTER, 500)
-    _text(Vector2(285,166), "THE 100-LEVEL MARSH CHALLENGE", 15, Color("b9f5c7"), HORIZONTAL_ALIGNMENT_CENTER, 470)
+    _text(Vector2(285,166), "CAMPAIGN 1  •  100 LEVELS  •  PG FAMILY ADVENTURE", 14, Color("b9f5c7"), HORIZONTAL_ALIGNMENT_CENTER, 500)
     draw_rect(Rect2(72,205,426,155),Color(0.02,0.10,0.14,0.76),true)
     draw_rect(Rect2(72,205,426,155),Color("70d6c2"),false,3)
     _text(Vector2(285,242), "RUN • LEAP • DIVE", 23, Color("fff0ae"), HORIZONTAL_ALIGNMENT_CENTER, 390)
@@ -961,7 +946,7 @@ func _draw_story() -> void:
         "legendary Moonpetal beyond it.",
     ], Color("76dcb0"), 0)
     _draw_story_card(Rect2(460,125,360,380), "THE MARSH IN TROUBLE", [
-        "Wild currents, hungry predators,",
+        "Wild currents, sneaky predators,",
         "and scattered bugs have broken",
         "the safe lily paths apart.",
     ], Color("ef9b57"), 1)
@@ -1192,7 +1177,7 @@ func _draw_level() -> void:
         _draw_impact_burst()
     draw_set_transform(Vector2.ZERO)
     _text(Vector2(25,42), "LILY LEAP", 27, Color("f7d36a"), HORIZONTAL_ALIGNMENT_LEFT, 270)
-    _text(Vector2(25,76), "LEVEL %03d  -  %s" % [level_profile.level, level_profile.label], 14, Color("d9f4e2"), HORIZONTAL_ALIGNMENT_LEFT, 270)
+    _text(Vector2(25,76), "CAMPAIGN 1  •  LEVEL %03d / 100  •  %s" % [level_profile.level, level_profile.label], 13, Color("d9f4e2"), HORIZONTAL_ALIGNMENT_LEFT, 310)
     var route_summary := "%s  |  %s  |  THREATS %d  |  NEW: %s" % [
         MarshRouteLayout.formation_label(level_number).to_upper(),
         MarshRouteLayout.route_label(level_number),
@@ -1621,7 +1606,7 @@ func _draw_failure() -> void:
     draw_line(center + Vector2(68,-91), center + Vector2(43,-72), Color("173128"), 7)
     draw_arc(center + Vector2(0,35), 42, PI+0.25, TAU-0.25, 18, Color("173128"), 7)
     _text(Vector2(640,72), "OH NO FRED!!!", 58, Color("fff0ae"), HORIZONTAL_ALIGNMENT_CENTER, 920)
-    _text(Vector2(640,445), "All lives used. Ready for another marsh run?", 21, Color.WHITE, HORIZONTAL_ALIGNMENT_CENTER, 760)
+    _text(Vector2(640,445), "Fred is muddy but safe. Ready for another marsh run?", 21, Color.WHITE, HORIZONTAL_ALIGNMENT_CENTER, 820)
     _button(Rect2(365,500,250,64), "TRY AGAIN?")
     _button(Rect2(665,500,250,64), "GO HOME?")
     _text(Vector2(640,605), "Try Again restarts at Level 001  |  Home returns to the main menu", 16, Color("d9f4e2"), HORIZONTAL_ALIGNMENT_CENTER, 820)

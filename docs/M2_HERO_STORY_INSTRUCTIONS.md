@@ -35,6 +35,11 @@ The instruction screen teaches six touch-first concepts:
 - avoid predators and whirlpools, beginning each fresh adventure with three
   lives while every tenth level can add a fairy life.
 
+The player runtime accepts screen touch, or the Windows mouse through the same
+touch adapter used for owner review. Direct keyboard gameplay is disabled.
+Cartoon splashes, gentle bump language and safe retry feedback preserve the PG
+family-adventure tone.
+
 The mission summary connects those actions to the current level loop: munch
 three bugs, reach the Moonpetal, earn coins and customize Fred. Buttons meet the
 existing large touch-target contract and remain separated from one another.

@@ -6,7 +6,7 @@
 2. **Headless unit tests**: fixed-tick movement, jump/landing, boost drain/recovery, tongue target selection, surface/dive transitions, hole safety, predator state machines, damage/respawn, objective transitions, save validation/migration, analytics allowlist.
 3. **Deterministic scenario tests**: each of five levels has a seeded completion path and representative failure/escape paths; checkpoint restore reproduces stable state.
 4. **Headless integration**: import, launch, Core compatibility smoke, full adventure autoplay, corrupt-save recovery, offline startup, pause/quit flush.
-5. **Rendering/input checks**: screenshot candidates at desktop, phone portrait, phone landscape (if supported), high contrast, larger text, reduced motion; mouse, keyboard, touch, and gamepad.
+5. **Rendering/input checks**: screenshot candidates at desktop, phone portrait, phone landscape (if supported), high contrast, larger text, reduced motion; native touch plus desktop pointer emulation. Platform adapters remain a separate gate.
 6. **Platform checks**: Web artifact launch/storage; Windows x86-64 package; Android debug export/install/launch/lifecycle; iOS unsigned preparation and Mac/Xcode handoff.
 7. **Human acceptance**: frog readability, controls, telegraphs/fairness, camera comfort, story comprehension, five-level completion, audio/haptics, accessibility, representative physical devices.
 
@@ -16,8 +16,8 @@ CI should mirror Snake Reactor's split content/Godot jobs: checkout, pinned Godo
 
 | Target | Development artifact | Gate |
 | --- | --- | --- |
-| Web | Godot Web export | Loads over HTTPS, keyboard/pointer/touch, save survives reload where browser permits, clear fallback on restricted storage |
-| Windows PC | x86-64 `.exe` + `.pck`/package | Fresh-machine launch, controller/keyboard/mouse, save path/recovery |
+| Web | Godot Web export | Loads over HTTPS, pointer/touch, save survives reload where browser permits, clear fallback on restricted storage |
+| Windows PC | x86-64 `.exe` + `.pck`/package | Fresh-machine launch, mouse-as-touch, save path/recovery |
 | Android | arm64 + x86_64 debug APK first; AAB later | Export, hash, install, launch, lifecycle, safe areas, touch, performance, physical QA |
 | iPhone/iPad | Unsigned Xcode project preparation | Supported Mac/Xcode export, signing owned by user, simulator then physical device; App Store submission is separate approval |
 

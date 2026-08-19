@@ -25,7 +25,7 @@ func _prepare() -> void:
             game.collected.assign([0, 1, 2])
             game.fred = Vector2(620, 420)
             game.last_aim_direction = Vector2.UP
-            game._set_feedback("[OWNER REVIEW] Press F to verify an out-of-range miss.")
+            game._set_feedback("[OWNER REVIEW] Choose MUNCH to verify an out-of-range miss.")
         "fairy-life":
             game.level_number = 10
             game.level_profile = FredLevelIntensity.profile(10)
@@ -34,7 +34,7 @@ func _prepare() -> void:
             game.fairy_collected = false
             game.fred = game._fairy_position() - Vector2(100, 0)
             game.last_aim_direction = Vector2.RIGHT
-            game._set_feedback("[OWNER REVIEW] Press F to eat the level-ten fairy.")
+            game._set_feedback("[OWNER REVIEW] Choose MUNCH to eat the level-ten fairy.")
         "fairy-cap":
             game.level_number = 10
             game.level_profile = FredLevelIntensity.profile(10)
@@ -43,7 +43,7 @@ func _prepare() -> void:
             game.fairy_collected = false
             game.fred = game._fairy_position() - Vector2(100, 0)
             game.last_aim_direction = Vector2.RIGHT
-            game._set_feedback("[OWNER REVIEW] Press F to verify the three-life cap.")
+            game._set_feedback("[OWNER REVIEW] Choose MUNCH to verify the campaign life cap.")
         "failure":
             game.session.health = 1
             game._apply_danger_hit("[DANGER] Owner-review predator contact.")
@@ -51,5 +51,5 @@ func _prepare() -> void:
             var bug_position: Vector2 = game._bug_position(0)
             game.fred = bug_position - Vector2(110, 0)
             game.last_aim_direction = Vector2.RIGHT
-            game._set_feedback("[OWNER REVIEW] Press F or right-click the nearby bug.")
+            game._set_feedback("[OWNER REVIEW] Choose MUNCH near the bug.")
     game.queue_redraw()

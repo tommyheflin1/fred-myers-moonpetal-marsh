@@ -53,6 +53,7 @@ func _run() -> void:
 		DirAccess.remove_absolute(ProjectSettings.globalize_path(prefix + suffix))
 	var game: Node2D = load("res://scripts/main.gd").new()
 	game.saver = FredSaveAdapter.new(prefix)
+	game.device_intent_adapter_enabled = true
 	root.add_child(game)
 	await process_frame
 	game.screen = game.Screen.PLAYING
@@ -125,7 +126,7 @@ func _run() -> void:
 	game.session.health = 2
 	game._apply_danger_hit("[DANGER] Test underwater predator.")
 	check(game.depth.state == DepthTraversal.State.SURFACE and game.session.player_state == "surface", "predator recovery resets canonical safe surface")
-	check(game.danger_cooldown_seconds == game.DAMAGE_GRACE_SECONDS and game.session.health == 1, "underwater predator preserves damage cooldown")
+	check(game.danger_cooldown_seconds == float(game.level_profile.mistake_grace_seconds) and game.session.health == 1, "underwater predator preserves level-scaled damage cooldown")
 	game.depth.reset("underwater")
 	game.session.set_underwater(true)
 	game.session.health = 1

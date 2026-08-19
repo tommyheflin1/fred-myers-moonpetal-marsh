@@ -76,6 +76,19 @@ package identity, zero requested permissions, and a refreshed source/artifact
 hash guard. Package creation and automated checks do not substitute for
 physical-phone acceptance and do not unlock production or store actions.
 
+The subsequent Campaign 1 pass makes the 100-level structure an explicit
+product contract rather than a level-number cap. Ten chapters contain ten
+levels each; every level has a strictly increasing deterministic difficulty
+step, but the curve is bounded for the age-five target. Level 1 has one readable
+patrol and no whirlpool, whirlpools wait until Level 16, moving patrol and
+reversing-current mechanics are delayed, and Level 100 still preserves at
+least 1.35 seconds of reaction time, 1.8 seconds of post-hit grace, a 50-pixel
+safe radius, at most five predators and three whirlpools. The player runtime is
+touch-only, the Windows mouse maps through that same touch path, and the title,
+feedback and failure presentation declare and preserve a PG family-adventure
+contract. Completing Level 100 now ends Campaign 1 and celebrates Fred's hero
+promise instead of replaying Level 100.
+
 ## M1 sequencing
 
 1. Expand the repository source tree and retain the legacy build under `legacy-web/` or a tagged legacy branch.

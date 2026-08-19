@@ -217,6 +217,7 @@ func _run() -> void:
     game.fairy_collected = false
     game.tongue.reset()
     game.fred = game._bug_position(0) - Vector2(100, 0)
+    game.device_intent_adapter_enabled = true
     var adapter_event := InputEventAction.new()
     adapter_event.action = "interact"
     adapter_event.pressed = true
@@ -238,6 +239,7 @@ func _run() -> void:
     check(FredInputIntent.event_to_intent(touch_event) == FredInputIntent.Intent.INTERACT, "synthetic touch action maps to interact intent")
     game._unhandled_input(touch_event)
     check(1 in game.collected, "synthetic touch adapter invokes the shared tongue mechanic")
+    game.device_intent_adapter_enabled = false
 
     game.tongue.reset()
     game.collected.erase(1)
@@ -255,11 +257,13 @@ func _run() -> void:
     game.tongue.reset()
     game.fred = game._bug_position(2) - Vector2(100, 0)
     var mouse_event := InputEventMouseButton.new()
-    mouse_event.button_index = MOUSE_BUTTON_RIGHT
-    mouse_event.position = game._bug_position(2)
+    mouse_event.button_index = MOUSE_BUTTON_LEFT
+    mouse_event.position = Rect2(Layout.touch_action_rects().tongue).get_center()
     mouse_event.pressed = true
     game._unhandled_input(mouse_event)
-    check(2 in game.collected, "right-click pointer aim captures the selected bug")
+    check(2 in game.collected, "desktop pointer emulates the touch MUNCH control")
+    mouse_event.pressed = false
+    game._unhandled_input(mouse_event)
 
     var save_before: Dictionary = game.session.to_save("2000-01-01T00:00:00Z")
     game.tongue.reset()

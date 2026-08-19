@@ -25,8 +25,8 @@ desktop shortcut remains the exact-candidate Windows owner-review path.
 - Leap, boost, dive/surface, pause/resume, and exit: use the named controls.
 - Failure choices: use the visible `Try Again?` or `Go Home` buttons.
 
-The Windows owner candidate retains a desktop input adapter for local control
-testing, but the application itself presents only device-neutral action names.
+The Windows owner candidate maps the left mouse button to the same touch path
+used on phones and tablets. Keyboard gameplay is disabled.
 
 ## Effective desktop acceptance path
 
@@ -34,9 +34,9 @@ testing, but the application itself presents only device-neutral action names.
    notice are readable. Start and allow the five-second countdown to finish.
 2. Move in both directions. Confirm Fred, nearby lily pads, bugs, fish, snake,
    birds, hazards, objective, lives, energy, status, and Pause remain readable.
-3. Move within the close tongue-assist boundary of a bug, face it, and press F.
-   Confirm Fred visibly eats it once. Press F outside the eligible boundary and
-   confirm the miss does not collect a bug or double-trigger a reward.
+3. Move within the close tongue-assist boundary of a bug, face it, and choose
+   `Munch`. Confirm Fred visibly eats it once. Try `Munch` outside the eligible
+   boundary and confirm the miss does not collect a bug or double-trigger a reward.
 4. Exercise leap, boost, dive, surface, pause, and resume. Confirm no action
    changes while the countdown or pause overlay owns input.
 5. Take one danger hit. Confirm exactly one life is removed and Fred remains on
@@ -62,8 +62,8 @@ testing, but the application itself presents only device-neutral action names.
 
 ## Evidence boundaries
 
-This shortcut is the desktop owner-review candidate. Automated keyboard and
-synthetic touch coverage support it, but owner control feel remains your human
+This shortcut is the desktop owner-review candidate. Automated touch-only and
+synthetic platform-adapter coverage support it, but owner control feel remains your human
 acceptance. The local App Build 1 Android debug APK and guarded phone preflight
 remain separate evidence; neither is a physical-phone pass. Store packaging,
 signing, publication, and physical-device acceptance remain protected gates.

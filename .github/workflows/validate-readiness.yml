@@ -31,7 +31,7 @@ jobs:
         run: ./Godot_v4.7.1-stable_linux.x86_64 --headless --path godot --editor --quit
       - name: Run M1 automated tests
         run: ./Godot_v4.7.1-stable_linux.x86_64 --headless --path godot --script res://tests/run_tests.gd
-      - name: Run M1 keyboard regression
+      - name: Run touch-only player-input regression
         run: ./Godot_v4.7.1-stable_linux.x86_64 --headless --path godot --script res://tests/run_keyboard_regression.gd
       - name: Run M1 save-integrity stress tests
         run: ./Godot_v4.7.1-stable_linux.x86_64 --headless --path godot --script res://tests/run_save_stress.gd
@@ -41,6 +41,8 @@ jobs:
         run: ./Godot_v4.7.1-stable_linux.x86_64 --headless --path godot --script res://tests/run_visual_clarity.gd
       - name: Run M2 progression and identity foundation
         run: ./Godot_v4.7.1-stable_linux.x86_64 --headless --path godot --script res://tests/run_m2_foundation.gd
+      - name: Run Campaign 1 age-five and PG progression tests
+        run: ./Godot_v4.7.1-stable_linux.x86_64 --headless --path godot --script res://tests/run_campaign_one.gd
       - name: Run M2 leap traversal tests
         run: ./Godot_v4.7.1-stable_linux.x86_64 --headless --path godot --script res://tests/run_leap_traversal.gd
       - name: Run M2 depth traversal tests
@@ -63,6 +65,8 @@ jobs:
         run: ./Godot_v4.7.1-stable_linux.x86_64 --headless --path godot --script res://tests/run_android_readiness.gd
       - name: Run lives, alternating routes, background and phone-layout tests
         run: ./Godot_v4.7.1-stable_linux.x86_64 --headless --path godot --script res://tests/run_lives_routes_phone_layout.gd
+      - name: Run mobile-first product contract tests
+        run: ./Godot_v4.7.1-stable_linux.x86_64 --headless --path godot --script res://tests/run_product_uplift.gd
       - name: Run touch-first phone and tablet controls tests
         run: ./Godot_v4.7.1-stable_linux.x86_64 --headless --path godot --script res://tests/run_touch_first_controls.gd
       - name: Run Fred hero story and instructions tests

@@ -145,16 +145,14 @@ func _run() -> void:
     game._process(0.2)
     check(game.save_feedback == FredSaveFeedback.NEUTRAL, "status returns to a bounded neutral message")
 
-    var enter := InputEventKey.new()
-    enter.keycode = KEY_ENTER
-    enter.pressed = true
-    game._unhandled_input(enter)
-    game._unhandled_input(enter)
-    game._unhandled_input(enter)
+    for position: Vector2 in [game.TITLE_START_RECT.get_center(), game.STORY_CONTINUE_RECT.get_center(), game.INSTRUCTIONS_PLAY_RECT.get_center()]:
+        game._handle_touch(1, position, true)
+        game._handle_touch(1, position, false)
     game.fred = Vector2(500, 500)
-    game._unhandled_input(enter)
-    check(game.screen == game.Screen.PLAYING and game.fred == Vector2(500, 500), "repeated confirm does not restart navigation")
-    check(not FileAccess.file_exists(MAIN_PREFIX + ".json"), "repeated confirm does not create a duplicate save")
+    game._handle_touch(2, game.INSTRUCTIONS_PLAY_RECT.get_center(), true)
+    game._handle_touch(2, game.INSTRUCTIONS_PLAY_RECT.get_center(), false)
+    check(game.screen == game.Screen.PLAYING and game.fred == Vector2(500, 500), "repeated onboarding touch does not restart navigation")
+    check(not FileAccess.file_exists(MAIN_PREFIX + ".json"), "repeated onboarding touch does not create a duplicate save")
 
     game.fred = Vector2(630, 390)
     game._fixed_tick(0.0)

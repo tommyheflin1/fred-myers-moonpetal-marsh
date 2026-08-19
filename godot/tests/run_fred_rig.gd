@@ -159,6 +159,7 @@ func _run() -> void:
 	game.saver = FredSaveAdapter.new(SAVE_PREFIX)
 	game.hazards_enabled = false
 	game.countdown_enabled = false
+	game.device_intent_adapter_enabled = true
 	root.add_child(game)
 	await process_frame
 	game.set_process(false)
@@ -180,7 +181,7 @@ func _run() -> void:
 	game._fixed_tick(1.0 / 60.0)
 	Input.action_release("move_right")
 	game.fred_rig.apply_pose(game.animation.pose(), float(game.depth.depth))
-	check(int(game.fred_rig.snapshot().state) in [AnimationCoordinator.State.GROUND_MOVE, AnimationCoordinator.State.SURFACE_SWIM], "real keyboard movement drives the integrated rig")
+	check(int(game.fred_rig.snapshot().state) in [AnimationCoordinator.State.GROUND_MOVE, AnimationCoordinator.State.SURFACE_SWIM], "synthetic platform movement drives the integrated rig")
 	game.leap.reset()
 	game._request_leap(Vector2.RIGHT)
 	game._fixed_tick(1.0 / 60.0)

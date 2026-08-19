@@ -47,7 +47,7 @@ func _run() -> void:
 	check(game.session.health == 2, "first danger hit consumes exactly one of three lives")
 	check(game.screen == Main.Screen.PLAYING and game.level_number == 5, "first hit keeps the current level active")
 	check(game.fred == game._level_start_position(), "first hit returns to this level's starting perch")
-	check(is_equal_approx(game.danger_cooldown_seconds, Main.DAMAGE_GRACE_SECONDS), "first hit grants deterministic damage grace")
+	check(is_equal_approx(game.danger_cooldown_seconds, float(game.level_profile.mistake_grace_seconds)), "first hit grants age-calibrated deterministic damage grace")
 	check(is_equal_approx(game.countdown_seconds, Main.RESPAWN_COUNTDOWN_SECONDS), "first hit grants a readable respawn countdown")
 	var first_restore := AdventureSession.new()
 	check(
@@ -101,7 +101,9 @@ func _run() -> void:
 	check(Layout.route_label(1) == "LEFT TO RIGHT" and Layout.route_label(2) == "RIGHT TO LEFT", "HUD route labels match the playable direction")
 	check(is_equal_approx(odd_start.x + even_start.x, Layout.CANVAS_SIZE.x), "alternating starts mirror across the logical phone canvas")
 	check(is_equal_approx(odd_exit.x + even_exit.x, Layout.CANVAS_SIZE.x), "alternating exits mirror without entering the top HUD")
-	check(game._current_vector().x < 0.0, "even-level marsh current initially supports the reversed route")
+	game.level_number = 4
+	game.level_profile = FredLevelIntensity.profile(4)
+	check(game._current_vector().x < 0.0, "the first gentle even-level current supports the reversed route")
 
 	var labels: Array[String] = []
 	for level in range(1, 7):
