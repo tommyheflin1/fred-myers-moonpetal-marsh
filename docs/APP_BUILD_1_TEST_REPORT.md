@@ -5,14 +5,15 @@ Updated: 2026-08-18
 ## Scope and authorization
 
 The owner's explicit next-phase instruction starts App Build 1 as a local
-testing phase. Revision 8 packages Campaign 1 as a touch-only, age-five-targeted
+testing phase. Revision 9 packages Campaign 1 as a touch-only, age-five-targeted
 PG family adventure with exactly 100 progressively harder levels. It retains
 the direct playfield drag steering, large bottom action row, sporty Fred art,
 six full-screen formations/backgrounds, coin-backed cosmetics, fresh-run Exit
 contract, wildlife, Moonpetal Promise story, touch instructions,
-child-readable mouth-clear Fred gear and a dormant Apple Game Center scoring adapter.
+child-readable mouth-clear Fred gear, safe no-life-loss splashback for missed
+leaps, and a dormant Apple Game Center scoring adapter.
 The exact product source checkpoint is
-`edbd911a713bb8738f9959991a0ab975cf3817d0`; Core and save v1 remain unchanged.
+`5b325906fdad040791170d12ad1eb06978fd2082`; Core and save v1 remain unchanged.
 
 This build is not a production build, release, deployment, store submission,
 or physical-device acceptance result. It remains local and unpushed because
@@ -21,11 +22,11 @@ the configured GitHub repository is public.
 ## Artifact identity
 
 - Local artifact: `builds/android/fred-myers-app-build-1-debug.apk`
-- SHA-256: `1187E3CA614C7B3FDD97DD9BCBC51FEFB054E90041912A574AD83D62881F0C3A`
+- SHA-256: `ECCFFB8C81A701B83AD68C49159E0AD434710C13170702811B334EB5DA71A049`
 - Size: 84,858,261 bytes
 - Package: `com.flinsappvault.fredmyers.dev`
 - Label: `Fred Myers App Build 1`
-- Version: `0.2.1-app-build-1-r8` (`20108`)
+- Version: `0.2.1-app-build-1-r9` (`20109`)
 - Minimum/target/compile SDK: 24/36/36
 - Architectures: `arm64-v8a` and `x86_64`
 - Orientation: landscape
@@ -60,7 +61,7 @@ and visually inspected after packaging.
 ## Validation
 
 - Godot headless import: passed.
-- Complete deterministic matrix: 21 suites, 3,918 passed, 0 failed, using
+- Complete deterministic matrix: 21 suites, 3,956 passed, 0 failed, using
   isolated temporary AppData. Headless default customization is memory-only so
   legacy gameplay suites cannot write owner economy data.
 - Readiness: 86 artifacts, eight save fixtures, Core 0.5.1, Godot 4.7.
@@ -71,15 +72,20 @@ and visually inspected after packaging.
 - App Build 1 export contract: passed.
 - Physical-device safety fixtures: 60 passed, 0 failed.
 - Physical-device static safety contract: passed.
-- Live read-only preflight: `DEVICE_NOT_CONNECTED / UNVERIFIED`, zero devices,
-  no selected serial, and `mutation_performed=false`.
+- Revision 9 live read-only preflight: `UNVERIFIED`; the bounded ADB probe timed
+  out before device classification. No serial, install, launch, or diagnostic
+  mode was requested, and the probe was stopped cleanly with no ADB residue.
 - Preflight tooling now prefers the verified bundled Python runtime and rejects
   the nonfunctional Microsoft Store execution alias uncovered during this run.
 - Mobile Game Core remains version 0.5.1 at tree
   `288d87420c5694f80c071f00aa71a0b581f9f60c`.
 - `fred_save` remains schema v1.
 
-The focused Campaign 1 suite passed 1,328/1,328; the touch-only player-input
+The focused leap suite passed 56/56, including missed-perch recovery at one
+remaining life without failure. A real isolated 1280x720 touch-path review
+showed `LIVES 3` unchanged, the landing splash, the two-second ready countdown,
+and the complete unclipped `Fred is safe. No life lost!` status. The focused
+Campaign 1 suite passed 1,328/1,328; the touch-only player-input
 suite passed 22/22; the M2 foundation suite passed 750/750; the authored rig
 suite passed 508/508; and the product-uplift suite passed 94/94. Four actual
 1280x720 Godot customizer frames cover every mouth-clear face/body gear set.

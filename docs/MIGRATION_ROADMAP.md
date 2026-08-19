@@ -107,6 +107,13 @@ scarf are molded below Fred's jaw, and the mouth is preserved as the final face
 layer across all 23 poses. New mouth-clearance tests and four real Godot attire
 frames prevent the clothing from obscuring Fred's expression again.
 
+Revision 9 corrects missed-leap recovery. Landing in open water now creates a
+child-readable splash, returns Fred to the earned safe point, preserves the
+current life count even at one life, and runs a short ready countdown. Predator
+and whirlpool contact remain damaging. The same fixed behavior is packaged in
+the local Android debug candidate; no physical-device or release credit is
+claimed.
+
 ## M1 sequencing
 
 1. Expand the repository source tree and retain the legacy build under `legacy-web/` or a tagged legacy branch.

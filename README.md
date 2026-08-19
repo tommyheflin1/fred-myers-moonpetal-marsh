@@ -8,7 +8,7 @@ Milestone M1 is accepted on `main`; the current local M2 owner candidate adds
 the deterministic Fred rig, leap/swim/depth/tongue/boost/camera traversal,
 100-level progression foundation, stackable fairy lives, six rotating route
 formations and marsh treatments, coin-backed Fred customization, sport-character
-and wildlife presentation, mobile-first UI, an Apple Game Center scoring adapter,
+and wildlife presentation, safe missed-leap recovery, mobile-first UI, an Apple Game Center scoring adapter,
 the required Moonpetal hero story and touch-first instructions, and a
 development-only Android debug artifact. The branch remains local because the configured GitHub
 repository is public. No M2 push, production build, signing, deployment, store

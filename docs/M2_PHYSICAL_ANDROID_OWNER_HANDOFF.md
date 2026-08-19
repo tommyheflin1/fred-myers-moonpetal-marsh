@@ -2,19 +2,19 @@
 
 Updated: 2026-08-18
 
-## Current App Build 1 revision 8
+## Current App Build 1 revision 9
 
 The current guarded phone candidate supersedes the older artifact identities
-retained below for append-only history. Revision 8 is built from exact source
-`edbd911a713bb8738f9959991a0ab975cf3817d0` with the complete 100-level
+retained below for append-only history. Revision 9 is built from exact source
+`5b325906fdad040791170d12ad1eb06978fd2082` with the complete 100-level
 Campaign 1 profile set, touch-only player routing, age-five recovery floors,
-PG copy, the Moonpetal hero story, the bottom action row and the mouth-clear,
-aligned Fred goggles/glasses/visor presentation.
+PG copy, the Moonpetal hero story, the bottom action row, mouth-clear aligned
+Fred gear, and safe missed-leap recovery that cannot remove a life.
 
 - artifact: `builds/android/fred-myers-app-build-1-debug.apk`;
-- SHA-256: `1187E3CA614C7B3FDD97DD9BCBC51FEFB054E90041912A574AD83D62881F0C3A`;
+- SHA-256: `ECCFFB8C81A701B83AD68C49159E0AD434710C13170702811B334EB5DA71A049`;
 - size: 84,858,261 bytes;
-- version: `0.2.1-app-build-1-r8` (`20108`);
+- version: `0.2.1-app-build-1-r9` (`20109`);
 - package: `com.flinsappvault.fredmyers.dev`;
 - ABI: arm64-v8a and x86_64;
 - permissions: zero requested;
@@ -22,7 +22,11 @@ aligned Fred goggles/glasses/visor presentation.
 
 The same explicit serial and owner/save acknowledgement boundary applies. A
 zero-device result remains `DEVICE_NOT_CONNECTED / UNVERIFIED` and is not
-physical phone or tablet acceptance.
+physical phone or tablet acceptance. Revision 9's 60/60 fictional safety
+fixtures pass, but its bounded live read-only ADB probe timed out before device
+classification. The probe was stopped with no install, launch, selected
+serial, diagnostics, or remaining ADB process, so physical testing remains
+`UNVERIFIED`.
 
 ## Scope and result
 
