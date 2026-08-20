@@ -23,11 +23,12 @@ The exact package source checkpoint and focused rig/graphics implementation is
 `c3e09aa64d7eb13a578f53ee24eec88dc1e29957`. Core and save v1 remain
 unchanged.
 
-This build is not a public release, App Review submission, deployment or
-physical-device acceptance result. The owner has authorized the first
-TestFlight upload, but the signed Mac archive and App Store Connect processing
-have not occurred. Source remains local and unpushed because the configured
-GitHub repository is public.
+This build is not a public release, App Review submission or physical-device
+acceptance result. The signed Mac archive, Apple validation/upload and App
+Store Connect processing have completed. Exact Build `1.0 (1)` is attached to
+App Store version `1.0`, assigned to `Fred Owner Testing`, and awaiting the
+invited owner's first installation. Source remains local and unpushed because
+the configured GitHub repository is public.
 
 ## Artifact identity
 
@@ -76,9 +77,10 @@ and visually inspected after packaging.
   legacy gameplay suites cannot write owner economy data.
 - Readiness: 120 artifacts, eight save fixtures, Core 0.5.1, Godot 4.7.
 - Desktop/icon handoff: 43 checks passed before the final shortcut refresh.
-- App Generation Engine/Apple readiness audit: 27 checks passed; all ten
-  reusable foundation controls are present. Five of eleven Apple execution
-  items are locally prepared and Apple remains `APPLE_PREPARATION_REQUIRED`.
+- App Generation Engine/Apple readiness audit: 30 checks passed; all ten
+  reusable foundation controls are present. Nine of eleven Apple execution
+  items are verified and Apple is
+  `APPLE_TESTFLIGHT_OWNER_ACCEPTANCE_REQUIRED`.
 - iOS preparation contract: ten checks passed for the unsigned iPhone+iPad
   preset, version 1.0 build 1, source/production bundle split, no source signing
   identity, official-plugin pin and two permanent Fred leaderboard IDs.
@@ -203,12 +205,12 @@ phone and the guarded serial-specific preflight. The workflow forbids implicit
 target selection, uninstall, clear-data, downgrade, root, permission grant,
 bootloader or broad log capture.
 
-For Apple, create a separate Fred App Store Connect record rather than reusing
-Snake Reactor's record, confirm `com.flinsvault.fredmyers`, create the two Game
-Center leaderboards, verify $2.99 agreements/storefronts and then run the exact
-Mac handoff. The owner has authorized signing and upload of version 1.0 build 1
-to TestFlight only. Simulator, physical iPhone/iPad, sandbox Game Center,
-archive privacy and TestFlight processing evidence remain open.
+For Apple, the separate Fred record, `com.flinsvault.fredmyers`, two Game Center
+leaderboards, $2.99 price, Snake-matched storefronts, Mac handoff, signed
+archive, upload, processing, internal group and App Store build attachment are
+complete. The invited owner must now install exact Build `1.0 (1)` and complete
+physical iPhone/iPad and sandbox Game Center acceptance. Commercial media
+rights and the dedicated Fred privacy-policy publication remain owner gates.
 
 Milestone percentages do not increase for packaging or planning alone. App
 Review submission, external/public availability and public release remain

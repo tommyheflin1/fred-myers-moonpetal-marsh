@@ -14,16 +14,21 @@ and server-verification requirement without pretending Windows can activate
 Game Center. The executable audit reports
 `STRONG_REUSE` for all ten foundation controls.
 
-Fred now has the local source and signed archive needed for an Apple test
-candidate. The current Apple execution status remains truthfully
-`APPLE_PREPARATION_REQUIRED`, but the earlier preparation-only snapshot has
-advanced: exact-source macOS transfer, Godot 4.7.1 export, Xcode simulator
-build, pinned native Game Center framework compilation, privacy/entitlement
-inspection and signed device archive have run. The Fred App Store Connect
-record, $2.99 U.S. price, version metadata, screenshots, Game Center capability
-and both leaderboards are configured. Xcode account reauthentication stopped
-the upload before a TestFlight build was created. Physical iPhone/iPad and live
-Game Center service acceptance remain unverified.
+Fred now has a processed Apple test candidate. The current Apple execution
+status is truthfully `APPLE_TESTFLIGHT_OWNER_ACCEPTANCE_REQUIRED`: exact-source
+macOS transfer, Godot 4.7.1 export, Xcode simulator build, pinned native Game
+Center framework compilation, privacy/entitlement inspection, signed device
+archive, Apple validation and upload have run. Exact Build `1.0 (1)` is attached
+to App Store version `1.0` and assigned to the manually controlled internal
+`Fred Owner Testing` group. The approved tester is invited but has not yet
+installed the build. Physical iPhone/iPad and live Game Center service
+acceptance therefore remain unverified.
+
+Apple's processed metadata reports Build SDK `23F73`. Apple validated this
+upload on 2026-08-19, after its 2026-04-28 requirement for Xcode 26 or later and
+an iOS/iPadOS 26 SDK took effect. The engine audit therefore records the SDK
+gate as externally validated while retaining the exact Apple metadata value and
+the official-requirement inference basis.
 
 Run the current local audit with:
 
@@ -63,23 +68,22 @@ levels, story, audio, and art.
   TestFlight, App Review, and manual public release as separate gates.
 - Keep guest/offline play available when identity or network services fail.
 
-## Remaining Apple preparation
+## Remaining Apple acceptance
 
-1. Reauthenticate the Apple account directly in Xcode; credentials and 2FA must
-   never enter source, logs or chat.
-2. Re-run the hash-guarded export/upload from exact runtime commit
-   `c8fcf859e4aa7a9c419e88f1bde7f1ecabbdb943`, then wait for App Store Connect
-   processing before any retry.
-3. Attach the processed build only to approved internal testers and complete
+1. The invited owner accepts Build `1.0 (1)` in TestFlight and completes
    representative physical iPhone/iPad touch, safe-area, lifecycle, audio,
    save, performance, battery and thermal testing.
-4. Prove Game Center authentication, both permanent leaderboard submissions,
+2. Prove Game Center authentication, both permanent leaderboard submissions,
    native leaderboard display, offline queue and one-time reconnect delivery
-   on a physical Apple device.
-5. Publish a Fred-specific privacy policy, enter its verified URL, complete the
-   review phone/contact fields and obtain the owner's commercial-rights
-   attestation for the supplied music and all shipped media.
-6. Stop again before App Review submission or public release.
+   on that physical Apple device.
+3. Obtain the owner's commercial-rights answer to Apple's exact third-party
+   content question. No repository evidence establishes the rights to the two
+   owner-supplied music files, so the answer must not be inferred.
+4. Approve and publish the prepared Fred-specific privacy policy, verify its
+   dedicated URL and then enter that URL in App Store Connect. The complete
+   App Review contact record is already saved.
+5. Review physical-device findings and Game Center component readiness, then
+   stop again before App Review submission or public release.
 
 Apple currently requires iOS/iPadOS uploads to use the iOS/iPadOS 26 SDK or
 later, documents a 1024 by 1024 layered app-icon layout whose final mask is
@@ -94,13 +98,14 @@ privacy information. Recheck these official requirements at execution time:
 
 ## Questions intentionally deferred to the protected owner gate
 
-The owner has authorized a $2.99 paid app and the first TestFlight build upload.
-Apple team/signing custody stays on the authenticated Mac. App Review
-submission, public release, final storefront/regulatory choices, tester groups
-and legal/media-rights acceptance remain separate owner gates.
+The owner authorized a $2.99 paid app and the first TestFlight build upload.
+Apple team/signing custody stays on the authenticated Mac. The exact enabled
+territory set matches Snake Reactor, the internal group is configured and the
+review contact is saved. App Review submission, public release, physical-device
+acceptance and legal/media-rights acceptance remain separate owner gates.
 
-No Apple credential was stored or exposed. A signed archive and App Store
-Connect metadata now exist, but no TestFlight build, App Review submission or
-public release exists. The static Windows audit intentionally remains
-preparation-focused and does not convert external Mac/App Store evidence into a
-passing physical-device or production gate.
+No Apple credential was stored or exposed. A signed archive, validated
+TestFlight Build `1.0 (1)` and App Store Connect metadata now exist, but no App
+Review submission or public release exists. The static Windows audit does not
+convert external Apple processing or an invitation into passing physical-device
+or production evidence.

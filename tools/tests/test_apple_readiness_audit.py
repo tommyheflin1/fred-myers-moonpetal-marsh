@@ -33,23 +33,31 @@ for name, passed in payload["engine_reuse"].items():
     check(passed is True, f"foundation control failed: {name}")
 
 check(
-    payload["apple_execution_status"] == "APPLE_PREPARATION_REQUIRED",
-    "audit must not imply Apple readiness before protected gates run",
+    payload["apple_execution_status"] == "APPLE_TESTFLIGHT_OWNER_ACCEPTANCE_REQUIRED",
+    "audit must separate uploaded TestFlight evidence from owner acceptance",
 )
-check(payload["apple_items_prepared"] >= 4, "local iOS identity and Game Center preparation should be present")
+check(payload["apple_items_prepared"] >= 9, "validated local and external Apple evidence should be present")
 check(payload["apple_items_total"] == 11, "Apple gate denominator changed")
 check(payload["apple_readiness"]["platform_icon_master_1024"] is True, "icon master missing")
 check(payload["apple_readiness"]["ios_export_preset"] is True, "iOS preset missing")
 check(payload["apple_readiness"]["ios_bundle_and_build_identity"] is True, "iOS identity missing")
 check(payload["apple_readiness"]["game_center_adapter_and_ids"] is True, "Game Center adapter missing")
 for required_gap in (
+    "physical_iphone_ipad_evidence",
+    "live_game_center_or_sign_in_with_apple",
+):
+    check(required_gap in payload["missing_apple_gates"], f"missing gap: {required_gap}")
+
+for completed_gate in (
     "privacy_manifest_audited",
     "xcode_26_ios_26_sdk_validation",
     "simulator_runtime_evidence",
-    "physical_iphone_ipad_evidence",
     "signed_archive_uploaded_to_testflight",
 ):
-    check(required_gap in payload["missing_apple_gates"], f"missing gap: {required_gap}")
+    check(completed_gate not in payload["missing_apple_gates"], f"completed gate still missing: {completed_gate}")
+
+check(payload["external_apple_evidence"]["valid"] is True, "external Build 1 evidence is invalid")
+check(payload["external_apple_evidence"]["owner_tester_status"] == "Invited", "owner state drifted")
 
 check("do not submit App Review" in payload["protected_next_action"], "public-release boundary is unclear")
 print(f"Apple readiness audit tests passed: {checks} checks")

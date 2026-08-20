@@ -9,10 +9,21 @@ import subprocess
 ROOT = Path(__file__).resolve().parents[1]
 APP_VAULT = ROOT.parent
 EXPECTED_CORE_TREE = "288d87420c5694f80c071f00aa71a0b581f9f60c"
+EXPECTED_RUNTIME_COMMIT = "c8fcf859e4aa7a9c419e88f1bde7f1ecabbdb943"
+EXPECTED_BUNDLE_ID = "com.flinsvault.fredmyers"
+EXPECTED_IPA_SHA256 = "f5bfb51d8fcad4ab6e8a2320f91d885d541ef2b44296546feb38e36a19e32620"
+EXTERNAL_EVIDENCE_PATH = ROOT / "docs" / "APPLE_BUILD_1_EXTERNAL_EVIDENCE.json"
 
 
 def read(path: Path) -> str:
     return path.read_text(encoding="utf-8") if path.is_file() else ""
+
+
+def read_json(path: Path) -> dict[str, object]:
+    if not path.is_file():
+        return {}
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    return payload if isinstance(payload, dict) else {}
 
 
 def git(*args: str) -> str:
@@ -52,6 +63,21 @@ def main() -> None:
     )
     icon_path = ROOT / "godot" / "assets" / "art" / "fred-app-icon-v3-platform.png"
     privacy_manifests = list(ROOT.rglob("PrivacyInfo.xcprivacy"))
+    external = read_json(EXTERNAL_EVIDENCE_PATH)
+    external_evidence_valid = (
+        external.get("schema") == "fred-apple-external-evidence-v1"
+        and external.get("runtime_source_commit") == EXPECTED_RUNTIME_COMMIT
+        and external.get("bundle_identifier") == EXPECTED_BUNDLE_ID
+        and external.get("version") == "1.0"
+        and external.get("build") == "1"
+        and external.get("ipa_sha256") == EXPECTED_IPA_SHA256
+        and external.get("binary_state") == "Validated"
+        and external.get("apple_validation_succeeded") is True
+        and external.get("apple_upload_succeeded") is True
+        and external.get("app_store_version_build_attached") is True
+        and external.get("app_review_submitted") is False
+        and external.get("public_release_performed") is False
+    )
     ios_evidence = [
         path
         for path in (ROOT / "docs").glob("*IOS*EVIDENCE*.md")
@@ -104,15 +130,28 @@ def main() -> None:
                 ROOT / "godot/scripts/game_center_adapter.gd"
             )
         ),
-        "privacy_manifest_audited": bool(privacy_manifests),
+        "privacy_manifest_audited": bool(privacy_manifests) or (
+            external_evidence_valid and external.get("privacy_manifest_audited") is True
+        ),
         "unsigned_xcode_handoff_manifest": (
             ROOT / "builds" / "ios-handoff" / "handoff-manifest.json"
         ).is_file(),
-        "xcode_26_ios_26_sdk_validation": bool(ios_evidence),
-        "simulator_runtime_evidence": False,
-        "physical_iphone_ipad_evidence": False,
-        "live_game_center_or_sign_in_with_apple": False,
-        "signed_archive_uploaded_to_testflight": False,
+        "xcode_26_ios_26_sdk_validation": bool(ios_evidence) or (
+            external_evidence_valid
+            and external.get("xcode_26_ios_26_sdk_validation") is True
+        ),
+        "simulator_runtime_evidence": (
+            external_evidence_valid and external.get("simulator_runtime_evidence") is True
+        ),
+        "physical_iphone_ipad_evidence": (
+            external_evidence_valid
+            and external.get("physical_iphone_ipad_evidence") is True
+        ),
+        "live_game_center_or_sign_in_with_apple": (
+            external_evidence_valid
+            and external.get("live_game_center_or_sign_in_with_apple") is True
+        ),
+        "signed_archive_uploaded_to_testflight": external_evidence_valid,
     }
 
     missing = [name for name, ready in apple.items() if not ready]
@@ -126,17 +165,30 @@ def main() -> None:
         "foundation_controls_passed": reuse_passed,
         "foundation_controls_total": len(reuse),
         "apple_execution_status": (
-            "READY_FOR_OWNER_GATE" if all(apple.values()) else "APPLE_PREPARATION_REQUIRED"
+            "READY_FOR_APP_REVIEW_GATE"
+            if all(apple.values())
+            else (
+                "APPLE_TESTFLIGHT_OWNER_ACCEPTANCE_REQUIRED"
+                if apple["signed_archive_uploaded_to_testflight"]
+                else "APPLE_PREPARATION_REQUIRED"
+            )
         ),
         "apple_items_prepared": apple_prepared,
         "apple_items_total": len(apple),
         "engine_reuse": reuse,
         "apple_readiness": apple,
+        "external_apple_evidence": {
+            "path": str(EXTERNAL_EVIDENCE_PATH.relative_to(ROOT)),
+            "valid": external_evidence_valid,
+            "runtime_source_commit": external.get("runtime_source_commit"),
+            "binary_state": external.get("binary_state"),
+            "owner_tester_status": external.get("owner_tester_status"),
+        },
         "missing_apple_gates": missing,
         "protected_next_action": (
-            "Freeze the exact local handoff, create the separate Fred App Store Connect record, "
-            "then use the already owner-authorized Mac path for Build 1 signing and TestFlight upload; "
-            "do not submit App Review or release publicly."
+            "The invited owner must install exact TestFlight Build 1 on a physical iPhone or iPad, "
+            "complete the documented touch, lifecycle, save and live Game Center matrix, and provide "
+            "the commercial media-rights answer; do not submit App Review or release publicly."
         ),
     }
     print(json.dumps(output, sort_keys=True))
