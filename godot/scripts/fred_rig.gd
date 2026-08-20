@@ -89,36 +89,64 @@ const UNDERWATER_HEAD := Color("54b7bd")
 const OUTLINE := Color("152e29")
 const UNDERWATER_OUTLINE := Color("d6f7ff")
 const MAX_COORDINATOR_STATE := 22
-const ATTIRE_IDS := ["marsh_runner", "trail_scout", "moon_champion", "firefly_hero"]
+const ATTIRE_IDS := [
+	"marsh_runner", "trail_scout", "moon_champion", "firefly_hero",
+	"pond_pilot", "rain_ranger", "bug_catcher", "star_jumper", "lily_lifeguard",
+]
 const ATTIRE_LABELS := {
 	"marsh_runner": "Runner Goggles",
 	"trail_scout": "Explorer Glasses",
 	"moon_champion": "Moon Champion Visor",
 	"firefly_hero": "Firefly Hero Goggles",
+	"pond_pilot": "Pond Pilot Goggles",
+	"rain_ranger": "Rain Ranger Glasses",
+	"bug_catcher": "Bug Catcher Shades",
+	"star_jumper": "Star Jumper Visor",
+	"lily_lifeguard": "Lily Lifeguard Goggles",
 }
 const ATTIRE_EYEWEAR := {
 	"marsh_runner": "sport_goggles",
 	"trail_scout": "round_glasses",
 	"moon_champion": "moon_visor",
 	"firefly_hero": "hero_goggles",
+	"pond_pilot": "pilot_goggles",
+	"rain_ranger": "rain_glasses",
+	"bug_catcher": "bug_shades",
+	"star_jumper": "star_visor",
+	"lily_lifeguard": "guard_goggles",
 }
 const ATTIRE_MATERIALS := {
 	"marsh_runner": "breathable marsh mesh",
 	"trail_scout": "waxed trail canvas",
 	"moon_champion": "moonweave athletic satin",
 	"firefly_hero": "reinforced firefly knit",
+	"pond_pilot": "water-resistant aviator twill",
+	"rain_ranger": "soft moonpetal rain shell",
+	"bug_catcher": "breathable field ripstop",
+	"star_jumper": "luminous star jersey jacquard",
+	"lily_lifeguard": "flexible rescue neoprene",
 }
 const ATTIRE_FINISHES := {
 	"marsh_runner": {"finish": "matte breathable knit", "drape": "athletic stretch", "roughness": 0.82, "flex": 0.90},
 	"trail_scout": {"finish": "waxed woven canvas", "drape": "structured utility", "roughness": 0.68, "flex": 0.58},
 	"moon_champion": {"finish": "soft moonlit satin", "drape": "fluid competition", "roughness": 0.42, "flex": 0.84},
 	"firefly_hero": {"finish": "reinforced technical knit", "drape": "supportive hero", "roughness": 0.62, "flex": 0.72},
+	"pond_pilot": {"finish": "brushed flight twill", "drape": "trim aviator", "roughness": 0.66, "flex": 0.70},
+	"rain_ranger": {"finish": "soft water-shedding shell", "drape": "rain-ready flex", "roughness": 0.54, "flex": 0.82},
+	"bug_catcher": {"finish": "breathable grid ripstop", "drape": "field utility", "roughness": 0.74, "flex": 0.68},
+	"star_jumper": {"finish": "luminous woven jersey", "drape": "spring competition", "roughness": 0.38, "flex": 0.92},
+	"lily_lifeguard": {"finish": "matte rescue neoprene", "drape": "buoyant support", "roughness": 0.58, "flex": 0.76},
 }
 const ATTIRE_CUTS := {
 	"marsh_runner": {"cut": "sleeveless athletic singlet", "sleeve_ratio": 0.22, "hem_drop": 0.25, "structure": 0.18},
 	"trail_scout": {"cut": "soft field vest", "sleeve_ratio": 0.48, "hem_drop": 0.52, "structure": 0.68},
 	"moon_champion": {"cut": "draped competition jersey", "sleeve_ratio": 0.30, "hem_drop": 0.68, "structure": 0.28},
 	"firefly_hero": {"cut": "fitted hero jersey", "sleeve_ratio": 0.40, "hem_drop": 0.38, "structure": 0.52},
+	"pond_pilot": {"cut": "streamlined flight jacket", "sleeve_ratio": 0.44, "hem_drop": 0.34, "structure": 0.60},
+	"rain_ranger": {"cut": "hood-free rain vest", "sleeve_ratio": 0.35, "hem_drop": 0.58, "structure": 0.36},
+	"bug_catcher": {"cut": "pocketed bug-search tunic", "sleeve_ratio": 0.46, "hem_drop": 0.62, "structure": 0.64},
+	"star_jumper": {"cut": "spring-fit star jersey", "sleeve_ratio": 0.26, "hem_drop": 0.30, "structure": 0.22},
+	"lily_lifeguard": {"cut": "fitted marsh rescue vest", "sleeve_ratio": 0.38, "hem_drop": 0.44, "structure": 0.56},
 }
 const ATTIRE_FIT_FEATURES: Array[String] = [
 	"contoured torso panels",
@@ -571,6 +599,16 @@ func _attire_palette(attire: String) -> Dictionary:
 			return {"fabric": Color("5547a9"), "shadow": Color("30275f"), "panel": Color("7567cf"), "trim": Color("ffe184"), "accent": Color("e7b94f"), "lens": Color(0.64, 0.52, 1.0, 0.34), "eyewear": "moon_visor"}
 		"firefly_hero":
 			return {"fabric": Color("162b4a"), "shadow": Color("0a1729"), "panel": Color("27496a"), "trim": Color("dfff68"), "accent": Color("d85265"), "lens": Color(0.76, 1.0, 0.42, 0.32), "eyewear": "hero_goggles"}
+		"pond_pilot":
+			return {"fabric": Color("365a7a"), "shadow": Color("172c42"), "panel": Color("3d8790"), "trim": Color("ffd36a"), "accent": Color("ef8b3f"), "lens": Color(0.55, 0.88, 1.0, 0.30), "eyewear": "pilot_goggles"}
+		"rain_ranger":
+			return {"fabric": Color("dca62d"), "shadow": Color("73541b"), "panel": Color("f0cc55"), "trim": Color("fff3c1"), "accent": Color("2d7da6"), "lens": Color(0.58, 0.88, 1.0, 0.25), "eyewear": "rain_glasses"}
+		"bug_catcher":
+			return {"fabric": Color("486b3d"), "shadow": Color("263c24"), "panel": Color("79945a"), "trim": Color("f0d39a"), "accent": Color("d95e45"), "lens": Color(1.0, 0.72, 0.28, 0.26), "eyewear": "bug_shades"}
+		"star_jumper":
+			return {"fabric": Color("3d2d78"), "shadow": Color("211843"), "panel": Color("705bc1"), "trim": Color("74e6ed"), "accent": Color("ff78b7"), "lens": Color(0.72, 0.55, 1.0, 0.32), "eyewear": "star_visor"}
+		"lily_lifeguard":
+			return {"fabric": Color("d9474d"), "shadow": Color("74252e"), "panel": Color("ef6a61"), "trim": Color("fff6df"), "accent": Color("49c7d1"), "lens": Color(0.70, 0.96, 1.0, 0.28), "eyewear": "guard_goggles"}
 		_:
 			return {"fabric": Color("087f7a"), "shadow": Color("064946"), "panel": Color("10aaa0"), "trim": Color("f5d35f"), "accent": Color("f0a13a"), "lens": Color(0.55, 0.92, 1.0, 0.30), "eyewear": "sport_goggles"}
 
@@ -593,6 +631,31 @@ func _neckline_local_points(attire: String) -> PackedVector2Array:
 			return PackedVector2Array([
 				Vector2(-8.5, -0.5), Vector2(-5.0, 2.0), Vector2(0.0, 8.0),
 				Vector2(5.0, 2.0), Vector2(8.5, -0.5),
+			])
+		"pond_pilot":
+			return PackedVector2Array([
+				Vector2(-9.0, -0.8), Vector2(-6.0, 2.0), Vector2(0.0, 8.8),
+				Vector2(6.0, 2.0), Vector2(9.0, -0.8),
+			])
+		"rain_ranger":
+			return PackedVector2Array([
+				Vector2(-8.8, -0.2), Vector2(-6.8, 2.8), Vector2(0.0, 9.2),
+				Vector2(6.8, 2.8), Vector2(8.8, -0.2),
+			])
+		"bug_catcher":
+			return PackedVector2Array([
+				Vector2(-9.2, 0.0), Vector2(-5.8, 3.0), Vector2(0.0, 8.4),
+				Vector2(5.8, 3.0), Vector2(9.2, 0.0),
+			])
+		"star_jumper":
+			return PackedVector2Array([
+				Vector2(-8.2, -1.0), Vector2(-4.8, 1.8), Vector2(0.0, 7.8),
+				Vector2(4.8, 1.8), Vector2(8.2, -1.0),
+			])
+		"lily_lifeguard":
+			return PackedVector2Array([
+				Vector2(-9.0, -0.4), Vector2(-6.2, 2.4), Vector2(0.0, 8.6),
+				Vector2(6.2, 2.4), Vector2(9.0, -0.4),
 			])
 		_:
 			return PackedVector2Array([
@@ -752,6 +815,44 @@ func _draw_sport_gear(canvas: Node2D, world_position: Vector2) -> void:
 				canvas.draw_line(chest_center + Vector2.from_angle(angle) * 4.8 * scale_width, chest_center + Vector2.from_angle(angle) * 7.4 * scale_width, Color(trim,0.82), 1.0 * scale_width, true)
 			for clasp_x: float in [-12.0, 12.0]:
 				_draw_transformed_ellipse(canvas, _body_joint, Vector2(clasp_x,0.0), Vector2(2.4,2.4), accent, world_position)
+		"pond_pilot":
+			var pilot_wings := _transformed_points(_body_joint, PackedVector2Array([
+				Vector2(-11,7),Vector2(-4,5),Vector2(0,8),Vector2(4,5),Vector2(11,7),
+			]), world_position)
+			canvas.draw_polyline(pilot_wings, Color(trim,0.88), 2.0 * scale_width, true)
+			_draw_transformed_ellipse(canvas, _body_joint, Vector2(0,8), Vector2(3.4,3.4), accent, world_position)
+			for button_y: float in [13.0,17.0]:
+				_draw_transformed_ellipse(canvas, _body_joint, Vector2(0,button_y), Vector2(1.0,1.0), trim.lightened(0.24), world_position)
+		"rain_ranger":
+			var rain_drop := _transformed_points(_body_joint, PackedVector2Array([
+				Vector2(0,2),Vector2(5,9),Vector2(4,13),Vector2(0,16),Vector2(-4,13),Vector2(-5,9),
+			]), world_position)
+			canvas.draw_colored_polygon(rain_drop, Color(accent,0.92))
+			canvas.draw_polyline(_closed_points(rain_drop), trim.darkened(0.18), 1.2 * scale_width, true)
+			var rain_glint := _transformed_points(_body_joint, PackedVector2Array([Vector2(-1,6),Vector2(-2.5,9),Vector2(-2,11)]), world_position)
+			canvas.draw_polyline(rain_glint, Color(1,1,1,0.72), 1.0 * scale_width, true)
+		"bug_catcher":
+			_draw_transformed_ellipse(canvas, _body_joint, Vector2(0,10), Vector2(4.2,5.4), Color(accent,0.90), world_position)
+			_draw_transformed_ellipse(canvas, _body_joint, Vector2(0,5.8), Vector2(2.6,2.8), trim.darkened(0.10), world_position)
+			for bug_side: float in [-1.0,1.0]:
+				var antenna := _transformed_points(_body_joint, PackedVector2Array([Vector2(bug_side*1.4,4),Vector2(bug_side*4.0,1.5)]), world_position)
+				canvas.draw_polyline(antenna, trim, 1.0 * scale_width, true)
+				var bug_wing := _transformed_points(_body_joint, PackedVector2Array([Vector2(bug_side*2,8),Vector2(bug_side*7,7),Vector2(bug_side*5,12),Vector2(bug_side*2,11)]), world_position)
+				canvas.draw_colored_polygon(bug_wing, Color(trim,0.48))
+		"star_jumper":
+			var star := _transformed_points(_body_joint, PackedVector2Array([
+				Vector2(0,2),Vector2(2,7),Vector2(7,7),Vector2(3,10),Vector2(5,16),
+				Vector2(0,12.5),Vector2(-5,16),Vector2(-3,10),Vector2(-7,7),Vector2(-2,7),
+			]), world_position)
+			canvas.draw_colored_polygon(star, Color(accent,0.96))
+			canvas.draw_polyline(_closed_points(star), trim, 1.15 * scale_width, true)
+		"lily_lifeguard":
+			_draw_transformed_ellipse(canvas, _body_joint, Vector2(0,9), Vector2(7.5,7.5), Color(trim,0.94), world_position)
+			var rescue_cross_h := _transformed_points(_body_joint, PackedVector2Array([Vector2(-5,9),Vector2(5,9)]), world_position)
+			var rescue_cross_v := _transformed_points(_body_joint, PackedVector2Array([Vector2(0,4),Vector2(0,14)]), world_position)
+			canvas.draw_polyline(rescue_cross_h, fabric, 2.8 * scale_width, true)
+			canvas.draw_polyline(rescue_cross_v, fabric, 2.8 * scale_width, true)
+			_draw_transformed_ellipse(canvas, _body_joint, Vector2(11,2), Vector2(2.0,2.0), accent, world_position)
 		_:
 			_draw_transformed_ellipse(canvas, _body_joint, Vector2(0,7), Vector2(4.7,4.7), Color(trim.darkened(0.18),0.84), world_position)
 			_draw_transformed_ellipse(canvas, _body_joint, Vector2(0,7), Vector2(3.2,3.2), trim, world_position)
@@ -795,14 +896,14 @@ func _draw_limb_attire(canvas: Node2D, world_position: Vector2, attire: String, 
 		canvas.draw_polyline(_closed_points(sleeve), Color(trim,0.46), 0.8 * scale_width, true)
 		canvas.draw_line(sleeve_end - upper_normal * cuff_radius, sleeve_end + upper_normal * cuff_radius, Color(trim,0.86), 1.35 * scale_width, true)
 		canvas.draw_line(shoulder - upper_normal * shoulder_radius * 0.68, sleeve_end - upper_normal * cuff_radius * 0.68, Color(panel.lightened(0.38),0.24), 0.9 * scale_width, true)
-		if attire == "firefly_hero" or attire == "moon_champion":
+		if attire in ["firefly_hero", "moon_champion", "pond_pilot", "star_jumper", "lily_lifeguard"]:
 			var bracer_center := elbow.lerp(hand, 0.56)
 			var lower_direction := (hand - elbow).normalized()
 			var lower_normal := Vector2(-lower_direction.y, lower_direction.x)
 			canvas.draw_line(bracer_center - lower_direction * 3.7 * scale_width, bracer_center + lower_direction * 3.7 * scale_width, Color(shadow,0.82), 5.6 * scale_width, true)
-			canvas.draw_line(bracer_center - lower_direction * 3.3 * scale_width, bracer_center + lower_direction * 3.3 * scale_width, accent if attire == "firefly_hero" else fabric.lightened(0.16), 3.5 * scale_width, true)
+			canvas.draw_line(bracer_center - lower_direction * 3.3 * scale_width, bracer_center + lower_direction * 3.3 * scale_width, accent if attire in ["firefly_hero", "star_jumper", "lily_lifeguard"] else fabric.lightened(0.16), 3.5 * scale_width, true)
 			canvas.draw_line(bracer_center - lower_normal * 2.8 * scale_width, bracer_center + lower_normal * 2.8 * scale_width, Color(trim,0.82), 1.0 * scale_width, true)
-		elif attire == "trail_scout":
+		elif attire in ["trail_scout", "rain_ranger", "bug_catcher"]:
 			var cuff_center := elbow.lerp(hand, 0.24)
 			var cuff_direction := (hand - elbow).normalized()
 			var cuff_normal := Vector2(-cuff_direction.y, cuff_direction.x)
@@ -815,13 +916,13 @@ func _draw_limb_attire(canvas: Node2D, world_position: Vector2, attire: String, 
 
 	# Garment-specific leg accents follow the authored hind joints; bare runner legs stay uncluttered.
 	for hind: Node2D in [_hind_left, _hind_right]:
-		if attire == "trail_scout" or attire == "firefly_hero":
-			var knee_color := accent if attire == "firefly_hero" else fabric.darkened(0.08)
+		if attire in ["trail_scout", "firefly_hero", "rain_ranger", "bug_catcher", "lily_lifeguard"]:
+			var knee_color := accent if attire in ["firefly_hero", "lily_lifeguard"] else fabric.darkened(0.08)
 			_draw_transformed_ellipse(canvas, hind, Vector2(-15.0,6.0), Vector2(5.8,3.8), Color(shadow.darkened(0.18),0.74), world_position)
 			_draw_transformed_ellipse(canvas, hind, Vector2(-15.5,5.3), Vector2(4.5,2.7), Color(knee_color,0.76), world_position)
 			var knee_band := _transformed_points(hind, PackedVector2Array([Vector2(-20,7),Vector2(-15,8.5),Vector2(-10,7)]), world_position)
 			canvas.draw_polyline(knee_band, Color(trim,0.68), 1.0 * scale_width, true)
-		elif attire == "moon_champion":
+		elif attire in ["moon_champion", "pond_pilot", "star_jumper"]:
 			var ribbon := _transformed_points(hind, PackedVector2Array([Vector2(-19,5),Vector2(-15,7),Vector2(-11,5)]), world_position)
 			canvas.draw_polyline(ribbon, Color(trim,0.66), 1.05 * scale_width, true)
 
@@ -836,7 +937,7 @@ func _draw_eyewear(canvas: Node2D, world_position: Vector2, eyewear: String, fra
 	for hinge_x: float in [-21.0, 21.0]:
 		_draw_transformed_ellipse(canvas, _head_joint, Vector2(hinge_x,-21), Vector2(2.5,2.5), trim.darkened(0.18), world_position)
 		_draw_transformed_ellipse(canvas, _head_joint, Vector2(hinge_x-0.5,-21.5), Vector2(0.8,0.8), trim.lightened(0.28), world_position)
-	if eyewear == "moon_visor":
+	if eyewear in ["moon_visor", "star_visor"]:
 		var gasket := _transformed_points(_head_joint, PackedVector2Array([
 			Vector2(-22,-27.5),Vector2(-7.5,-30),Vector2(7.5,-30),Vector2(22,-27.5),Vector2(19.5,-17),Vector2(6.5,-14),Vector2(-6.5,-14),Vector2(-20,-18),
 		]), world_position)
@@ -852,12 +953,26 @@ func _draw_eyewear(canvas: Node2D, world_position: Vector2, eyewear: String, fra
 		canvas.draw_polyline(visor_shine, Color(1,1,1,0.72), 1.5 * scale_width, true)
 		for screw_x: float in [-18.5, 18.5]:
 			_draw_transformed_ellipse(canvas, _head_joint, Vector2(screw_x,-18), Vector2(1.2,1.2), trim.lightened(0.25), world_position)
+		if eyewear == "star_visor":
+			var star_glint := _transformed_points(_head_joint, PackedVector2Array([
+				Vector2(0,-27),Vector2(1.3,-23.5),Vector2(5,-23.5),Vector2(2,-21.5),
+				Vector2(3,-18),Vector2(0,-20),Vector2(-3,-18),Vector2(-2,-21.5),Vector2(-5,-23.5),Vector2(-1.3,-23.5),
+			]), world_position)
+			canvas.draw_polyline(_closed_points(star_glint), Color(trim.lightened(0.30),0.90), 1.0 * scale_width, true)
 		return
 	var radius := Vector2(8.3, 6.9)
 	if eyewear == "round_glasses":
 		radius = Vector2(7.9, 7.9)
 	elif eyewear == "hero_goggles":
 		radius = Vector2(8.8, 7.0)
+	elif eyewear == "pilot_goggles":
+		radius = Vector2(9.3, 6.4)
+	elif eyewear == "rain_glasses":
+		radius = Vector2(7.2, 8.6)
+	elif eyewear == "bug_shades":
+		radius = Vector2(9.4, 5.4)
+	elif eyewear == "guard_goggles":
+		radius = Vector2(8.6, 7.5)
 	for center: Vector2 in [left_center, right_center]:
 		var gasket_points := _transformed_ellipse_points(_head_joint, center + Vector2(0,0.7), radius + Vector2(1.7,1.7), world_position, 20)
 		var frame_points := _transformed_ellipse_points(_head_joint, center, radius + Vector2(0.7,0.7), world_position, 20)
@@ -868,6 +983,20 @@ func _draw_eyewear(canvas: Node2D, world_position: Vector2, eyewear: String, fra
 		canvas.draw_polyline(_closed_points(frame_points), Color(trim.lightened(0.12),0.88), 1.15 * scale_width, true)
 		var lower_lens := _transformed_ellipse_points(_head_joint, center + Vector2(0,1.7), radius - Vector2(1.8,2.6), world_position, 16)
 		canvas.draw_polyline(_closed_points(lower_lens), Color(frame.darkened(0.18),0.34), 0.9 * scale_width, true)
+		if eyewear == "pilot_goggles":
+			var pilot_bar := _transformed_points(_head_joint, PackedVector2Array([center+Vector2(-6,0),center+Vector2(6,0)]), world_position)
+			canvas.draw_polyline(pilot_bar, Color(trim,0.54), 0.9 * scale_width, true)
+		elif eyewear == "rain_glasses":
+			var rain_mark := _transformed_points(_head_joint, PackedVector2Array([center+Vector2(0,-4),center+Vector2(-2,1),center+Vector2(0,4),center+Vector2(2,1)]), world_position)
+			canvas.draw_polyline(rain_mark, Color(1,1,1,0.44), 0.8 * scale_width, true)
+		elif eyewear == "bug_shades":
+			var shade_brow := _transformed_points(_head_joint, PackedVector2Array([center+Vector2(-7,-3),center+Vector2(7,-3)]), world_position)
+			canvas.draw_polyline(shade_brow, Color(frame.darkened(0.25),0.78), 1.5 * scale_width, true)
+		elif eyewear == "guard_goggles":
+			var guard_cross_h := _transformed_points(_head_joint, PackedVector2Array([center+Vector2(-3,0),center+Vector2(3,0)]), world_position)
+			var guard_cross_v := _transformed_points(_head_joint, PackedVector2Array([center+Vector2(0,-3),center+Vector2(0,3)]), world_position)
+			canvas.draw_polyline(guard_cross_h, Color(trim,0.68), 0.85 * scale_width, true)
+			canvas.draw_polyline(guard_cross_v, Color(trim,0.68), 0.85 * scale_width, true)
 	var bridge_shadow := _transformed_points(_head_joint, PackedVector2Array([Vector2(-3.5,-20),Vector2(0,-17.5),Vector2(3.5,-20)]), world_position)
 	var bridge := _transformed_points(_head_joint, PackedVector2Array([Vector2(-3,-21),Vector2(0,-19),Vector2(3,-21)]), world_position)
 	canvas.draw_polyline(bridge_shadow, frame.darkened(0.44), 3.5 * scale_width, true)

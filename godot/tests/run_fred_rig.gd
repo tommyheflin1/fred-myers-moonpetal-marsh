@@ -93,14 +93,16 @@ func _run() -> void:
 	}
 	var attire_materials: Dictionary = {}
 	var attire_cuts: Dictionary = {}
+	var attire_eyewear: Dictionary = {}
 	for attire_id: String in rig.ATTIRE_IDS:
 		attire_style.attire = attire_id
 		check(rig.apply_style(attire_style), "%s applies through the typed rig style contract" % attire_id)
 		rig.apply_pose(_pose_for(AnimationCoordinator.State.IDLE, 1.0))
 		var right_gear: Dictionary = rig.attire_snapshot()
 		check(bool(right_gear.valid) and bool(right_gear.child_readable), "%s exposes child-readable gear metadata" % attire_id)
-		check(str(right_gear.label) in ["Runner Goggles", "Explorer Glasses", "Moon Champion Visor", "Firefly Hero Goggles"], "%s has an obvious visible name" % attire_id)
+		check(str(right_gear.label) == str(rig.ATTIRE_LABELS[attire_id]), "%s has its exact child-readable visible name" % attire_id)
 		check(str(right_gear.eyewear) != "none", "%s includes aligned eyewear" % attire_id)
+		attire_eyewear[str(right_gear.eyewear)] = true
 		check(str(right_gear.material) != "unknown", "%s exposes a specific garment material" % attire_id)
 		attire_materials[str(right_gear.material)] = true
 		check(str(right_gear.finish) != "unknown" and str(right_gear.drape) != "unknown", "%s exposes a specific material finish and drape" % attire_id)
@@ -138,8 +140,9 @@ func _run() -> void:
 			check(float(attire_motion.stretch) >= -0.32 and float(attire_motion.stretch) <= 0.42, "%s cloth stretch stays bounded in state %02d" % [attire_id, state_value])
 			check(float(attire_motion.compression) >= 0.0 and float(attire_motion.compression) <= 0.42, "%s cloth compression stays bounded in state %02d" % [attire_id, state_value])
 			check(bool(attire_motion.presentation_only) and not bool(attire_motion.collision_mutation) and int(attire_motion.save_fields) == 0, "%s cloth deformation cannot mutate gameplay in state %02d" % [attire_id, state_value])
-	check(attire_materials.size() == rig.ATTIRE_IDS.size(), "all four attire choices use distinct readable garment materials")
-	check(attire_cuts.size() == rig.ATTIRE_IDS.size(), "all four attire choices use distinct anatomical garment cuts")
+	check(attire_materials.size() == rig.ATTIRE_IDS.size(), "all nine attire choices use distinct readable garment materials")
+	check(attire_cuts.size() == rig.ATTIRE_IDS.size(), "all nine attire choices use distinct anatomical garment cuts")
+	check(attire_eyewear.size() == rig.ATTIRE_IDS.size(), "all nine attire choices use distinct eyewear silhouettes")
 	attire_style.attire = "floating_paper_hat"
 	check(not rig.apply_style(attire_style), "unknown attire cannot bypass the aligned gear catalog")
 	attire_style.attire = "marsh_runner"

@@ -69,18 +69,20 @@ all contacts, held Boost and pointer emulation before presenting the safe gate.
   decisions completed in 24 ms with zero measured static-memory growth in the
   affected-suite run.
 - Phone lives/routes/layout: 49 passed, 0 failed.
-- Product regression: 96 passed, 0 failed.
+- Product regression: 101 passed, 0 failed.
+- Customization expansion: 313 passed, 0 failed; exactly twenty new choices
+  grow the catalog from 15 to 35.
 - Chapter-difficulty ladder: 1,551 passed, 0 failed; the exact ladder and
   later-level runtime evidence are documented in
   `APP_BUILD_2_DIFFICULTY_LADDER_REPORT.md`.
-- Complete repository matrix: **26 suites, 6,947 passed, 0 failed** after the
-  Game Center access regression was added.
+- Complete repository matrix: **27 suites, 8,176 passed, 0 failed** after the
+  Game Center access and customization regressions were added.
 - Eight save fixtures remain valid and `fred_save` remains schema v1.
 - iOS development export metadata is version `1.0` build `2`; Android's local
   development artifact name is distinct for Build 2.
 - Android debug export: `builds/android/fred-myers-app-build-2-debug.apk`,
-  84,928,583 bytes, SHA-256
-  `E89B60D4003C85D4D3C1EAD2034EE69201B85DE74CD58CBB722DF9902B44E8C3`.
+  84,932,679 bytes, SHA-256
+  `AF5AE1CC10561861FAAED7113A9C53D7A97DC30E8D0552EB99E29986D9327E84`.
   It is debug signed, zip-aligned, min/target SDK 24/36, contains arm64-v8a and
   x86_64, requests no Android permissions, and passed the private-path/source/
   secret content scan.

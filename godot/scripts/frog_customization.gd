@@ -6,29 +6,55 @@ const DEFAULT_PATH := "user://fred_profile.json"
 const MAX_PROFILE_BYTES := 32768
 const MAX_COINS := 999999
 const CATEGORIES: Array[String] = ["body", "size", "tongue", "attire"]
+const BUILD_2_EXPANSION_IDS := {
+	"body": ["golden_glider", "river_sapphire", "berry_bolt", "night_hero", "pearl_hopper"],
+	"size": ["pocket_hopper", "springy", "swift", "trail_fit", "strong"],
+	"tongue": ["coral_pop", "lime_spark", "cherry_flash", "ice_stream", "golden_zap"],
+	"attire": ["pond_pilot", "rain_ranger", "bug_catcher", "star_jumper", "lily_lifeguard"],
+}
 const CATALOG := {
 	"body": [
 		{"id":"marsh_green", "label":"Marsh Green", "cost":0, "value":"4fbd68"},
 		{"id":"turquoise_dash", "label":"Turquoise Dash", "cost":30, "value":"35b7a5"},
 		{"id":"sunset_sprinter", "label":"Sunset Sprinter", "cost":55, "value":"d77a45"},
 		{"id":"moonberry", "label":"Moonberry", "cost":80, "value":"8268c7"},
+		{"id":"golden_glider", "label":"Golden Glider", "cost":105, "value":"e4bd3c"},
+		{"id":"river_sapphire", "label":"River Sapphire", "cost":135, "value":"3f80d9"},
+		{"id":"berry_bolt", "label":"Berry Bolt", "cost":170, "value":"c84f6f"},
+		{"id":"night_hero", "label":"Night Hero", "cost":210, "value":"38518f"},
+		{"id":"pearl_hopper", "label":"Pearl Hopper", "cost":255, "value":"d6e7cf"},
 	],
 	"size": [
 		{"id":"quick", "label":"Quick", "cost":0, "value":1.05},
 		{"id":"classic", "label":"Classic", "cost":25, "value":1.10},
 		{"id":"power", "label":"Power", "cost":65, "value":1.14},
+		{"id":"pocket_hopper", "label":"Pocket Hopper", "cost":85, "value":0.88},
+		{"id":"springy", "label":"Springy", "cost":110, "value":0.92},
+		{"id":"swift", "label":"Swift", "cost":140, "value":0.96},
+		{"id":"trail_fit", "label":"Trail Fit", "cost":175, "value":1.00},
+		{"id":"strong", "label":"Strong", "cost":215, "value":1.12},
 	],
 	"tongue": [
 		{"id":"berry", "label":"Berry Tongue", "cost":0, "value":"ff7ca8"},
 		{"id":"mango", "label":"Mango Tongue", "cost":30, "value":"ffb34d"},
 		{"id":"electric", "label":"Electric Tongue", "cost":55, "value":"72e9ff"},
 		{"id":"moonbeam", "label":"Moonbeam Tongue", "cost":75, "value":"d7b9ff"},
+		{"id":"coral_pop", "label":"Coral Pop Tongue", "cost":100, "value":"ff6f61"},
+		{"id":"lime_spark", "label":"Lime Spark Tongue", "cost":125, "value":"b7f34a"},
+		{"id":"cherry_flash", "label":"Cherry Flash Tongue", "cost":155, "value":"e43f5a"},
+		{"id":"ice_stream", "label":"Ice Stream Tongue", "cost":190, "value":"8ce7f2"},
+		{"id":"golden_zap", "label":"Golden Zap Tongue", "cost":230, "value":"ffd34e"},
 	],
 	"attire": [
 		{"id":"marsh_runner", "label":"Runner Goggles", "cost":0, "value":"marsh_runner"},
 		{"id":"trail_scout", "label":"Explorer Glasses", "cost":45, "value":"trail_scout"},
 		{"id":"moon_champion", "label":"Moon Champion Visor", "cost":95, "value":"moon_champion"},
 		{"id":"firefly_hero", "label":"Firefly Hero Goggles", "cost":140, "value":"firefly_hero"},
+		{"id":"pond_pilot", "label":"Pond Pilot Goggles", "cost":190, "value":"pond_pilot"},
+		{"id":"rain_ranger", "label":"Rain Ranger Glasses", "cost":245, "value":"rain_ranger"},
+		{"id":"bug_catcher", "label":"Bug Catcher Shades", "cost":305, "value":"bug_catcher"},
+		{"id":"star_jumper", "label":"Star Jumper Visor", "cost":370, "value":"star_jumper"},
+		{"id":"lily_lifeguard", "label":"Lily Lifeguard Goggles", "cost":440, "value":"lily_lifeguard"},
 	],
 }
 
@@ -97,6 +123,17 @@ func current_style() -> Dictionary:
 
 func selected_label(category: String) -> String:
 	return str(_selected_entry(category).get("label", "Unknown"))
+
+func item_count(category: String) -> int:
+	return CATALOG[category].size() if category in CATEGORIES else 0
+
+func selected_position(category: String) -> int:
+	if category not in CATEGORIES:
+		return 0
+	for index in CATALOG[category].size():
+		if str(CATALOG[category][index].id) == str(selected[category]):
+			return index + 1
+	return 1
 
 func next_cost(category: String) -> int:
 	if category not in CATEGORIES:

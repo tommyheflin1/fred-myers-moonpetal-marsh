@@ -76,10 +76,14 @@ The local App Build 2 descendant now also carries the verified 100-level
 chapter-difficulty ladder in `APP_BUILD_2_DIFFICULTY_LADDER_REPORT.md`.
 Levels 1–10 advance from 1.0x to 1.9x, Level 11 starts at exactly 2.0x, and
 each ten-level chapter repeats the readable climb with additional bounded
-predator, current, lily, prey and whirlpool pressure. The full 26-suite matrix
-passes 6,947 checks after adding the retryable Game Center access regression.
+predator, current, lily, prey and whirlpool pressure. The full 27-suite matrix
+passes 8,176 checks after adding the retryable Game Center access regression
+and the exact 20-choice customization expansion.
 `APP_BUILD_2_GAME_CENTER_ACCESS_REPORT.md` records the owner-reported Build 1
-failure and the local Build 2 connect/retry/open correction. This is local
+failure and the local Build 2 connect/retry/open correction.
+`APP_BUILD_2_CUSTOMIZATION_EXPANSION_REPORT.md` records the five new frog
+colors, five new athletic builds, five new tongue colors and five fitted gear
+designs, growing the catalog from 15 to 35. This is local
 deterministic and Windows visual evidence;
 it does not move milestone scores or substitute for physical-device/owner
 acceptance.

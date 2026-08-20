@@ -1139,7 +1139,7 @@ func _draw_customizer() -> void:
     draw_texture_rect(title_art, Rect2(0,0,1280,720), false, Color(0.45,0.62,0.60,1.0))
     draw_rect(Rect2(0,0,1280,720), Color(0.005,0.025,0.05,0.84), true)
     _text(Vector2(640,58), "BUILD YOUR FRED", 42, Color("ffe184"), HORIZONTAL_ALIGNMENT_CENTER, 900)
-    _text(Vector2(640,100), "Tap a card to try the next look. Fred wears it right away!", 18, Color("d9f4e2"), HORIZONTAL_ALIGNMENT_CENTER, 900)
+    _text(Vector2(640,100), "35 HERO LOOKS  •  20 NEW  •  TAP A CARD TO TRY THE NEXT LOOK", 17, Color("d9f4e2"), HORIZONTAL_ALIGNMENT_CENTER, 980)
     _text(Vector2(640,145), "COINS  %d" % customization.coins, 26, Color("fff0ae"), HORIZONTAL_ALIGNMENT_CENTER, 400)
     var headings := {"body":"FROG COLOR", "size":"ATHLETIC BUILD", "tongue":"TONGUE COLOR", "attire":"GEAR + GLASSES"}
     for category: String in CUSTOM_CARDS:
@@ -1148,7 +1148,25 @@ func _draw_customizer() -> void:
         draw_rect(card,Color(0.02,0.11,0.15,0.96),true)
         draw_rect(card,Color("70d6c2"),false,3)
         _text(Vector2(card.get_center().x,card.position.y+34),str(headings[category]),16,Color("b9f5c7"),HORIZONTAL_ALIGNMENT_CENTER,card.size.x-20)
-        _text(Vector2(card.get_center().x,card.position.y+84),customization.selected_label(category),20,Color.WHITE,HORIZONTAL_ALIGNMENT_CENTER,card.size.x-18)
+        _text(Vector2(card.get_center().x,card.position.y+58),"LOOK %d OF %d" % [customization.selected_position(category), customization.item_count(category)],11,Color("9ec8cf"),HORIZONTAL_ALIGNMENT_CENTER,card.size.x-20)
+        var swatch_center := card.position + Vector2(card.size.x-22 if category == "attire" else 22,52 if category == "attire" else 82)
+        var selected_style: Dictionary = customization.current_style()
+        if category == "body":
+            draw_circle(swatch_center,9,Color(selected_style.body_color))
+            draw_circle(swatch_center,9,Color("fff0ae"),false,2)
+        elif category == "size":
+            draw_circle(swatch_center,8.0*float(selected_style.size_scale),Color("70d6c2"))
+            draw_circle(swatch_center,4.0*float(selected_style.size_scale),Color("d9f4e2"))
+        elif category == "tongue":
+            draw_line(swatch_center-Vector2(8,0),swatch_center+Vector2(8,0),Color(selected_style.tongue_color),6,true)
+            draw_circle(swatch_center+Vector2(8,0),4,Color(selected_style.tongue_color))
+        else:
+            draw_circle(swatch_center-Vector2(6,0),5,Color("ffe184"),false,2)
+            draw_circle(swatch_center+Vector2(6,0),5,Color("ffe184"),false,2)
+            draw_line(swatch_center-Vector2(1,0),swatch_center+Vector2(1,0),Color("ffe184"),2,true)
+        var label_center_x := card.get_center().x if category == "attire" else card.get_center().x+10
+        var label_width := card.size.x-20 if category == "attire" else card.size.x-54
+        _text(Vector2(label_center_x,card.position.y+84),customization.selected_label(category),18,Color.WHITE,HORIZONTAL_ALIGNMENT_CENTER,label_width)
         var price: int = int(customization.next_cost(category))
         var next_label: String = customization.next_label(category)
         _text(Vector2(card.get_center().x,card.position.y+119),"NEXT: %s" % next_label,12,Color("d9f4e2"),HORIZONTAL_ALIGNMENT_CENTER,card.size.x-18)

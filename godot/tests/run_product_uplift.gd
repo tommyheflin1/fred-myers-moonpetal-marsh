@@ -47,7 +47,7 @@ func _run() -> void:
 	check(float(style.size_scale) >= 0.88 and float(style.size_scale) <= 1.14, "cosmetic frog sizes stay in a child-readable visual-only range")
 	for attire_entry: Dictionary in Customization.CATALOG.attire:
 		var label := str(attire_entry.label)
-		check("Goggles" in label or "Glasses" in label or "Visor" in label, "%s uses an obvious eyewear name" % label)
+		check("Goggles" in label or "Glasses" in label or "Visor" in label or "Shades" in label, "%s uses an obvious eyewear name" % label)
 	check(profile.save_profile(), "customization profile persists locally")
 	var restored := Customization.new(PROFILE_PATH)
 	check(restored.to_dictionary() == profile.to_dictionary(), "coins, ownership and equipped cosmetics round-trip exactly")
