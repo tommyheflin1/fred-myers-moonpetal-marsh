@@ -142,3 +142,38 @@ Until that physical TestFlight sequence passes, live Game Center status is
   release occurred.
 - The TestFlight feedback email and known review name/email are saved; no phone
   number was inferred, exposed or entered.
+
+## TestFlight Build 1 delivery - 2026-08-19
+
+The Xcode account session continued to fail export reauthentication with Apple
+error `-501`, so the signed archive was packaged and delivered using the same
+App Store Connect API-key upload path proven for Snake Reactor. No Apple
+password, two-factor code or private key was printed, copied into the project,
+or committed.
+
+- Signed archive app: strict `codesign` verification passed.
+- Bundle identity: `com.flinsvault.fredmyers`, version `1.0`, build `1`.
+- Local signed IPA: 53,919,341 bytes; SHA-256
+  `f5bfb51d8fcad4ab6e8a2320f91d885d541ef2b44296546feb38e36a19e32620`.
+- IPA archive integrity: `unzip -t` passed with no errors.
+- Apple API validation: `VERIFY SUCCEEDED with no errors`.
+- Apple API upload: `UPLOAD SUCCEEDED with no errors`.
+- Delivery UUID: `e3ec31b7-beff-41fb-ae93-e5d077d706c5`.
+- App Store Connect processing completed; binary state is `Validated` and the
+  build is `Ready to Test` for 90 days.
+- Processed metadata confirms iPhone and iPad, `arm64`, minimum iOS `15.0`,
+  non-exempt encryption `No`, required capability `gamekit`, and
+  `com.apple.developer.game-center = true`.
+- A manually controlled internal group named `Fred Owner Testing` contains
+  exact Build `1.0 (1)` and one approved owner tester. Automatic distribution
+  is disabled.
+- Build-specific touch, campaign, life/fairy, save, layout and Game Center
+  test instructions are saved in TestFlight.
+- Both permanent leaderboards remain correctly configured in App Store Connect
+  with status `Prepare for Submission`; no Game Center component or app version
+  was submitted for App Review.
+
+This closes the upload and processing gates. Live Game Center authentication,
+score submission, native leaderboard display, offline queue and reconnect
+delivery remain `UNVERIFIED` until the owner runs the documented sequence on a
+physical iPhone or iPad from this exact TestFlight build.

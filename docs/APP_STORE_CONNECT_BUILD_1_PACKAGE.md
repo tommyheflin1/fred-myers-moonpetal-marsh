@@ -217,3 +217,24 @@ notifications, and use RGB output without an alpha channel.
   attestation for both supplied music tracks and all shipped media.
 - No build is present in TestFlight. Xcode account reauthentication, upload,
   processing and physical iPhone/iPad Game Center acceptance remain required.
+
+## Build 1 TestFlight checkpoint - 2026-08-19
+
+- The signed `1.0 (1)` candidate was validated and uploaded through the
+  existing App Store Connect API-key workflow after Xcode account refresh
+  continued to return error `-501`.
+- Apple validation and upload both completed with no errors; delivery UUID is
+  `e3ec31b7-beff-41fb-ae93-e5d077d706c5`.
+- App Store Connect completed processing. The binary is `Validated` and Build
+  `1.0 (1)` is `Ready to Test` for 90 days.
+- The build is assigned to the manually controlled internal group `Fred Owner
+  Testing`; one approved owner tester is invited and automatic distribution is
+  disabled.
+- Processed metadata confirms `arm64`, iPhone+iPad, minimum iOS 15.0, non-exempt
+  encryption `No`, `gamekit`, and the signed Game Center entitlement.
+- The upload/TestFlight gate is complete. Physical iPhone/iPad control,
+  lifecycle, audio and live Game Center authentication/score/leaderboard proof
+  remain owner acceptance gates.
+- The dedicated Fred privacy-policy URL, review phone, commercial media-rights
+  attestation, Game Center component review, App Review submission and public
+  release remain intentionally open. No public release action occurred.
