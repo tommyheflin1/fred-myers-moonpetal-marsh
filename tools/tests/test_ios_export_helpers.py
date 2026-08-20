@@ -52,4 +52,15 @@ with tempfile.TemporaryDirectory() as temporary:
     check(report["uses_non_exempt_encryption"] is False, "encryption declaration must be false")
     check(plistlib.loads(app.read_bytes())["ITSAppUsesNonExemptEncryption"] is False, "plist encryption key missing")
 
+validation_handoff = (ROOT / "tools" / "ios_validation_handoff.sh").read_text(encoding="utf-8")
+build_handoff = (ROOT / "tools" / "run_fred_app_build_1_macos.sh").read_text(encoding="utf-8")
+check(
+    'find "$export_root" -maxdepth 2 -name \'*.xcodeproj\'' in validation_handoff,
+    "validation handoff must discover Godot's sibling Xcode project",
+)
+check(
+    "find builds/ios -maxdepth 2 -name '*.xcodeproj'" in build_handoff,
+    "signed-build handoff must discover Godot's sibling Xcode project",
+)
+
 print(f"iOS export helper tests passed: {checks} checks")

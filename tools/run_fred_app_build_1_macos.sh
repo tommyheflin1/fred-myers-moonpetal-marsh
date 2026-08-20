@@ -17,7 +17,7 @@ fi
 [[ "$team_id" =~ ^[A-Z0-9]{10}$ ]] || { echo "An Apple signing identity was not detected." >&2; exit 1; }
 export FRED_APPLE_TEAM_ID="$team_id"
 bash tools/ios_validation_handoff.sh "$expected_commit"
-project="$(find builds/ios/FredMyers -maxdepth 2 -name '*.xcodeproj' -print -quit)"
+project="$(find builds/ios -maxdepth 2 -name '*.xcodeproj' -print -quit)"
 [[ -n "$project" ]] || { echo "Validated Xcode project is missing." >&2; exit 1; }
 scheme="$(basename "$project" .xcodeproj)"
 archive="$PWD/builds/ios/FredMyers-AppBuild1.xcarchive"

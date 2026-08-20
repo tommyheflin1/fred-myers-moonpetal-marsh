@@ -45,14 +45,15 @@ preset.write_text(text, encoding="utf-8")
 PY
 
 output="$repo_root/builds/ios/FredMyers"
+export_root="$repo_root/builds/ios"
 [[ ! -e "$output" ]] || { echo "$output already exists; archive it and rerun from a clean evidence state." >&2; exit 1; }
 evidence="$repo_root/builds/ios/evidence"
 mkdir -p "$repo_root/builds/ios" "$evidence"
 godot --headless --path "$staging_root/godot" --editor --quit
 godot --headless --path "$staging_root/godot" --export-debug "iOS Unsigned Preparation" "$output"
-project="$(find "$output" -maxdepth 2 -name '*.xcodeproj' -print -quit)"
+project="$(find "$export_root" -maxdepth 2 -name '*.xcodeproj' -print -quit)"
 [[ -n "$project" ]] || { echo "Export completed but no Xcode project was found." >&2; exit 1; }
-grep -R -q 'gamecenter' "$output" || { echo "Export is missing the native Game Center plugin." >&2; exit 1; }
+grep -R -q 'gamecenter' "$export_root" || { echo "Export is missing the native Game Center plugin." >&2; exit 1; }
 python3 tools/prepare_ios_gamecenter_entitlements.py --xcode-project "$project"
 python3 tools/prepare_ios_export_compliance.py --export-root "$output"
 privacy_manifest="$(find "$output" -name 'PrivacyInfo.xcprivacy' -print -quit)"
@@ -63,7 +64,7 @@ scheme="$(basename "$project" .xcodeproj)"
 derived="${TMPDIR:-/tmp}/fred-myers-derived-${actual_commit:0:12}"
 xcodebuild -project "$project" -scheme "$scheme" -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' -configuration Debug CODE_SIGNING_ALLOWED=NO -derivedDataPath "$derived" build
 manifest="$evidence/${actual_commit}-unsigned-export.sha256"
-find "$output" -type f -print0 | sort -z | xargs -0 shasum -a 256 > "$manifest"
+find "$export_root" -path "$evidence" -prune -o -type f -print0 | sort -z | xargs -0 shasum -a 256 > "$manifest"
 {
   echo "commit=$actual_commit"
   echo "godot=$godot_version"
