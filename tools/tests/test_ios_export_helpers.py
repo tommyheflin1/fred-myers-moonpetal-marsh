@@ -54,6 +54,7 @@ with tempfile.TemporaryDirectory() as temporary:
 
 validation_handoff = (ROOT / "tools" / "ios_validation_handoff.sh").read_text(encoding="utf-8")
 build_handoff = (ROOT / "tools" / "run_fred_app_build_1_macos.sh").read_text(encoding="utf-8")
+plugin_handoff = (ROOT / "tools" / "build_ios_gamecenter_plugin.sh").read_text(encoding="utf-8")
 check(
     'find "$export_root" -maxdepth 2 -name \'*.xcodeproj\'' in validation_handoff,
     "validation handoff must discover Godot's sibling Xcode project",
@@ -61,6 +62,11 @@ check(
 check(
     "find builds/ios -maxdepth 2 -name '*.xcodeproj'" in build_handoff,
     "signed-build handoff must discover Godot's sibling Xcode project",
+)
+check(
+    "IOS_GAMECENTER_PLUGIN_CACHE_REUSED" in plugin_handoff
+    and 'rm -rf -- "$debug_framework" "$release_framework"' in plugin_handoff,
+    "Game Center plugin handoff must reuse complete cache output and replace only incomplete generated frameworks",
 )
 
 print(f"iOS export helper tests passed: {checks} checks")

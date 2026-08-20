@@ -28,14 +28,23 @@ git -C "$source_root/godot" checkout --detach "$godot_tag"
 mkdir -p "$source_root/bin"
 jobs="${FRED_IOS_PLUGIN_JOBS:-4}"
 (cd "$source_root/godot" && scons platform=ios target=template_debug -j"$jobs")
-(cd "$source_root" && ./scripts/generate_xcframework.sh gamecenter release_debug 4.0)
-(cd "$source_root" && ./scripts/generate_xcframework.sh gamecenter release 4.0)
+debug_framework="$source_root/bin/gamecenter.release_debug.xcframework"
+release_framework="$source_root/bin/gamecenter.release.xcframework"
+if [[ -f "$debug_framework/Info.plist" && -f "$release_framework/Info.plist" \
+  && "$(find "$debug_framework" -name '*.a' -print | wc -l | tr -d ' ')" -ge 2 \
+  && "$(find "$release_framework" -name '*.a' -print | wc -l | tr -d ' ')" -ge 2 ]]; then
+  echo "IOS_GAMECENTER_PLUGIN_CACHE_REUSED source=$plugin_commit godot=$godot_tag"
+else
+  rm -rf -- "$debug_framework" "$release_framework"
+  (cd "$source_root" && ./scripts/generate_xcframework.sh gamecenter release_debug 4.0)
+  (cd "$source_root" && ./scripts/generate_xcframework.sh gamecenter release 4.0)
+fi
 staging="$(mktemp -d "${TMPDIR:-/tmp}/fred-gamecenter.XXXXXX")"
 trap 'rm -rf "$staging"' EXIT
 mkdir -p "$staging/gamecenter"
 cp "$source_root/plugins/gamecenter/gamecenter.gdip" "$staging/gamecenter/"
-cp -R "$source_root/bin/gamecenter.release_debug.xcframework" "$staging/gamecenter/gamecenter.debug.xcframework"
-cp -R "$source_root/bin/gamecenter.release.xcframework" "$staging/gamecenter/"
+cp -R "$debug_framework" "$staging/gamecenter/gamecenter.debug.xcframework"
+cp -R "$release_framework" "$staging/gamecenter/"
 cp "$source_root/LICENCE" "$staging/gamecenter/LICENSE.godot-ios-plugins.txt"
 {
   echo "source=https://github.com/godot-sdk-integrations/godot-ios-plugins.git"
