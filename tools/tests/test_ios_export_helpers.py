@@ -81,6 +81,12 @@ check(
     "validation handoff must accept Godot's sibling privacy manifest",
 )
 check(
+    "simulator_members=\"$(ar -t \"$simulator_engine\")\"" in validation_handoff
+    and 'ARCHS="$simulator_arch"' in validation_handoff
+    and 'EXCLUDED_ARCHS="$simulator_excluded"' in validation_handoff,
+    "validation handoff must build the simulator architecture present in Godot's archive",
+)
+check(
     "find builds/ios -maxdepth 2 -name '*.xcodeproj'" in build_handoff,
     "signed-build handoff must discover Godot's sibling Xcode project",
 )

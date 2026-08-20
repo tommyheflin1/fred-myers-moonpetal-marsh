@@ -4,7 +4,7 @@ set -euo pipefail
 expected_commit="${1:-}"
 [[ -n "$expected_commit" ]] || { echo "Usage: tools/ios_validation_handoff.sh <exact-commit>" >&2; exit 2; }
 repo_root="$(pwd)"
-for tool in godot git python3 xcodebuild xcrun shasum plutil; do command -v "$tool" >/dev/null || { echo "$tool is required." >&2; exit 1; }; done
+for tool in ar godot git python3 xcodebuild xcrun shasum plutil; do command -v "$tool" >/dev/null || { echo "$tool is required." >&2; exit 1; }; done
 actual_commit="$(git rev-parse HEAD)"
 [[ "$actual_commit" == "$expected_commit" ]] || { echo "Expected $expected_commit but checkout is $actual_commit." >&2; exit 1; }
 [[ -z "$(git status --porcelain)" ]] || { echo "Working tree must be clean." >&2; exit 1; }
@@ -62,7 +62,20 @@ plutil -lint "$privacy_manifest"
 ! grep -q '\$priv_' "$privacy_manifest" || { echo "Privacy manifest still contains an unresolved template value." >&2; exit 1; }
 scheme="$(basename "$project" .xcodeproj)"
 derived="${TMPDIR:-/tmp}/fred-myers-derived-${actual_commit:0:12}"
-xcodebuild -project "$project" -scheme "$scheme" -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' -configuration Debug CODE_SIGNING_ALLOWED=NO -derivedDataPath "$derived" build
+simulator_engine="$(find "$export_root" -path '*-simulator*/libgodot.a' -print -quit)"
+[[ -n "$simulator_engine" ]] || { echo "Generated export is missing the simulator engine archive." >&2; exit 1; }
+simulator_members="$(ar -t "$simulator_engine")"
+if grep -q '\.arm64\.simulator\.o$' <<<"$simulator_members"; then
+  simulator_arch="arm64"
+  simulator_excluded="x86_64"
+elif grep -q '\.x86_64\.simulator\.o$' <<<"$simulator_members"; then
+  simulator_arch="x86_64"
+  simulator_excluded="arm64"
+else
+  echo "Generated simulator engine archive has no recognized architecture." >&2
+  exit 1
+fi
+xcodebuild -project "$project" -scheme "$scheme" -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' -configuration Debug CODE_SIGNING_ALLOWED=NO ARCHS="$simulator_arch" ONLY_ACTIVE_ARCH=YES EXCLUDED_ARCHS="$simulator_excluded" -derivedDataPath "$derived" build
 manifest="$evidence/${actual_commit}-unsigned-export.sha256"
 find "$export_root" -path "$evidence" -prune -o -type f -print0 | sort -z | xargs -0 shasum -a 256 > "$manifest"
 {
@@ -73,6 +86,7 @@ find "$export_root" -path "$evidence" -prune -o -type f -print0 | sort -z | xarg
   echo "ios_sdk=$ios_sdk"
   echo "project=$project"
   echo "scheme=$scheme"
+  echo "simulator_arch=$simulator_arch"
   echo "bundle_identifier=com.flinsvault.fredmyers"
   echo "short_version=1.0"
   echo "build_number=1"
