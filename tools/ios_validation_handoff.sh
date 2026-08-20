@@ -56,7 +56,7 @@ project="$(find "$export_root" -maxdepth 2 -name '*.xcodeproj' -print -quit)"
 grep -R -q 'gamecenter' "$export_root" || { echo "Export is missing the native Game Center plugin." >&2; exit 1; }
 python3 tools/prepare_ios_gamecenter_entitlements.py --xcode-project "$project"
 python3 tools/prepare_ios_export_compliance.py --export-root "$output"
-privacy_manifest="$(find "$output" -name 'PrivacyInfo.xcprivacy' -print -quit)"
+privacy_manifest="$(find "$export_root" -name 'PrivacyInfo.xcprivacy' -print -quit)"
 [[ -n "$privacy_manifest" ]] || { echo "Generated export is missing PrivacyInfo.xcprivacy." >&2; exit 1; }
 plutil -lint "$privacy_manifest"
 ! grep -q '\$priv_' "$privacy_manifest" || { echo "Privacy manifest still contains an unresolved template value." >&2; exit 1; }

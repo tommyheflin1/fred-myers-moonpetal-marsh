@@ -76,6 +76,10 @@ check(
     "validation handoff must discover Godot's sibling Xcode project",
 )
 check(
+    'find "$export_root" -name \'PrivacyInfo.xcprivacy\'' in validation_handoff,
+    "validation handoff must accept Godot's sibling privacy manifest",
+)
+check(
     "find builds/ios -maxdepth 2 -name '*.xcodeproj'" in build_handoff,
     "signed-build handoff must discover Godot's sibling Xcode project",
 )
