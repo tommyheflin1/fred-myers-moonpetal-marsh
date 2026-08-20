@@ -234,6 +234,8 @@ notifications, and use RGB output without an alpha channel.
 - The build is assigned to the manually controlled internal group `Fred Owner
   Testing`; one approved owner tester is invited and automatic distribution is
   disabled.
+- One existing-invite refresh was sent on 2026-08-19. The tester remains
+  `Invited` until the owner accepts it with the corresponding Apple account.
 - Processed metadata confirms `arm64`, iPhone+iPad, minimum iOS 15.0, non-exempt
   encryption `No`, `gamekit`, and the signed Game Center entitlement.
 - The upload/TestFlight gate is complete. Physical iPhone/iPad control,
