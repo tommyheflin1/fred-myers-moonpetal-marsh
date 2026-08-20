@@ -198,8 +198,9 @@ notifications, and use RGB output without an alpha channel.
 - iPhone and iPad accessibility drafts accurately disclose `Differentiate
   Without Color Alone` and `Sufficient Contrast`. They cannot be published to
   the product page until an app version is released.
-- TestFlight beta description, review notes, marketing URL and feedback email
-  are saved. The privacy-policy URL and review phone/contact fields remain open.
+- TestFlight beta description, review notes, marketing URL, feedback email and
+  known review contact name/email are saved. The privacy-policy URL and review
+  phone fields remain open.
 - App Information remains Games / Adventure / Family. Apple's current
   calculated rating is 9+ because Cartoon or Fantasy Violence and Contests are
   each declared Infrequent. Do not change this to 4+ or Made for Kids without a

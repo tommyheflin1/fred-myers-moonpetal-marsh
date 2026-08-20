@@ -135,3 +135,5 @@ Until that physical TestFlight sequence passes, live Game Center status is
   reauthentication, TestFlight upload/processing and physical-device Game
   Center proof remain protected owner gates. No App Review submission or public
   release occurred.
+- The TestFlight feedback email and known review name/email are saved; no phone
+  number was inferred, exposed or entered.
