@@ -1,8 +1,9 @@
 # Fred iOS unsigned handoff plan
 
-Status: prepared process; not executed. This plan inherits the App Generation
-Engine and Snake Reactor handoff sequence without copying Snake identifiers or
-claiming Fred iOS readiness.
+Status: executed through signed archive; TestFlight upload and physical-device
+acceptance remain open. This plan inherits the App Generation Engine release
+sequence without copying another game's identifiers or claiming live Fred iOS
+service readiness.
 
 ## Fixed Fred defaults
 

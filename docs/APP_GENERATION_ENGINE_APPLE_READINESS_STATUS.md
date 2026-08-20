@@ -1,6 +1,6 @@
 # App Generation Engine adoption and Apple readiness status
 
-Date: 2026-08-18
+Date: 2026-08-19
 
 ## Decision
 
@@ -14,14 +14,16 @@ and server-verification requirement without pretending Windows can activate
 Game Center. The executable audit reports
 `STRONG_REUSE` for all ten foundation controls.
 
-Fred now has the local source needed for an Apple test candidate. The current
-Apple execution status remains truthfully `APPLE_PREPARATION_REQUIRED`: the
-1024-pixel icon master, unsigned iPhone+iPad preset, bundle/version/build
-identity, offline-safe Game Center adapter and permanent leaderboard IDs are
-prepared. The exact macOS handoff is frozen locally after the clean commit.
-Privacy-manifest,
-Xcode 26, Simulator, physical-device, sandbox Game Center, signed archive,
-upload and TestFlight processing gates have not run.
+Fred now has the local source and signed archive needed for an Apple test
+candidate. The current Apple execution status remains truthfully
+`APPLE_PREPARATION_REQUIRED`, but the earlier preparation-only snapshot has
+advanced: exact-source macOS transfer, Godot 4.7.1 export, Xcode simulator
+build, pinned native Game Center framework compilation, privacy/entitlement
+inspection and signed device archive have run. The Fred App Store Connect
+record, $2.99 U.S. price, version metadata, screenshots, Game Center capability
+and both leaderboards are configured. Xcode account reauthentication stopped
+the upload before a TestFlight build was created. Physical iPhone/iPad and live
+Game Center service acceptance remain unverified.
 
 Run the current local audit with:
 
@@ -63,29 +65,21 @@ levels, story, audio, and art.
 
 ## Remaining Apple preparation
 
-1. Freeze the clean exact source into the hash-guarded macOS Git bundle and
-   handoff manifest.
-2. Create the separate Fred App Store Connect record, verify
-   `com.flinsvault.fredmyers`, create both leaderboard records and confirm that
-   version 1.0 build 1 is unused.
-3. Export on a supported Mac with Xcode 26 and the iOS/iPadOS 26 SDK or later,
-   then record the generated Xcode project and toolchain hashes.
-4. Audit Godot and included code for required-reason APIs; add and validate
-   `PrivacyInfo.xcprivacy` from the generated Xcode target evidence rather than
-   guessing values on Windows.
-5. Convert the Moonpetal Crest into Apple Icon Composer layers/appearances and
-   inspect default, dark, and tinted results on macOS. The square 1024-pixel
-   platform master is ready; Apple applies the final platform mask.
-6. Run iPhone and iPad Simulator matrices, then representative physical
-   iPhone/iPad touch, safe-area, lifecycle, audio, save, performance, battery,
-   and thermal testing.
-7. Build the pinned official Game Center plugin and map the two checked-in
-   leaderboard identifiers to the owner-created Apple records; preserve
-   guest/offline play.
-8. Upload the exact signed Build 1 under the owner's current TestFlight
-   authorization, wait for processing and attach it only to approved internal
-   testers.
-9. Stop again before App Review submission or public release.
+1. Reauthenticate the Apple account directly in Xcode; credentials and 2FA must
+   never enter source, logs or chat.
+2. Re-run the hash-guarded export/upload from exact runtime commit
+   `c8fcf859e4aa7a9c419e88f1bde7f1ecabbdb943`, then wait for App Store Connect
+   processing before any retry.
+3. Attach the processed build only to approved internal testers and complete
+   representative physical iPhone/iPad touch, safe-area, lifecycle, audio,
+   save, performance, battery and thermal testing.
+4. Prove Game Center authentication, both permanent leaderboard submissions,
+   native leaderboard display, offline queue and one-time reconnect delivery
+   on a physical Apple device.
+5. Publish a Fred-specific privacy policy, enter its verified URL, complete the
+   review phone/contact fields and obtain the owner's commercial-rights
+   attestation for the supplied music and all shipped media.
+6. Stop again before App Review submission or public release.
 
 Apple currently requires iOS/iPadOS uploads to use the iOS/iPadOS 26 SDK or
 later, documents a 1024 by 1024 layered app-icon layout whose final mask is
@@ -105,6 +99,8 @@ Apple team/signing custody stays on the authenticated Mac. App Review
 submission, public release, final storefront/regulatory choices, tester groups
 and legal/media-rights acceptance remain separate owner gates.
 
-No Apple credential, certificate, provisioning profile, App Store Connect
-record, signed archive, upload, TestFlight build, submission, or release was
-created or changed by this local preparation.
+No Apple credential was stored or exposed. A signed archive and App Store
+Connect metadata now exist, but no TestFlight build, App Review submission or
+public release exists. The static Windows audit intentionally remains
+preparation-focused and does not convert external Mac/App Store evidence into a
+passing physical-device or production gate.
