@@ -91,6 +91,13 @@ check(
     "signed-build handoff must discover Godot's sibling Xcode project",
 )
 check(
+    'CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY="Apple Distribution"' in build_handoff
+    and 'PROVISIONING_PROFILE_SPECIFIER="$profile_name"' in build_handoff
+    and '<key>signingStyle</key><string>manual</string>' in build_handoff
+    and '<key>com.flinsvault.fredmyers</key><string>$profile_name</string>' in build_handoff,
+    "signed-build handoff must use the Fred App Store distribution profile",
+)
+check(
     "IOS_GAMECENTER_PLUGIN_CACHE_REUSED" in plugin_handoff
     and 'rm -rf -- "$debug_framework" "$release_framework"' in plugin_handoff,
     "Game Center plugin handoff must reuse complete cache output and replace only incomplete generated frameworks",

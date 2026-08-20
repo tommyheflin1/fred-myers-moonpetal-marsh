@@ -16,13 +16,14 @@ if [[ -z "$team_id" ]]; then
 fi
 [[ "$team_id" =~ ^[A-Z0-9]{10}$ ]] || { echo "An Apple signing identity was not detected." >&2; exit 1; }
 export FRED_APPLE_TEAM_ID="$team_id"
+profile_name="${FRED_APP_STORE_PROFILE_NAME:-Fred Myers App Store Game Center 2026}"
 bash tools/ios_validation_handoff.sh "$expected_commit"
 project="$(find builds/ios -maxdepth 2 -name '*.xcodeproj' -print -quit)"
 [[ -n "$project" ]] || { echo "Validated Xcode project is missing." >&2; exit 1; }
 scheme="$(basename "$project" .xcodeproj)"
 archive="$PWD/builds/ios/FredMyers-AppBuild1.xcarchive"
 export_dir="$PWD/builds/ios/AppBuild1-upload"
-xcodebuild -project "$project" -scheme "$scheme" -configuration Release -destination 'generic/platform=iOS' -archivePath "$archive" DEVELOPMENT_TEAM="$team_id" CODE_SIGN_STYLE=Automatic -allowProvisioningUpdates archive
+xcodebuild -project "$project" -scheme "$scheme" -configuration Release -destination 'generic/platform=iOS' -archivePath "$archive" DEVELOPMENT_TEAM="$team_id" CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY="Apple Distribution" PROVISIONING_PROFILE_SPECIFIER="$profile_name" -allowProvisioningUpdates archive
 app="$(find "$archive/Products/Applications" -maxdepth 1 -name '*.app' -print -quit)"
 [[ -n "$app" ]] || { echo "Signed app is missing from the archive." >&2; exit 1; }
 codesign --verify --deep --strict --verbose=2 "$app"
@@ -37,7 +38,11 @@ cat > "$options" <<EOF
   <key>method</key><string>app-store-connect</string>
   <key>destination</key><string>upload</string>
   <key>teamID</key><string>$team_id</string>
-  <key>signingStyle</key><string>automatic</string>
+  <key>signingStyle</key><string>manual</string>
+  <key>signingCertificate</key><string>Apple Distribution</string>
+  <key>provisioningProfiles</key><dict>
+    <key>com.flinsvault.fredmyers</key><string>$profile_name</string>
+  </dict>
   <key>manageAppVersionAndBuildNumber</key><false/>
   <key>uploadSymbols</key><true/>
 </dict></plist>
