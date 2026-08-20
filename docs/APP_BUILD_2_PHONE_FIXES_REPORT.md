@@ -37,6 +37,10 @@ The source MP3 SHA-256 values are:
 - Movement is limited to a circular control pad on the right.
 - Munch, Leap, Dive/Surface and Boost are four independent 84-pixel circular
   targets arranged in one action cluster on the left.
+- The inactive overlays are translucent rather than solid: the marsh remains
+  visible beneath them, while a pressed control gains bounded contrast.
+- Both clusters sit in lower landscape reach zones with 36 logical pixels of
+  bottom safe-area clearance for modern phone home indicators and tablet use.
 - Circular visual bounds and hit testing share one layout contract; square
   corners outside each circle do not trigger an action.
 - The pad has an 18-pixel dead zone, radial clamping and stable direction output.
@@ -59,20 +63,20 @@ all contacts, held Boost and pointer emulation before presenting the safe gate.
 
 - Godot: `4.7.1.stable.official.a13da4feb`.
 - Import/parse gate: passed.
-- Focused Build 2 phone fixes: 42 passed, 0 failed.
-- Touch-first controls: 62 passed, 0 failed.
+- Focused Build 2 phone fixes: 49 passed, 0 failed.
+- Touch-first controls: 65 passed, 0 failed.
 - Android lifecycle/touch readiness: 21 passed, 0 failed; 10,000 routing
   decisions completed in 24 ms with zero measured static-memory growth in the
   affected-suite run.
 - Phone lives/routes/layout: 49 passed, 0 failed.
 - Product regression: 95 passed, 0 failed.
-- Complete repository matrix: **25 suites, 5,236 passed, 0 failed**.
+- Complete repository matrix: **25 suites, 5,280 passed, 0 failed**.
 - Eight save fixtures remain valid and `fred_save` remains schema v1.
 - iOS development export metadata is version `1.0` build `2`; Android's local
   development artifact name is distinct for Build 2.
 - Android debug export: `builds/android/fred-myers-app-build-2-debug.apk`,
   84,924,487 bytes, SHA-256
-  `BC78EF40BB4A639E08ACCD0DC03165A839518014001CC1462699084D7F95BCDD`.
+  `E533CAC69285CAB8E53D5642740033AE9283FBFBD6DA39B38D19D2F0BD7E708E`.
   It is debug signed, zip-aligned, min/target SDK 24/36, contains arm64-v8a and
   x86_64, requests no Android permissions, and passed the private-path/source/
   secret content scan.
@@ -91,10 +95,11 @@ data at:
 - 640 by 360 constrained reduced-motion layout.
 
 The review covered title, story, corrected instructions, countdown, active
-gameplay, left action wheel, right control pad, Pause, visible Resume and return
-to active gameplay. The controls remained separated from Fred's starting
-silhouette, status, Pause and Exit. The 640 by 360 countdown and Pause views hid
-inactive controls, and the Resume action worked at the constrained size.
+gameplay, translucent left action wheel, translucent right control pad, Munch,
+Pause and the visible Resume gate. The controls remained separated from Fred's
+starting silhouette, status, Pause and Exit while leaving the marsh visible
+underneath. The 640 by 360 countdown and Pause views hid inactive controls, and
+the Resume surface remained unobstructed at the constrained size.
 
 ## Integrity and boundaries
 

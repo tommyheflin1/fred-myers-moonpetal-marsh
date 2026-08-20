@@ -12,11 +12,17 @@ const STATUS_TOUCH_RECT := Rect2(500.0, 568.0, 340.0, 42.0)
 const STATUS_DESKTOP_RECT := Rect2(820.0, 642.0, 410.0, 42.0)
 const TELEMETRY_ANCHOR := Vector2(25.0, 700.0)
 const PAUSED_RESUME_RECT := Rect2(490.0, 410.0, 300.0, 65.0)
-const TOUCH_ACTION_WHEEL_CENTER := Vector2(365.0, 590.0)
-const TOUCH_ACTION_WHEEL_RECT := Rect2(235.0, 470.0, 260.0, 240.0)
-const TOUCH_CONTROL_PAD_CENTER := Vector2(1095.0, 607.0)
-const TOUCH_CONTROL_PAD_RADIUS := 92.0
-const TOUCH_CONTROL_PAD_RECT := Rect2(1003.0, 515.0, 184.0, 184.0)
+const TOUCH_ACTION_WHEEL_CENTER := Vector2(340.0, 570.0)
+const TOUCH_ACTION_WHEEL_RADIUS := 112.0
+const TOUCH_ACTION_WHEEL_RECT := Rect2(228.0, 458.0, 224.0, 224.0)
+const TOUCH_CONTROL_PAD_CENTER := Vector2(1120.0, 585.0)
+const TOUCH_CONTROL_PAD_RADIUS := 86.0
+const TOUCH_CONTROL_PAD_RECT := Rect2(1034.0, 499.0, 172.0, 172.0)
+const TOUCH_SAFE_EDGE_MARGIN := 36.0
+const TOUCH_OVERLAY_ALPHA := 0.16
+const TOUCH_CONTROL_ALPHA := 0.34
+const TOUCH_CONTROL_ACTIVE_ALPHA := 0.68
+const TOUCH_OUTLINE_ALPHA := 0.58
 # Compatibility aliases keep existing layout consumers on one authoritative contract.
 const TOUCH_MOVEMENT_RECT := TOUCH_CONTROL_PAD_RECT
 const TOUCH_GUIDE_RECT := TOUCH_CONTROL_PAD_RECT
@@ -128,10 +134,10 @@ static func status_rect(touch_visible: bool) -> Rect2:
 
 static func touch_centers() -> Dictionary:
 	return {
-		"tongue": Vector2(312.0, 537.0),
-		"leap": Vector2(418.0, 537.0),
-		"depth": Vector2(312.0, 643.0),
-		"boost": Vector2(418.0, 643.0),
+		"tongue": Vector2(292.0, 522.0),
+		"leap": Vector2(388.0, 522.0),
+		"depth": Vector2(292.0, 618.0),
+		"boost": Vector2(388.0, 618.0),
 	}
 
 static func touch_radii() -> Dictionary:

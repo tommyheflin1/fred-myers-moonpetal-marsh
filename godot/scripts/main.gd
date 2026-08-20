@@ -1371,9 +1371,10 @@ func _nearest_assisted_target() -> Dictionary:
 func _draw_touch_controls() -> void:
     var held: Array = touch_contacts.values()
     var wheel_center := MarshRouteLayout.TOUCH_ACTION_WHEEL_CENTER
-    draw_circle(wheel_center, 126.0, Color(0.01,0.06,0.09,0.74))
-    draw_arc(wheel_center, 126.0, 0.0, TAU, 48, Color("70d6c2"), 3.0)
-    _text(wheel_center + Vector2(0.0, 4.0), "ACTIONS", 14, Color("fff0ae"), HORIZONTAL_ALIGNMENT_CENTER, 104.0)
+    var wheel_radius := MarshRouteLayout.TOUCH_ACTION_WHEEL_RADIUS
+    draw_circle(wheel_center, wheel_radius, Color(0.01,0.06,0.09,MarshRouteLayout.TOUCH_OVERLAY_ALPHA))
+    draw_arc(wheel_center, wheel_radius, 0.0, TAU, 48, Color(0.44,0.84,0.76,MarshRouteLayout.TOUCH_OUTLINE_ALPHA), 3.0)
+    _text(wheel_center + Vector2(0.0, 4.0), "ACTIONS", 14, Color(1.0,0.94,0.68,0.88), HORIZONTAL_ALIGNMENT_CENTER, 96.0)
     var centers := MarshRouteLayout.touch_centers()
     var radii := MarshRouteLayout.touch_radii()
     _draw_touch_action_button(Vector2(centers.tongue), float(radii.tongue), "MUNCH", "tongue" in held, Color("e67b4a"))
@@ -1383,19 +1384,20 @@ func _draw_touch_controls() -> void:
     _draw_touch_action_button(Vector2(centers.depth), float(radii.depth), depth_label, "depth" in held, Color("4d9fd8"))
     var pad_center := MarshRouteLayout.TOUCH_CONTROL_PAD_CENTER
     var pad_radius := MarshRouteLayout.TOUCH_CONTROL_PAD_RADIUS
-    draw_circle(pad_center, pad_radius + 12.0, Color(0.01,0.06,0.09,0.78))
-    draw_circle(pad_center, pad_radius, Color(0.05,0.18,0.21,0.92))
-    draw_arc(pad_center, pad_radius, 0.0, TAU, 48, Color("70d6c2"), 4.0)
+    draw_circle(pad_center, pad_radius + 10.0, Color(0.01,0.06,0.09,MarshRouteLayout.TOUCH_OVERLAY_ALPHA))
+    draw_circle(pad_center, pad_radius, Color(0.05,0.18,0.21,MarshRouteLayout.TOUCH_CONTROL_ALPHA))
+    draw_arc(pad_center, pad_radius, 0.0, TAU, 48, Color(0.44,0.84,0.76,MarshRouteLayout.TOUCH_OUTLINE_ALPHA), 4.0)
     for direction in [Vector2.UP, Vector2.RIGHT, Vector2.DOWN, Vector2.LEFT]:
-        var arrow_tip: Vector2 = pad_center + direction * 68.0
-        draw_line(pad_center + direction * 32.0, arrow_tip, Color(0.78,1.0,0.91,0.58), 8.0)
-        draw_circle(arrow_tip, 7.0, Color("fff0ae"))
+        var arrow_tip: Vector2 = pad_center + direction * 62.0
+        draw_line(pad_center + direction * 30.0, arrow_tip, Color(0.78,1.0,0.91,0.42), 7.0)
+        draw_circle(arrow_tip, 6.0, Color(1.0,0.94,0.68,0.72))
     var steering_target := _active_touch_target()
     var thumb := pad_center if steering_target == Vector2.ZERO else MarshRouteLayout.clamp_touch_target(steering_target)
-    draw_circle(thumb + Vector2(0.0, 4.0), 25.0, Color(0.0,0.02,0.03,0.52))
-    draw_circle(thumb, 23.0, Color("3a9f7b") if steering_target != Vector2.ZERO else Color("1b5e58"))
-    draw_arc(thumb, 23.0, 0.0, TAU, 28, Color("fff4bd"), 3.0)
-    _text(pad_center + Vector2(0.0, -108.0), "MOVE", 15, Color.WHITE, HORIZONTAL_ALIGNMENT_CENTER, 100.0)
+    draw_circle(thumb + Vector2(0.0, 4.0), 24.0, Color(0.0,0.02,0.03,0.32))
+    var thumb_alpha := MarshRouteLayout.TOUCH_CONTROL_ACTIVE_ALPHA if steering_target != Vector2.ZERO else MarshRouteLayout.TOUCH_CONTROL_ALPHA
+    draw_circle(thumb, 22.0, Color(0.23,0.62,0.48,thumb_alpha))
+    draw_arc(thumb, 22.0, 0.0, TAU, 28, Color(1.0,0.96,0.74,0.78), 3.0)
+    _text(pad_center + Vector2(0.0, -102.0), "MOVE", 15, Color(1.0,1.0,1.0,0.88), HORIZONTAL_ALIGNMENT_CENTER, 100.0)
 
 func _active_touch_target() -> Vector2:
     var steering_index := 2147483647
@@ -1405,13 +1407,17 @@ func _active_touch_target() -> Vector2:
     return Vector2(touch_positions[steering_index]) if steering_index != 2147483647 else Vector2.ZERO
 
 func _draw_touch_action_button(center: Vector2, radius: float, label: String, active: bool, accent: Color) -> void:
-    var fill := accent.lightened(0.16) if active else accent.darkened(0.34)
-    draw_circle(center + Vector2(0.0, 5.0), radius, Color(0.0,0.02,0.03,0.62))
+    var base := accent.lightened(0.16) if active else accent.darkened(0.24)
+    var alpha := MarshRouteLayout.TOUCH_CONTROL_ACTIVE_ALPHA if active else MarshRouteLayout.TOUCH_CONTROL_ALPHA
+    var fill := Color(base.r, base.g, base.b, alpha)
+    draw_circle(center + Vector2(0.0, 4.0), radius, Color(0.0,0.02,0.03,0.26))
     draw_circle(center, radius, fill)
-    draw_circle(center - Vector2(5.0, 7.0), radius - 8.0, fill.lightened(0.08))
-    draw_arc(center, radius, 0.0, TAU, 28, Color("fff4bd"), 3.0)
-    draw_circle(center - Vector2(12.0, 14.0), 7.0, Color(1,1,1,0.34))
-    _text(center + Vector2(0.0, 7.0), label, 15 if label.length() > 5 else 17, Color.WHITE, HORIZONTAL_ALIGNMENT_CENTER, radius * 1.72)
+    var inner := fill.lightened(0.08)
+    inner.a = alpha * 0.72
+    draw_circle(center - Vector2(4.0, 6.0), radius - 8.0, inner)
+    draw_arc(center, radius, 0.0, TAU, 28, Color(1.0,0.96,0.74,MarshRouteLayout.TOUCH_OUTLINE_ALPHA), 3.0)
+    draw_circle(center - Vector2(11.0, 13.0), 6.0, Color(1,1,1,0.24))
+    _text(center + Vector2(0.0, 7.0), label, 14 if label.length() > 5 else 16, Color(1.0,1.0,1.0,0.92), HORIZONTAL_ALIGNMENT_CENTER, radius * 1.72)
 
 func _draw_water_current() -> void:
     var flow := FredWaterCurrentVisual.profile(
