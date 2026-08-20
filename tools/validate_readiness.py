@@ -73,6 +73,7 @@ REQUIRED = [
     "docs/FRED_PRIVACY_POLICY_DRAFT.md",
     "docs/FRED_SUPPORT_DRAFT.md",
     "docs/IOS_APP_BUILD_1_HANDOFF_REPORT.md",
+    "docs/IOS_APP_BUILD_2_HANDOFF_REPORT.md",
     "docs/IOS_GAME_CENTER_RELEASE_GATE_REPORT.md",
     "docs/M2_PRODUCT_UPLIFT_REPORT.md",
     "docs/M2_TOUCH_FIRST_PHONE_TABLET_CONTROLS.md",
@@ -131,6 +132,7 @@ REQUIRED = [
     "tools/build_ios_gamecenter_plugin.sh",
     "tools/ios_validation_handoff.sh",
     "tools/run_fred_app_build_1_macos.sh",
+    "tools/run_fred_app_build_2_macos.sh",
     "tools/prepare_ios_handoff.py",
     "tools/validate_app_store_screenshots.py",
 ]

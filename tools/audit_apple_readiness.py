@@ -140,7 +140,7 @@ def main() -> None:
             external_evidence_valid and external.get("privacy_manifest_audited") is True
         ),
         "unsigned_xcode_handoff_manifest": (
-            ROOT / "builds" / "ios-handoff" / "handoff-manifest.json"
+            ROOT / "builds" / "ios-handoff-build-2" / "handoff-manifest.json"
         ).is_file(),
         "xcode_26_ios_26_sdk_validation": bool(ios_evidence) or (
             external_evidence_valid

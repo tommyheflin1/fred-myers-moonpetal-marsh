@@ -69,7 +69,8 @@ with tempfile.TemporaryDirectory() as temporary:
     check(plistlib.loads(app.read_bytes())["ITSAppUsesNonExemptEncryption"] is False, "plist encryption key missing")
 
 validation_handoff = (ROOT / "tools" / "ios_validation_handoff.sh").read_text(encoding="utf-8")
-build_handoff = (ROOT / "tools" / "run_fred_app_build_1_macos.sh").read_text(encoding="utf-8")
+build_handoff = (ROOT / "tools" / "run_fred_app_build_2_macos.sh").read_text(encoding="utf-8")
+package_handoff = (ROOT / "tools" / "prepare_ios_handoff.py").read_text(encoding="utf-8")
 plugin_handoff = (ROOT / "tools" / "build_ios_gamecenter_plugin.sh").read_text(encoding="utf-8")
 gitignore = (ROOT / ".gitignore").read_text(encoding="utf-8")
 check(
@@ -96,6 +97,18 @@ check(
     and '<key>signingStyle</key><string>manual</string>' in build_handoff
     and '<key>com.flinsvault.fredmyers</key><string>$profile_name</string>' in build_handoff,
     "signed-build handoff must use the Fred App Store distribution profile",
+)
+check(
+    "UPLOAD_BUILD_2" in build_handoff
+    and "FredMyers-AppBuild2.xcarchive" in build_handoff
+    and "version=1.0 build=2" in build_handoff,
+    "signed-build handoff must be locked to Fred Build 2",
+)
+check(
+    "fred-myers-app-build-2.bundle" in package_handoff
+    and "RUN-FRED-APP-BUILD-2.command" in package_handoff
+    and '\"build_number\": \"2\"' in package_handoff,
+    "transfer package must identify Build 2 throughout",
 )
 check(
     "IOS_GAMECENTER_PLUGIN_CACHE_REUSED" in plugin_handoff

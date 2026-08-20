@@ -1,0 +1,52 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+expected_commit="${1:-}"
+[[ -n "$expected_commit" ]] || { echo "Usage: tools/run_fred_app_build_2_macos.sh <exact-commit>" >&2; exit 2; }
+[[ "${FRED_TESTFLIGHT_UPLOAD_ACK:-}" == "UPLOAD_BUILD_2" ]] || {
+  echo "Set FRED_TESTFLIGHT_UPLOAD_ACK=UPLOAD_BUILD_2 only for the owner-approved TestFlight Build 2 upload." >&2
+  exit 2
+}
+for tool in git python3 xcodebuild security codesign; do command -v "$tool" >/dev/null || { echo "$tool is required." >&2; exit 1; }; done
+[[ "$(git rev-parse HEAD)" == "$expected_commit" ]] || { echo "Exact source commit mismatch." >&2; exit 1; }
+[[ -z "$(git status --porcelain)" ]] || { echo "Source tree must be clean." >&2; exit 1; }
+team_id="$(security find-identity -v -p codesigning | sed -nE 's/.*Apple Distribution:.*\(([A-Z0-9]{10})\).*/\1/p' | head -n 1)"
+if [[ -z "$team_id" ]]; then
+  team_id="$(security find-identity -v -p codesigning | sed -nE 's/.*Apple Development:.*\(([A-Z0-9]{10})\).*/\1/p' | head -n 1)"
+fi
+[[ "$team_id" =~ ^[A-Z0-9]{10}$ ]] || { echo "An Apple signing identity was not detected." >&2; exit 1; }
+export FRED_APPLE_TEAM_ID="$team_id"
+profile_name="${FRED_APP_STORE_PROFILE_NAME:-Fred Myers App Store Game Center 2026}"
+bash tools/ios_validation_handoff.sh "$expected_commit"
+project="$(find builds/ios -maxdepth 2 -name '*.xcodeproj' -print -quit)"
+[[ -n "$project" ]] || { echo "Validated Xcode project is missing." >&2; exit 1; }
+scheme="$(basename "$project" .xcodeproj)"
+archive="$PWD/builds/ios/FredMyers-AppBuild2.xcarchive"
+export_dir="$PWD/builds/ios/AppBuild2-upload"
+xcodebuild -project "$project" -scheme "$scheme" -configuration Release -destination 'generic/platform=iOS' -archivePath "$archive" DEVELOPMENT_TEAM="$team_id" CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY="Apple Distribution" PROVISIONING_PROFILE_SPECIFIER="$profile_name" -allowProvisioningUpdates archive
+app="$(find "$archive/Products/Applications" -maxdepth 1 -name '*.app' -print -quit)"
+[[ -n "$app" ]] || { echo "Signed app is missing from the archive." >&2; exit 1; }
+codesign --verify --deep --strict --verbose=2 "$app"
+entitlements="$PWD/builds/ios/AppBuild2-entitlements.plist"
+codesign -d --entitlements :- "$app" > "$entitlements" 2>/dev/null
+/usr/libexec/PlistBuddy -c 'Print :com.apple.developer.game-center' "$entitlements" 2>/dev/null | grep -q true
+options="$PWD/builds/ios/AppBuild2-ExportOptions.plist"
+cat > "$options" <<EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0"><dict>
+  <key>method</key><string>app-store-connect</string>
+  <key>destination</key><string>upload</string>
+  <key>teamID</key><string>$team_id</string>
+  <key>signingStyle</key><string>manual</string>
+  <key>signingCertificate</key><string>Apple Distribution</string>
+  <key>provisioningProfiles</key><dict>
+    <key>com.flinsvault.fredmyers</key><string>$profile_name</string>
+  </dict>
+  <key>manageAppVersionAndBuildNumber</key><false/>
+  <key>uploadSymbols</key><true/>
+</dict></plist>
+EOF
+mkdir -p "$export_dir"
+xcodebuild -exportArchive -archivePath "$archive" -exportPath "$export_dir" -exportOptionsPlist "$options" -allowProvisioningUpdates
+echo "FRED_APP_BUILD_2_UPLOAD_SUCCEEDED commit=$expected_commit bundle=com.flinsvault.fredmyers version=1.0 build=2"

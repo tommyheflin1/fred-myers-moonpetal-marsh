@@ -89,7 +89,7 @@ find "$export_root" -path "$evidence" -prune -o -type f -print0 | sort -z | xarg
   echo "simulator_arch=$simulator_arch"
   echo "bundle_identifier=com.flinsvault.fredmyers"
   echo "short_version=1.0"
-  echo "build_number=1"
+  echo "build_number=2"
   echo "game_center=true"
   echo "uses_non_exempt_encryption=false"
   echo "privacy_manifest=$privacy_manifest"
