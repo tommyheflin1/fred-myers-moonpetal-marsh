@@ -136,12 +136,12 @@ Until that physical TestFlight sequence passes, live Game Center status is
 - The currently published studio `/privacy` page is Pokemon Field
   Academy-specific. Fred requires the separately approved and published
   `/fred-myers/privacy` page before its privacy URL is entered.
-- Content-rights attestation, review contact phone, Xcode account
-  reauthentication, TestFlight upload/processing and physical-device Game
-  Center proof remain protected owner gates. No App Review submission or public
-  release occurred.
-- The TestFlight feedback email and known review name/email are saved; no phone
-  number was inferred, exposed or entered.
+- Content-rights attestation, the dedicated Fred privacy-policy URL and
+  physical-device Game Center proof remain protected owner gates. No App
+  Review submission or public release occurred.
+- The TestFlight feedback email is saved. Fred's complete App Review contact
+  now reuses the established Snake Reactor contact record without repeating
+  its private values in project documentation.
 
 ## TestFlight Build 1 delivery - 2026-08-19
 
@@ -159,8 +159,10 @@ or committed.
 - Apple API validation: `VERIFY SUCCEEDED with no errors`.
 - Apple API upload: `UPLOAD SUCCEEDED with no errors`.
 - Delivery UUID: `e3ec31b7-beff-41fb-ae93-e5d077d706c5`.
-- App Store Connect processing completed; binary state is `Validated` and the
-  build is `Ready to Test` for 90 days.
+- App Store Connect processing completed; binary state is `Validated`. The iOS
+  Builds table reports `Ready to Submit` for external beta review and an
+  expiration in 90 days; exact Build `1.0 (1)` is assigned to the approved
+  internal owner-testing group.
 - Processed metadata confirms iPhone and iPad, `arm64`, minimum iOS `15.0`,
   non-exempt encryption `No`, required capability `gamekit`, and
   `com.apple.developer.game-center = true`.
@@ -169,6 +171,8 @@ or committed.
   is disabled.
 - Build-specific touch, campaign, life/fairy, save, layout and Game Center
   test instructions are saved in TestFlight.
+- Exact Build `1.0 (1)` is attached and saved on App Store version `1.0`.
+  Manual release remains selected and the Game Center checkbox remains enabled.
 - Both permanent leaderboards remain correctly configured in App Store Connect
   with status `Prepare for Submission`; no Game Center component or app version
   was submitted for App Review.

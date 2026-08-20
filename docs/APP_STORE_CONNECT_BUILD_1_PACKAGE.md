@@ -206,17 +206,19 @@ notifications, and use RGB output without an alpha channel.
 - iPhone and iPad accessibility drafts accurately disclose `Differentiate
   Without Color Alone` and `Sufficient Contrast`. They cannot be published to
   the product page until an app version is released.
-- TestFlight beta description, review notes, marketing URL, feedback email and
-  known review contact name/email are saved. The privacy-policy URL and review
-  phone fields remain open.
+- TestFlight beta description, review notes, marketing URL and feedback email
+  are saved. Fred's App Review contact now reuses the complete, established
+  Snake Reactor contact record; no contact value is repeated in this report.
+  The dedicated Fred privacy-policy URL remains open.
 - App Information remains Games / Adventure / Family. Apple's current
   calculated rating is 9+ because Cartoon or Fantasy Violence and Contests are
   each declared Infrequent. Do not change this to 4+ or Made for Kids without a
   separate owner policy decision.
 - Content Rights remains unset pending the owner's commercial-rights
   attestation for both supplied music tracks and all shipped media.
-- No build is present in TestFlight. Xcode account reauthentication, upload,
-  processing and physical iPhone/iPad Game Center acceptance remain required.
+- Exact Build `1.0 (1)` is processed in TestFlight, assigned to the manual
+  `Fred Owner Testing` internal group and saved on App Store version `1.0`.
+  Physical iPhone/iPad Game Center acceptance remains required.
 
 ## Build 1 TestFlight checkpoint - 2026-08-19
 
@@ -225,8 +227,10 @@ notifications, and use RGB output without an alpha channel.
   continued to return error `-501`.
 - Apple validation and upload both completed with no errors; delivery UUID is
   `e3ec31b7-beff-41fb-ae93-e5d077d706c5`.
-- App Store Connect completed processing. The binary is `Validated` and Build
-  `1.0 (1)` is `Ready to Test` for 90 days.
+- App Store Connect completed processing. The binary is `Validated`; the iOS
+  Builds table reports `Ready to Submit` for external beta review and an
+  expiration in 90 days. Internal Build `1.0 (1)` is already assigned to the
+  approved owner-testing group.
 - The build is assigned to the manually controlled internal group `Fred Owner
   Testing`; one approved owner tester is invited and automatic distribution is
   disabled.
@@ -235,6 +239,9 @@ notifications, and use RGB output without an alpha channel.
 - The upload/TestFlight gate is complete. Physical iPhone/iPad control,
   lifecycle, audio and live Game Center authentication/score/leaderboard proof
   remain owner acceptance gates.
-- The dedicated Fred privacy-policy URL, review phone, commercial media-rights
-  attestation, Game Center component review, App Review submission and public
-  release remain intentionally open. No public release action occurred.
+- App Store version `1.0` now has exact Build `1.0 (1)` attached, all four App
+  Review contact fields saved, Game Center checked and manual release retained.
+- The dedicated Fred privacy-policy URL, commercial media-rights attestation,
+  physical TestFlight/Game Center acceptance, Game Center component review,
+  App Review submission and public release remain intentionally open. No App
+  Review submission or public release action occurred.
