@@ -176,7 +176,8 @@ func _ready() -> void:
     )
     if game_center_available:
         game_center.sign_in_completed.connect(_on_game_center_sign_in_completed)
-        game_center_status = "GAME CENTER READY"
+        game_center.score_submission_completed.connect(_on_game_center_score_submission_completed)
+        game_center_status = "CONNECTING TO GAME CENTER"
         game_center.begin_sign_in()
     boost.reset()
     _set_feedback(FredSaveFeedback.load_message(result))
@@ -201,6 +202,14 @@ func _on_game_center_sign_in_completed(result: Dictionary) -> void:
     else:
         game_center_status = "OFFLINE MARSH BOARD"
     queue_redraw()
+
+func _on_game_center_score_submission_completed(result: Dictionary) -> void:
+    if bool(result.get("ok", false)):
+        game_center_status = "GAME CENTER SCORE SYNCED"
+    elif bool(result.get("retry_pending", false)):
+        game_center_status = "GAME CENTER RETRYING SCORE"
+    else:
+        game_center_status = "GAME CENTER SCORE PENDING"
     queue_redraw()
 
 func _process(delta: float) -> void:
@@ -736,7 +745,11 @@ func _handle_click(position: Vector2) -> void:
         _request_leap(position - fred)
     elif screen == Screen.FAILED and Rect2(365,500,250,64).has_point(position): _retry()
     elif screen == Screen.FAILED and Rect2(665,500,250,64).has_point(position): _go_home()
-    elif screen == Screen.LEADERBOARD and Rect2(490,620,300,55).has_point(position): _go_home()
+    elif screen == Screen.LEADERBOARD and Rect2(260,620,300,55).has_point(position) and is_instance_valid(game_center) and game_center.is_authenticated():
+        if not game_center.show_leaderboards():
+            game_center_status = "GAME CENTER COULD NOT OPEN"
+            queue_redraw()
+    elif screen == Screen.LEADERBOARD and (Rect2(720,620,300,55) if is_instance_valid(game_center) and game_center.is_authenticated() else Rect2(490,620,300,55)).has_point(position): _go_home()
     elif screen == Screen.COMPLETE and Rect2(490,500,300,60).has_point(position):
         _advance_level()
 
@@ -2041,7 +2054,11 @@ func _draw_leaderboard() -> void:
             _text(Vector2(420,y), str(entry.get("player","GUEST FROG")), 17, Color.WHITE, HORIZONTAL_ALIGNMENT_LEFT, 250)
             _text(Vector2(740,y), "%03d" % int(entry.get("level",1)), 17, Color.WHITE, HORIZONTAL_ALIGNMENT_LEFT, 90)
             _text(Vector2(875,y), str(entry.get("score",0)), 17, Color("fff0ae"), HORIZONTAL_ALIGNMENT_LEFT, 110)
-    _button(Rect2(490,620,300,55), "HOME")
+    if is_instance_valid(game_center) and game_center.is_authenticated():
+        _button(Rect2(260,620,300,55), "OPEN GAME CENTER")
+        _button(Rect2(720,620,300,55), "HOME")
+    else:
+        _button(Rect2(490,620,300,55), "HOME")
     _text(Vector2(640,704), "Game Center keeps guest play available when Apple services are offline.", 13, Color("bfd8dc"), HORIZONTAL_ALIGNMENT_CENTER, 900)
 
 func _button(rect: Rect2, label: String) -> void:

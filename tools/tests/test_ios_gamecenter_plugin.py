@@ -29,7 +29,12 @@ with tempfile.TemporaryDirectory() as temporary:
         '[dependencies]\nsystem=["GameKit.framework"]\ncapabilities=["gamekit"]\n', encoding="utf-8"
     )
     (plugin / "PROVENANCE.txt").write_text(
-        f"source_commit={MODULE.PLUGIN_COMMIT}\ngodot_tag={MODULE.GODOT_TAG}\n", encoding="utf-8"
+        f"source_commit={MODULE.PLUGIN_COMMIT}\n"
+        f"presentation_patch_commit={MODULE.PRESENTATION_PATCH_COMMIT}\n"
+        f"score_patch_commit={MODULE.SCORE_PATCH_COMMIT}\n"
+        f"fred_event_patch_version={MODULE.FRED_EVENT_PATCH_VERSION}\n"
+        f"godot_tag={MODULE.GODOT_TAG}\n",
+        encoding="utf-8",
     )
     (plugin / "LICENSE.godot-ios-plugins.txt").write_text("fixture", encoding="utf-8")
     for target in MODULE.REQUIRED_TARGETS:
@@ -42,6 +47,15 @@ with tempfile.TemporaryDirectory() as temporary:
     report = MODULE.validate_project(root)
     check(report["status"] == "PASS", str(report["errors"]))
     check(len(report["files"]) >= 9, "complete fixture inventory was not hashed")
+    check(report["score_patch_commit"] == MODULE.SCORE_PATCH_COMMIT, "score patch provenance was not normalized")
+    original_provenance = (plugin / "PROVENANCE.txt").read_text(encoding="utf-8")
+    (plugin / "PROVENANCE.txt").write_text(
+        original_provenance.replace(MODULE.SCORE_PATCH_COMMIT, "0" * 40), encoding="utf-8"
+    )
+    report = MODULE.validate_project(root)
+    check(report["status"] == "FAIL", "wrong score patch provenance did not fail closed")
+    check(any("score patch provenance mismatch" in error for error in report["errors"]), "wrong patch reason missing")
+    (plugin / "PROVENANCE.txt").write_text(original_provenance, encoding="utf-8")
     (plugin / "gamecenter.debug.xcframework/ios-simulator/libgamecenter.a").unlink()
     report = MODULE.validate_project(root)
     check(report["status"] == "FAIL", "missing simulator library did not fail closed")

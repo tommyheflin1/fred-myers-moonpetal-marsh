@@ -118,6 +118,8 @@ REQUIRED = [
     "tools/tests/test_ios_export_helpers.py",
     "tools/validate_ios_gamecenter_plugin.py",
     "tools/tests/test_ios_gamecenter_plugin.py",
+    "tools/patch_ios_gamecenter_events.py",
+    "tools/tests/test_patch_ios_gamecenter_events.py",
     "tools/build_ios_gamecenter_plugin.sh",
     "tools/ios_validation_handoff.sh",
     "tools/run_fred_app_build_1_macos.sh",

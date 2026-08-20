@@ -22,6 +22,10 @@ jobs:
       - run: python tools/validate_desktop_owner_handoff.py
       - run: python tools/validate_android_export.py
       - run: python tools/validate_physical_android_preflight.py
+      - name: Validate iOS Game Center source and plugin safeguards
+        run: |
+          python tools/tests/test_ios_gamecenter_plugin.py
+          python tools/tests/test_patch_ios_gamecenter_events.py
       - name: Download official Godot 4.7.1
         run: |
           curl --fail --location --output godot.zip https://github.com/godotengine/godot/releases/download/4.7.1-stable/Godot_v4.7.1-stable_linux.x86_64.zip
@@ -73,6 +77,8 @@ jobs:
         run: ./Godot_v4.7.1-stable_linux.x86_64 --headless --path godot --script res://tests/run_touch_first_controls.gd
       - name: Run Fred hero story and instructions tests
         run: ./Godot_v4.7.1-stable_linux.x86_64 --headless --path godot --script res://tests/run_story_instructions.gd
+      - name: Run Fred Game Center authentication and score-delivery tests
+        run: ./Godot_v4.7.1-stable_linux.x86_64 --headless --path godot --script res://tests/run_game_center_adapter.gd
       - name: Verify exact Core agreement
         run: |
           test "$(cat godot/CORE_VERSION)" = "0.5.1"

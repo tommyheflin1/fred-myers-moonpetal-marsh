@@ -12,6 +12,9 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 PLUGIN_COMMIT = "fbdbc317fe2ab422ef9bf5fb07f876eb2e773bcb"
+PRESENTATION_PATCH_COMMIT = "58c7b86054d9fe2eb7c7a0095153df8db64096aa"
+SCORE_PATCH_COMMIT = "2824fadd0e20a3cdcc12650d01c3c5934f7fd4ca"
+FRED_EVENT_PATCH_VERSION = "fred-gamecenter-events-v1"
 GODOT_TAG = "4.7.1-stable"
 REQUIRED_TARGETS = ("release", "debug")
 
@@ -39,6 +42,12 @@ def validate_project(root: Path = ROOT) -> dict[str, object]:
     provenance_text = provenance.read_text(encoding="utf-8") if provenance.is_file() else ""
     if f"source_commit={PLUGIN_COMMIT}" not in provenance_text:
         errors.append("Game Center source commit provenance mismatch")
+    if f"presentation_patch_commit={PRESENTATION_PATCH_COMMIT}" not in provenance_text:
+        errors.append("Game Center presentation patch provenance mismatch")
+    if f"score_patch_commit={SCORE_PATCH_COMMIT}" not in provenance_text:
+        errors.append("Game Center score patch provenance mismatch")
+    if f"fred_event_patch_version={FRED_EVENT_PATCH_VERSION}" not in provenance_text:
+        errors.append("Fred Game Center event patch provenance mismatch")
     if f"godot_tag={GODOT_TAG}" not in provenance_text:
         errors.append("Game Center Godot tag provenance mismatch")
     for target in REQUIRED_TARGETS:
@@ -62,7 +71,14 @@ def validate_project(root: Path = ROOT) -> dict[str, object]:
                     "size": len(payload),
                     "sha256": hashlib.sha256(payload).hexdigest(),
                 })
-    normalized = {"files": files, "godot_tag": GODOT_TAG, "plugin_commit": PLUGIN_COMMIT}
+    normalized = {
+        "files": files,
+        "fred_event_patch_version": FRED_EVENT_PATCH_VERSION,
+        "godot_tag": GODOT_TAG,
+        "plugin_commit": PLUGIN_COMMIT,
+        "presentation_patch_commit": PRESENTATION_PATCH_COMMIT,
+        "score_patch_commit": SCORE_PATCH_COMMIT,
+    }
     return {
         "status": "PASS" if not errors else "FAIL",
         **normalized,
