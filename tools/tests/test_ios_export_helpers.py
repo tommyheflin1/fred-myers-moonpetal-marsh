@@ -44,6 +44,22 @@ with tempfile.TemporaryDirectory() as temporary:
 
 with tempfile.TemporaryDirectory() as temporary:
     root = Path(temporary)
+    project = root / "FredMyers.xcodeproj"
+    project.mkdir()
+    pbxproj = project / "project.pbxproj"
+    pbxproj.write_text(
+        "\t\tCODE_SIGN_ENTITLEMENTS = FredMyers/FredMyers.entitlements;\n"
+        "\t\tPRODUCT_BUNDLE_IDENTIFIER = com.flinsvault.fredmyers;\n",
+        encoding="utf-8",
+    )
+    report = entitlements.prepare_project(project)
+    nested = root / "FredMyers" / "FredMyers.entitlements"
+    check(report["status"] == "PASS", "Godot nested entitlement path did not pass")
+    check(nested.is_file(), "Godot nested entitlement file was not preserved")
+    check(plistlib.loads(nested.read_bytes())["com.apple.developer.game-center"] is True, "nested entitlement value is not true")
+
+with tempfile.TemporaryDirectory() as temporary:
+    root = Path(temporary)
     app = root / "FredMyers" / "Info.plist"
     app.parent.mkdir()
     app.write_bytes(plistlib.dumps({"CFBundlePackageType": "APPL"}, fmt=plistlib.FMT_XML))
