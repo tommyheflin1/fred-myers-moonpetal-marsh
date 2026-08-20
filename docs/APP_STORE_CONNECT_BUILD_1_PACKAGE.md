@@ -127,7 +127,10 @@ enabled; and optional Game Center communicates only with Apple. Revisit the
 answer before enabling any Flins-operated account, cloud save, analytics or
 verified-score service.
 
-Privacy policy candidate: `https://theflinsappvaultllc.com/privacy`.
+Privacy policy target: `https://theflinsappvaultllc.com/fred-myers/privacy`.
+The currently live `/privacy` page is Pokemon Field Academy-specific and is not
+an acceptable Fred privacy-policy destination. Publish and verify the dedicated
+Fred policy before entering this field.
 Support URL candidate: `https://theflinsappvaultllc.com/` until a dedicated Fred
 support route is published. Both URLs must be opened and verified in the same
 owner-controlled browser session before saving them in App Store Connect.
@@ -181,3 +184,27 @@ notifications, and use RGB output without an alpha channel.
    to internal TestFlight.
 7. Invite only approved internal testers. Do not submit App Review or release
    publicly without a separate owner decision.
+
+## App Store Connect audit checkpoint - 2026-08-19
+
+- U.S. customer price is verified at $2.99; Apple's equivalent prices are
+  configured for 175 countries or regions, while release availability remains
+  separately controlled.
+- Version 1.0 contains eight inspected iPhone screenshots and eight inspected
+  iPad screenshots, the full description, promotional text, touch-first review
+  notes, manual release selection and the Game Center checkbox.
+- The App Privacy response `Data Not Collected` is published for this exact
+  offline/Game Center-only build.
+- iPhone and iPad accessibility drafts accurately disclose `Differentiate
+  Without Color Alone` and `Sufficient Contrast`. They cannot be published to
+  the product page until an app version is released.
+- TestFlight beta description, review notes, marketing URL and feedback email
+  are saved. The privacy-policy URL and review phone/contact fields remain open.
+- App Information remains Games / Adventure / Family. Apple's current
+  calculated rating is 9+ because Cartoon or Fantasy Violence and Contests are
+  each declared Infrequent. Do not change this to 4+ or Made for Kids without a
+  separate owner policy decision.
+- Content Rights remains unset pending the owner's commercial-rights
+  attestation for both supplied music tracks and all shipped media.
+- No build is present in TestFlight. Xcode account reauthentication, upload,
+  processing and physical iPhone/iPad Game Center acceptance remain required.

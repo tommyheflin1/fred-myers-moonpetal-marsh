@@ -116,3 +116,22 @@ Before the first rollout is called ready, the owner must:
 
 Until that physical TestFlight sequence passes, live Game Center status is
 `UNVERIFIED`; Fred is build/configuration ready, not service-acceptance complete.
+
+## App Store Connect follow-through - 2026-08-19
+
+- Fred's `Data Not Collected` privacy response is published for this inspected
+  build; no developer analytics, ads, account backend or Flins-operated score
+  service is active.
+- iPhone and iPad accessibility drafts now list only the verified non-color and
+  contrast support. Release is required before Apple permits publishing those
+  product-page labels.
+- The $2.99 U.S. price, eight iPhone screenshots, eight iPad screenshots,
+  Game Center version checkbox, manual release selection and TestFlight
+  feedback email are verified.
+- The currently published studio `/privacy` page is Pokemon Field
+  Academy-specific. Fred requires the separately approved and published
+  `/fred-myers/privacy` page before its privacy URL is entered.
+- Content-rights attestation, review contact phone, Xcode account
+  reauthentication, TestFlight upload/processing and physical-device Game
+  Center proof remain protected owner gates. No App Review submission or public
+  release occurred.
