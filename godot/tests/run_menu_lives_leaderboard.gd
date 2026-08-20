@@ -8,6 +8,32 @@ var failed := 0
 const SAVE_PREFIX := "user://menu_lives_test_save"
 const BOARD_PATH := "user://menu_lives_test_board.json"
 
+class FakeGameCenterNode:
+	extends Node
+	var available := true
+	var authenticated := false
+	var state := "ready"
+	var sign_in_requests := 0
+	var presentation_requests := 0
+
+	func is_available() -> bool:
+		return available
+
+	func is_authenticated() -> bool:
+		return authenticated
+
+	func authentication_state() -> String:
+		return state
+
+	func begin_sign_in() -> bool:
+		sign_in_requests += 1
+		state = "authenticating"
+		return true
+
+	func show_leaderboards() -> bool:
+		presentation_requests += 1
+		return true
+
 func check(condition: bool, label: String) -> void:
 	if condition:
 		passed += 1
@@ -108,7 +134,27 @@ func _run() -> void:
 	check(game.screen == game.Screen.TITLE and game.menu_music.playing, "Go Home returns to title and menu music")
 	game._handle_click(Main.TITLE_LEADERBOARD_RECT.get_center())
 	check(game.screen == game.Screen.LEADERBOARD and game.menu_music.playing, "title leaderboard button opens the functional local board")
-	game._handle_click(Vector2(640,648))
+	var original_game_center: Node = game.game_center
+	game.remove_child(original_game_center)
+	original_game_center.queue_free()
+	var fake_game_center := FakeGameCenterNode.new()
+	game.add_child(fake_game_center)
+	game.game_center = fake_game_center
+	game.game_center_status = "GAME CENTER SIGN-IN NEEDED — TAP CONNECT"
+	game._handle_touch(71, Main.LEADERBOARD_GAME_CENTER_RECT.get_center(), true)
+	game._handle_touch(71, Main.LEADERBOARD_GAME_CENTER_RECT.get_center(), false)
+	check(fake_game_center.sign_in_requests == 1 and game.game_center_status == "CONNECTING TO GAME CENTER", "leaderboard screen offers an explicit Apple sign-in action")
+	fake_game_center.state = "ready"
+	game._on_game_center_sign_in_completed({"ok": false, "error": "game_center_auth_failed", "error_code": 6})
+	check(game.game_center_status == "GAME CENTER SIGN-IN NEEDED — TAP CONNECT", "failed Apple sign-in remains understandable and retryable")
+	game._handle_click(Main.LEADERBOARD_GAME_CENTER_RECT.get_center())
+	check(fake_game_center.sign_in_requests == 2, "player can retry Game Center without restarting Fred")
+	fake_game_center.authenticated = true
+	fake_game_center.state = "authenticated"
+	game._on_game_center_sign_in_completed({"ok": true})
+	game._handle_click(Main.LEADERBOARD_GAME_CENTER_RECT.get_center())
+	check(fake_game_center.presentation_requests == 1, "authenticated player can open the Apple Game Center dashboard")
+	game._handle_click(Main.LEADERBOARD_HOME_SPLIT_RECT.get_center())
 	check(game.screen == game.Screen.TITLE, "leaderboard Home button returns to title")
 	game.queue_free()
 	await process_frame

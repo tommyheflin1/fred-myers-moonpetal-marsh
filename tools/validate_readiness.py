@@ -85,6 +85,7 @@ REQUIRED = [
     "docs/M2_ALL_CHARACTER_ARTICULATION_REPORT.md",
     "docs/M2_CHARACTER_VOLUME_RIG_REPORT.md",
     "docs/APP_BUILD_2_PHONE_FIXES_REPORT.md",
+    "docs/APP_BUILD_2_GAME_CENTER_ACCESS_REPORT.md",
     "godot/assets/art/fred-moonpetal-crest-v3.png",
     "godot/assets/art/fred-moonpetal-crest-v3.png.import",
     "godot/assets/art/fred-app-icon-v3-platform.png",

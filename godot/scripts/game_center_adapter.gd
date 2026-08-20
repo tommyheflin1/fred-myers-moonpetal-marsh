@@ -20,6 +20,8 @@ var pending_records: Array[Dictionary] = []
 var in_flight_record: Dictionary = {}
 var submission_elapsed_seconds := 0.0
 var retry_delay_seconds := 0.0
+var last_auth_error := ""
+var last_auth_error_code := 0
 
 
 func configure(plugin_override: Object = null) -> bool:
@@ -45,11 +47,32 @@ func is_authenticated() -> bool:
 	return is_available() and bool(plugin.call("is_authenticated"))
 
 
+func authentication_state() -> String:
+	return state
+
+
+func can_retry_sign_in() -> bool:
+	return is_available() and state == "ready" and not is_authenticated()
+
+
+func diagnostic_snapshot() -> Dictionary:
+	return {
+		"available": is_available(),
+		"authenticated": is_authenticated(),
+		"state": state,
+		"last_auth_error": last_auth_error,
+		"last_auth_error_code": last_auth_error_code,
+		"pending_score_count": pending_score_count(),
+	}
+
+
 func begin_sign_in() -> bool:
 	if not is_available() or state == "authenticating":
 		return false
 	if is_authenticated():
 		state = "authenticated"
+		last_auth_error = ""
+		last_auth_error_code = 0
 		sign_in_completed.emit({"ok": true, "display_name": display_name})
 		return true
 	elapsed_seconds = 0.0
@@ -145,6 +168,12 @@ func _handle_event(event: Dictionary) -> void:
 
 func _finish_sign_in(result: Dictionary) -> void:
 	state = "authenticated" if bool(result.get("ok", false)) else "ready"
+	if state == "authenticated":
+		last_auth_error = ""
+		last_auth_error_code = 0
+	else:
+		last_auth_error = str(result.get("error", "game_center_auth_failed"))
+		last_auth_error_code = int(result.get("error_code", 0))
 	elapsed_seconds = 0.0
 	sign_in_completed.emit(result.duplicate(true))
 	if state == "authenticated":
@@ -228,3 +257,5 @@ func _reset_transient_state() -> void:
 	submission_elapsed_seconds = 0.0
 	retry_delay_seconds = 0.0
 	display_name = ""
+	last_auth_error = ""
+	last_auth_error_code = 0

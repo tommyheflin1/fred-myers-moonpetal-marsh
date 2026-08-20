@@ -30,6 +30,9 @@ const GAMEPLAY_MUSIC_PATH := "res://assets/audio/marshland_chase.mp3"
 const TITLE_START_RECT := Rect2(90,405,390,68)
 const TITLE_CUSTOMIZE_RECT := Rect2(90,490,390,58)
 const TITLE_LEADERBOARD_RECT := Rect2(90,565,390,58)
+const LEADERBOARD_GAME_CENTER_RECT := Rect2(260,620,300,55)
+const LEADERBOARD_HOME_SPLIT_RECT := Rect2(720,620,300,55)
+const LEADERBOARD_HOME_CENTER_RECT := Rect2(490,620,300,55)
 const STORY_HOME_RECT := Rect2(85,630,250,60)
 const STORY_CONTINUE_RECT := Rect2(815,630,380,60)
 const INSTRUCTIONS_HOME_RECT := Rect2(85,630,250,60)
@@ -188,8 +191,7 @@ func _ready() -> void:
     if game_center_available:
         game_center.sign_in_completed.connect(_on_game_center_sign_in_completed)
         game_center.score_submission_completed.connect(_on_game_center_score_submission_completed)
-        game_center_status = "CONNECTING TO GAME CENTER"
-        game_center.begin_sign_in()
+        _request_game_center_connection()
     boost.reset()
     _set_feedback(FredSaveFeedback.load_message(result))
     menu_music = AudioStreamPlayer.new()
@@ -211,8 +213,40 @@ func _on_game_center_sign_in_completed(result: Dictionary) -> void:
     if bool(result.get("ok", false)):
         game_center_status = "GAME CENTER CONNECTED"
     else:
-        game_center_status = "OFFLINE MARSH BOARD"
+        var error := str(result.get("error", ""))
+        if error == "game_center_timeout":
+            game_center_status = "GAME CENTER TIMED OUT — TAP CONNECT TO RETRY"
+        elif error in ["game_center_auth_failed", "game_center_auth_start_failed"]:
+            game_center_status = "GAME CENTER SIGN-IN NEEDED — TAP CONNECT"
+        else:
+            game_center_status = "GAME CENTER UNAVAILABLE — LOCAL SCORES ARE SAFE"
     queue_redraw()
+
+func _game_center_available() -> bool:
+    return is_instance_valid(game_center) and game_center.has_method("is_available") and bool(game_center.is_available())
+
+func _game_center_auth_state() -> String:
+    if not _game_center_available() or not game_center.has_method("authentication_state"):
+        return "unavailable"
+    return str(game_center.authentication_state())
+
+func _request_game_center_connection() -> bool:
+    if not _game_center_available():
+        game_center_status = "APPLE GAME CENTER IS NOT AVAILABLE ON THIS DEVICE"
+        queue_redraw()
+        return false
+    if game_center.is_authenticated():
+        game_center_status = "GAME CENTER CONNECTED"
+        queue_redraw()
+        return true
+    if _game_center_auth_state() == "authenticating":
+        game_center_status = "CONNECTING TO GAME CENTER"
+        queue_redraw()
+        return false
+    var started := bool(game_center.begin_sign_in())
+    game_center_status = "CONNECTING TO GAME CENTER" if started else "GAME CENTER SIGN-IN NEEDED — TAP CONNECT"
+    queue_redraw()
+    return started
 
 func _on_game_center_score_submission_completed(result: Dictionary) -> void:
     if bool(result.get("ok", false)):
@@ -766,11 +800,14 @@ func _handle_click(position: Vector2) -> void:
         _request_leap(position - fred)
     elif screen == Screen.FAILED and Rect2(365,500,250,64).has_point(position): _retry()
     elif screen == Screen.FAILED and Rect2(665,500,250,64).has_point(position): _go_home()
-    elif screen == Screen.LEADERBOARD and Rect2(260,620,300,55).has_point(position) and is_instance_valid(game_center) and game_center.is_authenticated():
-        if not game_center.show_leaderboards():
-            game_center_status = "GAME CENTER COULD NOT OPEN"
-            queue_redraw()
-    elif screen == Screen.LEADERBOARD and (Rect2(720,620,300,55) if is_instance_valid(game_center) and game_center.is_authenticated() else Rect2(490,620,300,55)).has_point(position): _go_home()
+    elif screen == Screen.LEADERBOARD and LEADERBOARD_GAME_CENTER_RECT.has_point(position) and _game_center_available():
+        if game_center.is_authenticated():
+            if not game_center.show_leaderboards():
+                game_center_status = "GAME CENTER COULD NOT OPEN — TAP TO RETRY"
+                queue_redraw()
+        else:
+            _request_game_center_connection()
+    elif screen == Screen.LEADERBOARD and (LEADERBOARD_HOME_SPLIT_RECT if _game_center_available() else LEADERBOARD_HOME_CENTER_RECT).has_point(position): _go_home()
     elif screen == Screen.COMPLETE and Rect2(490,500,300,60).has_point(position):
         _advance_level()
 
@@ -2090,12 +2127,17 @@ func _draw_leaderboard() -> void:
             _text(Vector2(420,y), str(entry.get("player","GUEST FROG")), 17, Color.WHITE, HORIZONTAL_ALIGNMENT_LEFT, 250)
             _text(Vector2(740,y), "%03d" % int(entry.get("level",1)), 17, Color.WHITE, HORIZONTAL_ALIGNMENT_LEFT, 90)
             _text(Vector2(875,y), str(entry.get("score",0)), 17, Color("fff0ae"), HORIZONTAL_ALIGNMENT_LEFT, 110)
-    if is_instance_valid(game_center) and game_center.is_authenticated():
-        _button(Rect2(260,620,300,55), "OPEN GAME CENTER")
-        _button(Rect2(720,620,300,55), "HOME")
+    if _game_center_available():
+        if game_center.is_authenticated():
+            _button(LEADERBOARD_GAME_CENTER_RECT, "OPEN GAME CENTER")
+        elif _game_center_auth_state() == "authenticating":
+            _button(LEADERBOARD_GAME_CENTER_RECT, "CONNECTING...")
+        else:
+            _button(LEADERBOARD_GAME_CENTER_RECT, "CONNECT GAME CENTER")
+        _button(LEADERBOARD_HOME_SPLIT_RECT, "HOME")
     else:
-        _button(Rect2(490,620,300,55), "HOME")
-    _text(Vector2(640,704), "Game Center keeps guest play available when Apple services are offline.", 13, Color("bfd8dc"), HORIZONTAL_ALIGNMENT_CENTER, 900)
+        _button(LEADERBOARD_HOME_CENTER_RECT, "HOME")
+    _text(Vector2(640,704), "Apple sign-in is optional. Local play and scores always remain available.", 13, Color("bfd8dc"), HORIZONTAL_ALIGNMENT_CENTER, 900)
 
 func _button(rect: Rect2, label: String) -> void:
     draw_rect(Rect2(rect.position+Vector2(0,6),rect.size), Color(0.0,0.02,0.03,0.55), true)

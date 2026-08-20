@@ -73,13 +73,14 @@ all contacts, held Boost and pointer emulation before presenting the safe gate.
 - Chapter-difficulty ladder: 1,551 passed, 0 failed; the exact ladder and
   later-level runtime evidence are documented in
   `APP_BUILD_2_DIFFICULTY_LADDER_REPORT.md`.
-- Complete repository matrix: **26 suites, 6,936 passed, 0 failed**.
+- Complete repository matrix: **26 suites, 6,947 passed, 0 failed** after the
+  Game Center access regression was added.
 - Eight save fixtures remain valid and `fred_save` remains schema v1.
 - iOS development export metadata is version `1.0` build `2`; Android's local
   development artifact name is distinct for Build 2.
 - Android debug export: `builds/android/fred-myers-app-build-2-debug.apk`,
-  84,924,487 bytes, SHA-256
-  `CF117829B55A9CADED871BBD0118C1B81AB931F5ADD3F487DBDA9E68B20A7DF5`.
+  84,928,583 bytes, SHA-256
+  `E89B60D4003C85D4D3C1EAD2034EE69201B85DE74CD58CBB722DF9902B44E8C3`.
   It is debug signed, zip-aligned, min/target SDK 24/36, contains arm64-v8a and
   x86_64, requests no Android permissions, and passed the private-path/source/
   secret content scan.
@@ -130,3 +131,9 @@ touch feel on the owner's device. The next protected action is to create and
 upload the signed iOS build number 2 from the authorized Mac workflow, wait for
 TestFlight processing, attach it to the existing internal group, then repeat
 the three owner workflows on a physical iPhone.
+
+The owner also reported that Build 1 could not access Game Center. Build 2 now
+has a visible, retryable connect/open path documented in
+`APP_BUILD_2_GAME_CENTER_ACCESS_REPORT.md`. This local correction does not
+substitute for signed Build 2 upload, Apple component configuration, or
+physical iPhone Game Center acceptance.

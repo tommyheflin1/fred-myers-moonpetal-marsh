@@ -11,6 +11,7 @@ class FakeGameCenter:
 	var events: Array[Dictionary] = []
 	var posts: Array[Dictionary] = []
 	var presented: Array[Dictionary] = []
+	var presentation_error := OK
 
 	func authenticate() -> int:
 		return authenticate_error
@@ -30,7 +31,7 @@ class FakeGameCenter:
 
 	func show_game_center(payload: Dictionary) -> int:
 		presented.append(payload.duplicate(true))
-		return OK
+		return presentation_error
 
 
 var passed := 0
@@ -64,8 +65,14 @@ func _run() -> void:
 	check(adapter.pending_score_count() == 2 and plugin.posts.is_empty(), "unauthenticated records wait without false delivery")
 	check(adapter.begin_sign_in(), "Game Center authentication can begin")
 	check(adapter.state == "authenticating", "authentication enters an explicit pending state")
+	plugin.events.append({"type": "authentication", "result": "error", "error_code": 6})
+	adapter.poll()
+	check(adapter.authentication_state() == "ready", "failed native authentication returns to a retryable ready state")
+	check(adapter.can_retry_sign_in(), "a failed Apple sign-in exposes a safe retry path")
+	check(adapter.last_auth_error == "game_center_auth_failed" and adapter.last_auth_error_code == 6, "authentication diagnostic retains only bounded error metadata")
+	check(adapter.begin_sign_in(), "Game Center authentication can be retried without relaunching the app")
 	plugin.authenticated = true
-	plugin.events.append({"type": "authentication", "result": "ok", "displayName": "Marsh Hero"})
+	plugin.events.append({"type": "authentication", "result": "ok", "displayName": "Marsh Hero", "player_id": "fictional-player"})
 	adapter.poll()
 	check(adapter.state == "authenticated", "successful native authentication is observed")
 	check(adapter.display_name == "Marsh Hero", "safe platform display name is retained for status only")
@@ -103,6 +110,12 @@ func _run() -> void:
 		and str(plugin.presented[0].get("leaderboard_name", "")) == Adapter.SCORE_LEADERBOARD_ID,
 		"native presentation targets Fred's adventure leaderboard"
 	)
+	plugin.presentation_error = ERR_UNAVAILABLE
+	check(not adapter.show_leaderboards(), "native dashboard presentation failure is reported instead of masquerading as open")
+	plugin.presentation_error = OK
+	var diagnostic := adapter.diagnostic_snapshot()
+	check(bool(diagnostic.available) and bool(diagnostic.authenticated), "diagnostic snapshot reports the authenticated provider boundary")
+	check(not "Marsh Hero" in JSON.stringify(diagnostic), "diagnostic snapshot excludes the player's Game Center display name")
 
 	plugin.post_error = ERR_UNAVAILABLE
 	check(adapter.submit_personal_records(15000, 15), "synchronous native score failure remains queued")

@@ -4,6 +4,24 @@ const Layout = preload("res://scripts/marsh_route_layout.gd")
 const SAVE_PREFIX := "user://lives_routes_phone_review"
 const BOARD_PATH := "user://lives_routes_phone_review_board.json"
 
+class ReviewGameCenter:
+	extends Node
+
+	func is_available() -> bool:
+		return true
+
+	func is_authenticated() -> bool:
+		return false
+
+	func authentication_state() -> String:
+		return "ready"
+
+	func begin_sign_in() -> bool:
+		return true
+
+	func show_leaderboards() -> bool:
+		return true
+
 func _init() -> void:
 	_review.call_deferred()
 
@@ -43,6 +61,17 @@ func _review() -> void:
 	game.hazards_enabled = scenario.begins_with("level")
 	game.session = AdventureSession.new(1337 + game.level_number)
 	game.session.health = 2 if scenario == "lives" else 3
+	if scenario == "gamecenter":
+		var original_game_center: Node = game.game_center
+		game.remove_child(original_game_center)
+		original_game_center.queue_free()
+		game.game_center = ReviewGameCenter.new()
+		game.add_child(game.game_center)
+		game.screen = game.Screen.LEADERBOARD
+		game.game_center_status = "GAME CENTER SIGN-IN NEEDED — TAP CONNECT"
+		game._sync_music()
+		game.queue_redraw()
+		return
 	game.fred = game._level_start_position()
 	game.predator = game._route_point(game.PREDATOR_START)
 	game.predator_direction = -1.0 if Layout.is_reversed(game.level_number) else 1.0

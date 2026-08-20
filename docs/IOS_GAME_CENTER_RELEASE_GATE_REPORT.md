@@ -181,3 +181,21 @@ This closes the upload and processing gates. Live Game Center authentication,
 score submission, native leaderboard display, offline queue and reconnect
 delivery remain `UNVERIFIED` until the owner runs the documented sequence on a
 physical iPhone or iPad from this exact TestFlight build.
+
+## App Build 2 access correction - 2026-08-20
+
+Physical TestFlight Build 1 testing confirmed a user-visible access defect:
+after Apple authentication failed, timed out, or was cancelled, Fred exposed no
+way to retry without relaunching the app. Local Build 2 now provides distinct
+`CONNECT GAME CENTER`, `CONNECTING...`, and authenticated `OPEN GAME CENTER`
+states, retryable failure handling, and a visible dashboard-presentation error.
+Local play and scores remain available throughout.
+
+The focused adapter passes 38/38, menu integration passes 35/35, the complete
+Build 2 matrix passes 6,947/6,947, and the real leaderboard screen was inspected
+at 960 by 540 and 640 by 360 without button overlap. App Store Connect was
+inspected read-only: the version checkbox remains enabled and both leaderboards
+remain `Prepare for Submission`. No component was added for review and no App
+Store state was changed. The corrected Build 2 must still be signed, uploaded,
+processed and tested on a Game Center-authenticated physical iPhone before live
+service behavior can be accepted.
