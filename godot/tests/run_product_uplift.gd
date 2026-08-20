@@ -90,6 +90,9 @@ func _run() -> void:
 	check(Layout.touch_action_at(Layout.HOME_RECT.get_center()) == "home", "the visible gameplay Exit button shares the touch hit contract")
 	var fred_start_bounds := Rect2(Main.START - Vector2(42.0,42.0), Vector2(84.0,84.0))
 	check(not Layout.TOUCH_ACTION_WHEEL_RECT.intersects(fred_start_bounds), "left action wheel keeps Fred's starting silhouette clear")
+	var reversed_start := Layout.start_point(Main.START, 2)
+	var reversed_start_bounds := Rect2(reversed_start - Vector2(42.0,42.0), Vector2(84.0,84.0))
+	check(not Layout.TOUCH_CONTROL_PAD_RECT.intersects(reversed_start_bounds), "right control pad keeps reversed-route Fred clear")
 	check(Layout.touch_action_at(Layout.TOUCH_CONTROL_PAD_CENTER) == "steer", "the right control pad owns touch steering")
 	check(Layout.touch_action_at(Vector2(620.0,330.0)) == "", "the open playfield cannot cause unintended touch movement")
 

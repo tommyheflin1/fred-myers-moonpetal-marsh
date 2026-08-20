@@ -19,6 +19,7 @@ const TOUCH_CONTROL_PAD_CENTER := Vector2(1120.0, 585.0)
 const TOUCH_CONTROL_PAD_RADIUS := 86.0
 const TOUCH_CONTROL_PAD_RECT := Rect2(1034.0, 499.0, 172.0, 172.0)
 const TOUCH_SAFE_EDGE_MARGIN := 36.0
+const TOUCH_ACTOR_CLEARANCE := 64.0
 const TOUCH_OVERLAY_ALPHA := 0.16
 const TOUCH_CONTROL_ALPHA := 0.34
 const TOUCH_CONTROL_ACTIVE_ALPHA := 0.68
@@ -76,6 +77,12 @@ static func route_direction(level: int) -> Vector2:
 
 static func route_label(level: int) -> String:
 	return "RIGHT TO LEFT" if is_reversed(level) else "LEFT TO RIGHT"
+
+static func start_point(base: Vector2, level: int) -> Vector2:
+	var position := route_point(base, level)
+	if is_reversed(level):
+		position.y = minf(position.y, TOUCH_CONTROL_PAD_RECT.position.y - TOUCH_ACTOR_CLEARANCE)
+	return position
 
 static func formation_variant(level: int) -> int:
 	return posmod(maxi(1, level) - 1, FORMATION_LABELS.size())

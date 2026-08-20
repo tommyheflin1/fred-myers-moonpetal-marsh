@@ -293,7 +293,7 @@ func _fixed_tick(delta: float) -> void:
     _update_camera(direction, bool(boost_step.active))
     predator.x += predator_direction * 110.0 * float(level_profile.predator_speed_scale) * delta
     if bool(level_profile.weaving_patrol):
-        predator.y = PREDATOR_START.y + sin(visual_time * (0.8 + float(level_number) * 0.015)) * minf(115.0, 42.0 + float(level_number))
+        predator.y = PREDATOR_START.y + sin(visual_time * float(level_profile.predator_weave_speed)) * float(level_profile.predator_weave_amplitude)
     var predator_bounds := Vector2(160.0,520.0) if MarshRouteLayout.is_reversed(level_number) else Vector2(760.0,1120.0)
     if predator.x > predator_bounds.y or predator.x < predator_bounds.x:
         predator_direction *= -1.0
@@ -345,7 +345,7 @@ func _route_point(point: Vector2) -> Vector2:
     return MarshRouteLayout.route_point(point, level_number)
 
 func _level_start_position() -> Vector2:
-    return _route_point(START)
+    return MarshRouteLayout.start_point(START, level_number)
 
 func _level_exit_position() -> Vector2:
     return _route_point(EXIT)
@@ -455,7 +455,7 @@ func _current_vector() -> Vector2:
     var route_direction := -1.0 if MarshRouteLayout.is_reversed(level_number) else 1.0
     var direction := route_direction
     if bool(level_profile.reversing_current):
-        var frequency := 0.65 if level_number < 8 else 1.05
+        var frequency := float(level_profile.current_reversal_frequency)
         direction = route_direction if sin(visual_time * frequency) >= 0.0 else -route_direction
     var vertical := 0.0
     if level_number >= 7 and depth.is_underwater_band():
@@ -1186,7 +1186,7 @@ func _draw_marsh_background(water: Color) -> void:
     var accent_positions: Array[Vector2] = [
         Vector2(165,165), Vector2(465,310), Vector2(790,195), Vector2(1090,445)
     ]
-    for index in range(variant + 1):
+    for index in range(mini(variant + 1, accent_positions.size())):
         var accent := _route_point(accent_positions[index])
         draw_circle(accent, 70.0 + float(index) * 18.0, Color(0.72,0.93,1.0,0.028 + float(variant) * 0.006))
     for layer in range(3):
@@ -1256,9 +1256,10 @@ func _draw_level() -> void:
     draw_set_transform(Vector2.ZERO)
     _text(Vector2(25,42), "LILY LEAP", 27, Color("f7d36a"), HORIZONTAL_ALIGNMENT_LEFT, 270)
     _text(Vector2(25,76), "CAMPAIGN 1  •  LEVEL %03d / 100  •  %s" % [level_profile.level, level_profile.label], 13, Color("d9f4e2"), HORIZONTAL_ALIGNMENT_LEFT, 310)
-    var route_summary := "%s  |  %s  |  THREATS %d  |  NEW: %s" % [
+    var route_summary := "%s  |  %s  |  %.1fx  |  THREATS %d  |  NEW: %s" % [
         MarshRouteLayout.formation_label(level_number).to_upper(),
         MarshRouteLayout.route_label(level_number),
+        float(level_profile.challenge_multiplier),
         int(level_profile.predator_count),
         str(level_profile.new_twist).to_upper(),
     ]

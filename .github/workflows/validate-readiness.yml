@@ -47,6 +47,8 @@ jobs:
         run: ./Godot_v4.7.1-stable_linux.x86_64 --headless --path godot --script res://tests/run_m2_foundation.gd
       - name: Run Campaign 1 age-five and PG progression tests
         run: ./Godot_v4.7.1-stable_linux.x86_64 --headless --path godot --script res://tests/run_campaign_one.gd
+      - name: Run ten-level chapter difficulty ladder tests
+        run: ./Godot_v4.7.1-stable_linux.x86_64 --headless --path godot --script res://tests/run_chapter_difficulty.gd
       - name: Run M2 leap traversal tests
         run: ./Godot_v4.7.1-stable_linux.x86_64 --headless --path godot --script res://tests/run_leap_traversal.gd
       - name: Run M2 depth traversal tests

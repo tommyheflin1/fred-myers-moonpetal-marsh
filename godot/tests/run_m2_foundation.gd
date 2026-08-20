@@ -23,15 +23,16 @@ func _run() -> void:
 	check(FredLevelIntensity.profile(101) == FredLevelIntensity.profile(100), "levels above 100 clamp safely")
 	for level in range(2, 101):
 		var current := FredLevelIntensity.profile(level)
-		check(float(current.intensity) >= float(previous.intensity), "level %03d never reduces intensity" % level)
-		check(float(current.intensity) - float(previous.intensity) <= 0.02, "level %03d increase remains bounded" % level)
+		check(float(current.intensity) > float(previous.intensity), "level %03d never repeats or reduces intensity" % level)
+		check(is_equal_approx(float(current.intensity) - float(previous.intensity), 0.1), "level %03d advances one bounded chapter step" % level)
 		check(float(current.predator_speed_scale) >= float(previous.predator_speed_scale), "level %03d predator pressure is monotonic" % level)
 		check(float(current.reaction_window_seconds) <= float(previous.reaction_window_seconds), "level %03d reaction window is monotonic" % level)
 		check(int(current.difficulty_step) == level, "level %03d owns one explicit progressive difficulty step" % level)
 		check(current == FredLevelIntensity.profile(level), "level %03d profile is deterministic" % level)
 		previous = current
 	check(float(FredLevelIntensity.profile(100).intensity) > float(FredLevelIntensity.profile(80).intensity), "final twenty levels retain increasing intensity")
-	check(float(FredLevelIntensity.profile(100).intensity) == 1.5, "level 100 reaches the bounded age-five campaign intensity")
+	check(is_equal_approx(float(FredLevelIntensity.profile(11).intensity), float(FredLevelIntensity.profile(1).intensity) * 2.0), "level eleven begins at exactly twice level-one challenge")
+	check(is_equal_approx(float(FredLevelIntensity.profile(100).intensity), 10.9), "level 100 reaches the final ten-chapter multiplier")
 	check(FredLevelIntensity.profile(100).label == "Moonpetal Mastery", "level 100 has mastery identity")
 	check(float(FredLevelIntensity.profile(100).reaction_window_seconds) >= 1.35, "even Level 100 preserves a readable reaction window")
 	check(float(FredLevelIntensity.profile(100).mistake_grace_seconds) >= 1.8, "even Level 100 preserves recovery grace")
@@ -39,12 +40,12 @@ func _run() -> void:
 	for level in range(1, 101):
 		var twist := str(FredLevelIntensity.profile(level).new_twist)
 		check(not twist.is_empty(), "level %03d declares a complexity twist" % level)
-	check(FredLevelIntensity.profile(2).new_twist == "Land on the lily path", "level two teaches landing before adding pressure")
-	check(not FredLevelIntensity.profile(8).weaving_patrol and FredLevelIntensity.profile(9).weaving_patrol, "the first moving patrol waits until level nine")
-	check(not FredLevelIntensity.profile(13).reversing_current and FredLevelIntensity.profile(14).reversing_current, "reversing flow waits until the second chapter")
+	check(FredLevelIntensity.profile(2).new_twist == "Follow the first drifting lily", "level two introduces its first visible movement challenge")
+	check(not FredLevelIntensity.profile(2).weaving_patrol and FredLevelIntensity.profile(3).weaving_patrol, "the readable patrol weave begins on level three")
+	check(not FredLevelIntensity.profile(7).reversing_current and FredLevelIntensity.profile(8).reversing_current, "reversing flow begins on level eight after current practice")
 	check(float(FredLevelIntensity.profile(6).danger_radius) > float(FredLevelIntensity.profile(5).danger_radius), "level six widens danger reach")
 	check(int(FredLevelIntensity.profile(1).predator_count) == 1, "level one starts with one readable predator")
-	check(int(FredLevelIntensity.profile(15).whirlpool_count) == 0 and int(FredLevelIntensity.profile(16).whirlpool_count) == 1, "whirlpools wait until the child learns the first chapter")
+	check(int(FredLevelIntensity.profile(10).whirlpool_count) == 0 and int(FredLevelIntensity.profile(11).whirlpool_count) == 1, "whirlpools wait until the child completes the first chapter")
 	check(int(FredLevelIntensity.profile(100).predator_count) == 5, "late levels reach five active predators")
 	check(int(FredLevelIntensity.profile(100).whirlpool_count) == 3, "late levels combine three whirlpools")
 	check(float(FredLevelIntensity.profile(100).lily_drift) > float(FredLevelIntensity.profile(1).lily_drift), "lily drift grows progressively")
@@ -73,6 +74,7 @@ func _run() -> void:
 	check(identity.state == FredPlayerIdentity.State.OFFLINE, "account setup remains skippable")
 
 	var game: Node2D = load("res://scripts/main.gd").new()
+	game.audio_enabled = false
 	game.countdown_enabled = false
 	game.saver = FredSaveAdapter.new("user://m2_progression_test")
 	root.add_child(game)
@@ -88,9 +90,9 @@ func _run() -> void:
 	game.level_number = 2
 	game.level_profile = FredLevelIntensity.profile(2)
 	game._advance_level()
-	check(game.level_number == 3 and not game.level_profile.weaving_patrol, "level three keeps the early campaign focused on bug skills")
-	game.level_number = 16
-	game.level_profile = FredLevelIntensity.profile(16)
+	check(game.level_number == 3 and game.level_profile.weaving_patrol, "level three activates the first readable patrol weave")
+	game.level_number = 11
+	game.level_profile = FredLevelIntensity.profile(11)
 	check(game.direct_route_has_danger(), "later routes add a telegraphed current hazard")
 	game.level_number = 1
 	game.level_profile = FredLevelIntensity.profile(1)
@@ -129,7 +131,12 @@ func _run() -> void:
 	game._advance_visual(0.1)
 	check(game.eat_effect_seconds < 0.32, "eating animation advances visibly")
 	check(game.session.to_save("2000-01-01T00:00:00Z") == save_before, "eating animation cannot mutate gameplay or save state")
+	game.menu_music.stop()
+	game.chase_music.stop()
+	game.menu_music.stream = null
+	game.chase_music.stream = null
 	game.queue_free()
+	await process_frame
 
 	print("RESULT m2_foundation_passed=%d m2_foundation_failed=%d" % [passed, failed])
 	quit(1 if failed else 0)

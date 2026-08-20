@@ -72,6 +72,15 @@ collar, shoulder gussets, stitched seams, closures and layered eyewear. The
 work is presentation-only and retains collision, touch controls, fixed-tick
 gameplay, Core 0.5.1 and save v1.
 
+The local App Build 2 descendant now also carries the verified 100-level
+chapter-difficulty ladder in `APP_BUILD_2_DIFFICULTY_LADDER_REPORT.md`.
+Levels 1–10 advance from 1.0x to 1.9x, Level 11 starts at exactly 2.0x, and
+each ten-level chapter repeats the readable climb with additional bounded
+predator, current, lily, prey and whirlpool pressure. The full 26-suite matrix
+passes 6,936 checks. This is local deterministic and Windows visual evidence;
+it does not move milestone scores or substitute for physical-device/owner
+acceptance.
+
 Owner direction on 2026-08-03 starts the local App Build 1 testing phase. The
 exact latest desktop/icon candidate is packaged as a newer debug-only Android
 artifact. The next local revision adds a required two-step hero-story and

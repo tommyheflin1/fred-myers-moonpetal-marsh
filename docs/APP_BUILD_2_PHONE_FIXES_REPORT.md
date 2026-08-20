@@ -64,19 +64,22 @@ all contacts, held Boost and pointer emulation before presenting the safe gate.
 - Godot: `4.7.1.stable.official.a13da4feb`.
 - Import/parse gate: passed.
 - Focused Build 2 phone fixes: 49 passed, 0 failed.
-- Touch-first controls: 65 passed, 0 failed.
+- Touch-first controls: 66 passed, 0 failed.
 - Android lifecycle/touch readiness: 21 passed, 0 failed; 10,000 routing
   decisions completed in 24 ms with zero measured static-memory growth in the
   affected-suite run.
 - Phone lives/routes/layout: 49 passed, 0 failed.
-- Product regression: 95 passed, 0 failed.
-- Complete repository matrix: **25 suites, 5,280 passed, 0 failed**.
+- Product regression: 96 passed, 0 failed.
+- Chapter-difficulty ladder: 1,551 passed, 0 failed; the exact ladder and
+  later-level runtime evidence are documented in
+  `APP_BUILD_2_DIFFICULTY_LADDER_REPORT.md`.
+- Complete repository matrix: **26 suites, 6,936 passed, 0 failed**.
 - Eight save fixtures remain valid and `fred_save` remains schema v1.
 - iOS development export metadata is version `1.0` build `2`; Android's local
   development artifact name is distinct for Build 2.
 - Android debug export: `builds/android/fred-myers-app-build-2-debug.apk`,
   84,924,487 bytes, SHA-256
-  `E533CAC69285CAB8E53D5642740033AE9283FBFBD6DA39B38D19D2F0BD7E708E`.
+  `CF117829B55A9CADED871BBD0118C1B81AB931F5ADD3F487DBDA9E68B20A7DF5`.
   It is debug signed, zip-aligned, min/target SDK 24/36, contains arm64-v8a and
   x86_64, requests no Android permissions, and passed the private-path/source/
   secret content scan.
@@ -104,8 +107,9 @@ the Resume surface remained unobstructed at the constrained size.
 ## Integrity and boundaries
 
 - Mobile Game Core remains pinned to 0.5.1.
-- No gameplay, collision, lives, fairy, progression, score or save-schema rule
-  changed.
+- The later difficulty-ladder extension changes only deterministic level
+  pressure and route presentation. Collision, lives, fairy rewards, score and
+  save-schema rules remain unchanged.
 - All review runs used isolated fictional app data; owner saves were not opened
   or modified. The owner primary and backup files remain 592 bytes with their
   exact prior timestamps and SHA-256 values

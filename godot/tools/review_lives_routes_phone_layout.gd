@@ -31,13 +31,16 @@ func _review() -> void:
 	root.add_child(game)
 	await process_frame
 	game._start()
-	if scenario in ["level1", "leap"]:
+	if scenario.begins_with("level") and scenario.trim_prefix("level").is_valid_int():
+		game.level_number = clampi(int(scenario.trim_prefix("level")), 1, FredLevelIntensity.MAX_LEVEL)
+	elif scenario == "leap":
 		game.level_number = 1
 	elif scenario == "predators":
 		game.level_number = 100
 	else:
 		game.level_number = 2
 	game.level_profile = FredLevelIntensity.profile(game.level_number)
+	game.hazards_enabled = scenario.begins_with("level")
 	game.session = AdventureSession.new(1337 + game.level_number)
 	game.session.health = 2 if scenario == "lives" else 3
 	game.fred = game._level_start_position()
@@ -57,7 +60,12 @@ func _review() -> void:
 			else (
 				"[LEAP REVIEW] Tap LEAP to spring over the bass and keep the same round."
 				if scenario == "leap"
-				else "[PHONE REVIEW] %s route with touch controls." % Layout.route_label(game.level_number)
+				else "[PHONE REVIEW] %s route • %.1fx challenge • %d predators • %d whirlpools." % [
+					Layout.route_label(game.level_number),
+					float(game.level_profile.challenge_multiplier),
+					int(game.level_profile.predator_count),
+					int(game.level_profile.whirlpool_count),
+				]
 			)
 		)
 	)

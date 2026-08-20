@@ -39,6 +39,7 @@ REQUIRED = [
     "godot/tests/run_visual_clarity.gd",
     "godot/tests/run_m2_foundation.gd",
     "godot/tests/run_campaign_one.gd",
+    "godot/tests/run_chapter_difficulty.gd",
     "godot/tests/run_camera_follow.gd",
     "godot/tests/run_animation_coordinator.gd",
     "godot/tests/run_fred_rig.gd",

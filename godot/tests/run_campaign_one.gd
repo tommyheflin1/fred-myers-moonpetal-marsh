@@ -32,14 +32,16 @@ func _run() -> void:
 		check(str(profile.campaign_id) == "campaign_1" and str(profile.content_rating) == "PG", "Level %03d preserves Campaign 1 and PG identity" % level)
 		check(int(profile.target_min_age) == 5, "Level %03d preserves the five-year-old design floor" % level)
 		check(int(profile.chapter) == ((level - 1) / 10) + 1 and int(profile.chapter_level) == ((level - 1) % 10) + 1, "Level %03d has the correct ten-level chapter position" % level)
-		check(float(profile.reaction_window_seconds) >= 1.35 and float(profile.mistake_grace_seconds) >= 1.8, "Level %03d preserves child-readable reaction and recovery time" % level)
+		check(float(profile.reaction_window_seconds) >= 1.50 and float(profile.mistake_grace_seconds) >= 1.9, "Level %03d preserves child-readable reaction and recovery time" % level)
 		check(float(profile.safe_radius) >= 50.0 and float(profile.danger_radius) <= 48.0, "Level %03d preserves fair safe and danger geometry" % level)
 		check(int(profile.predator_count) >= 1 and int(profile.predator_count) <= 5 and int(profile.whirlpool_count) >= 0 and int(profile.whirlpool_count) <= 3, "Level %03d keeps hazards inside the PG campaign budget" % level)
-		check(float(profile.predator_speed_scale) <= 1.30 and float(profile.bug_flight_speed) <= 0.95, "Level %03d keeps moving targets inside the age-five speed cap" % level)
+		check(float(profile.predator_speed_scale) <= 1.27 and float(profile.bug_flight_speed) <= 0.90, "Level %03d keeps moving targets inside the age-five speed cap" % level)
+		var expected_challenge := float(profile.chapter) + float(int(profile.chapter_level) - 1) * 0.1
+		check(is_equal_approx(float(profile.challenge_multiplier), expected_challenge), "Level %03d owns its exact chapter challenge multiplier" % level)
 		check(not str(profile.new_twist).is_empty(), "Level %03d explains its next learnable challenge" % level)
 		if level > 1:
-			check(float(profile.intensity) > float(previous.intensity), "Level %03d becomes slightly harder than the level before" % level)
-			check(float(profile.intensity) - float(previous.intensity) <= 0.012, "Level %03d difficulty increase remains gentle" % level)
+			check(float(profile.intensity) > float(previous.intensity), "Level %03d becomes measurably harder than the level before" % level)
+			check(is_equal_approx(float(profile.intensity) - float(previous.intensity), 0.1), "Level %03d advances one exact chapter difficulty step" % level)
 			check(int(profile.predator_count) >= int(previous.predator_count) and int(profile.predator_count) - int(previous.predator_count) <= 1, "Level %03d predator count changes gradually" % level)
 			check(int(profile.whirlpool_count) >= int(previous.whirlpool_count) and int(profile.whirlpool_count) - int(previous.whirlpool_count) <= 1, "Level %03d current hazards change gradually" % level)
 		previous = profile
@@ -49,7 +51,9 @@ func _run() -> void:
 	for chapter in range(1, 11):
 		check(int(chapters.get(chapter, 0)) == 10, "Campaign 1 chapter %02d contains ten levels" % chapter)
 	check(int(profiles[0].predator_count) == 1 and int(profiles[0].whirlpool_count) == 0, "Level 1 begins with one readable patrol and no whirlpool")
-	check(int(profiles[19].predator_count) == 1, "the first twenty levels retain one-predator learning space")
+	check(is_equal_approx(float(profiles[10].challenge_multiplier), float(profiles[0].challenge_multiplier) * 2.0), "Level 11 begins at exactly twice Level 1 challenge")
+	check(int(profiles[9].predator_count) == 1 and int(profiles[10].predator_count) == 2, "Level 11 adds the second readable predator at the chapter boundary")
+	check(int(profiles[9].whirlpool_count) == 0 and int(profiles[10].whirlpool_count) == 1, "Level 11 adds the first telegraphed whirlpool challenge")
 	check(int(profiles[99].predator_count) == 5 and int(profiles[99].whirlpool_count) == 3, "Level 100 reaches the bounded campaign challenge")
 	check(float(profiles[99].intensity) > float(profiles[79].intensity), "the final twenty levels continue increasing")
 	check(str(profiles[0].assist_mode) == "FULL" and str(profiles[99].assist_mode) == "HERO", "guidance tapers from full learning support to hero mastery")

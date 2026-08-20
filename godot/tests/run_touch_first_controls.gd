@@ -40,6 +40,8 @@ func _run() -> void:
 	check(Layout.TOUCH_ACTION_WHEEL_RECT.end.y <= Layout.CANVAS_SIZE.y - Layout.TOUCH_SAFE_EDGE_MARGIN, "action wheel clears the phone bottom safe area")
 	check(Layout.TOUCH_CONTROL_PAD_RECT.end.y <= Layout.CANVAS_SIZE.y - Layout.TOUCH_SAFE_EDGE_MARGIN, "control pad clears the phone bottom safe area")
 	check(Layout.TOUCH_OVERLAY_ALPHA < Layout.TOUCH_CONTROL_ALPHA and Layout.TOUCH_CONTROL_ALPHA < Layout.TOUCH_CONTROL_ACTIVE_ALPHA, "transparent controls gain contrast only while pressed")
+	var reversed_start_bounds := Rect2(Layout.start_point(Vector2(135.0,560.0), 2) - Vector2(42.0,42.0), Vector2(84.0,84.0))
+	check(not Layout.TOUCH_CONTROL_PAD_RECT.intersects(reversed_start_bounds), "reversed routes keep Fred outside the right control pad")
 	check(not Layout.TOUCH_CONTROL_PAD_RECT.intersects(Layout.TOUCH_ACTION_WHEEL_RECT), "action wheel and movement pad never overlap")
 	check(not Layout.STATUS_TOUCH_RECT.intersects(Layout.TOUCH_ACTION_WHEEL_RECT), "status feedback does not overlap the action wheel")
 	check(not Layout.STATUS_TOUCH_RECT.intersects(Layout.TOUCH_CONTROL_PAD_RECT), "status feedback does not overlap the movement pad")
