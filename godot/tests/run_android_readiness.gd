@@ -44,7 +44,7 @@ func _run() -> void:
 
 	var move_touch := InputEventScreenTouch.new()
 	move_touch.index = 11
-	move_touch.position = game.fred + Vector2(200.0,0.0)
+	move_touch.position = MarshRouteLayout.TOUCH_CONTROL_PAD_CENTER + Vector2(60.0,0.0)
 	move_touch.pressed = true
 	game._unhandled_input(move_touch)
 	var boost_touch := InputEventScreenTouch.new()
@@ -52,7 +52,7 @@ func _run() -> void:
 	boost_touch.position = Vector2(MarshRouteLayout.touch_centers().boost)
 	boost_touch.pressed = true
 	game._unhandled_input(boost_touch)
-	check(game.touch_movement == Vector2.RIGHT and game.touch_boost, "simultaneous drag steering and bottom-row Boost remain independent")
+	check(game.touch_movement == Vector2.RIGHT and game.touch_boost, "simultaneous right-pad steering and left-wheel Boost remain independent")
 
 	var state_before_pause := [
 		game.fred,
@@ -84,14 +84,14 @@ func _run() -> void:
 	game.notification(NOTIFICATION_APPLICATION_RESUMED)
 	check(game.session.paused, "duplicate resume notification cannot silently unpause")
 
-	var pause_touch := InputEventScreenTouch.new()
-	pause_touch.index = 13
-	pause_touch.position = MarshRouteLayout.PAUSE_RECT.get_center()
-	pause_touch.pressed = true
-	game._unhandled_input(pause_touch)
-	check(not game.session.paused, "touch pause control explicitly resumes after foreground recovery")
-	pause_touch.pressed = false
-	game._unhandled_input(pause_touch)
+	var resume_touch := InputEventScreenTouch.new()
+	resume_touch.index = 13
+	resume_touch.position = MarshRouteLayout.PAUSED_RESUME_RECT.get_center()
+	resume_touch.pressed = true
+	game._unhandled_input(resume_touch)
+	check(not game.session.paused, "touch Resume overlay explicitly resumes after foreground recovery")
+	resume_touch.pressed = false
+	game._unhandled_input(resume_touch)
 	check(game.touch_contacts.is_empty(), "resume-control touch release leaves no stale contact")
 
 	var first_back: String = game._handle_back_request()

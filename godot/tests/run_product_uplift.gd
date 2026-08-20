@@ -89,8 +89,9 @@ func _run() -> void:
 	check(not Layout.HOME_RECT.intersects(Layout.PAUSE_RECT) and not Layout.HOME_RECT.intersects(Layout.LIVES_RECT), "Exit, Pause and Lives remain non-overlapping")
 	check(Layout.touch_action_at(Layout.HOME_RECT.get_center()) == "home", "the visible gameplay Exit button shares the touch hit contract")
 	var fred_start_bounds := Rect2(Main.START - Vector2(42.0,42.0), Vector2(84.0,84.0))
-	check(not Layout.TOUCH_GUIDE_RECT.intersects(fred_start_bounds), "touch steering guide keeps Fred's starting silhouette clear")
-	check(Layout.touch_action_at(Vector2(620.0,330.0)) == "steer", "the open playfield is the direct touch steering surface")
+	check(not Layout.TOUCH_ACTION_WHEEL_RECT.intersects(fred_start_bounds), "left action wheel keeps Fred's starting silhouette clear")
+	check(Layout.touch_action_at(Layout.TOUCH_CONTROL_PAD_CENTER) == "steer", "the right control pad owns touch steering")
+	check(Layout.touch_action_at(Vector2(620.0,330.0)) == "", "the open playfield cannot cause unintended touch movement")
 
 	var game: Node2D = Main.new()
 	game.audio_enabled = false

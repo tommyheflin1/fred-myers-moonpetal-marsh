@@ -97,10 +97,11 @@ func _run() -> void:
 	await send_key(game, KEY_P, false)
 	check(not game.session.paused, "keyboard action cannot pause Campaign 1")
 
-	await touch(game, 4, Vector2(700, 400), true)
+	var move_right := Layout.TOUCH_CONTROL_PAD_CENTER + Vector2(60.0,0.0)
+	await touch(game, 4, move_right, true)
 	game._fixed_tick(1.0 / 60.0)
-	await touch(game, 4, Vector2(700, 400), false)
-	check(game.fred.x > before.x, "touching the open marsh moves Fred")
+	await touch(game, 4, move_right, false)
+	check(game.fred.x > before.x, "sliding the right control pad moves Fred")
 	check(game.touch_contacts.is_empty() and game.touch_movement == Vector2.ZERO, "released movement touch clears cleanly")
 
 	game.fred = game._bug_position(0) + Vector2(-100, 0)
@@ -111,11 +112,11 @@ func _run() -> void:
 	game.tongue.advance(1.0)
 
 	var energy_before: int = game.session.boost_energy
-	await touch(game, 6, Vector2(700, 400), true)
+	await touch(game, 6, move_right, true)
 	await touch(game, 7, Rect2(action_rects.boost).get_center(), true)
 	game._fixed_tick(1.0 / 60.0)
 	await touch(game, 7, Rect2(action_rects.boost).get_center(), false)
-	await touch(game, 6, Vector2(700, 400), false)
+	await touch(game, 6, move_right, false)
 	check(game.session.boost_energy == energy_before - 1, "simultaneous touch steering and Boost consume one energy tick")
 
 	await tap(game, 8, Rect2(Layout.PAUSE_RECT).get_center())

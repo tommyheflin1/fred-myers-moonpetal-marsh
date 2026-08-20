@@ -54,7 +54,7 @@ func _run() -> void:
 		check(phrase in source, "hero story includes: %s" % phrase)
 	for phrase in [
 		"HOW TO BE A MARSH HERO",
-		"TOUCH + DRAG",
+		"RIGHT CONTROL PAD",
 		"MUNCH",
 		"LEAP",
 		"BOOST",

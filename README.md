@@ -116,15 +116,16 @@ left-to-right and right-to-left routes, cycles six whole-screen formations and
 six marsh treatments, and uses one non-overlapping layout contract for the HUD,
 Exit action, Fred start area, and landscape touch controls.
 
-App Build 1 uses a touch-first landscape control model on phones and tablets:
-touch and drag anywhere in the open marsh to steer Fred, then use the large
-bottom-row Munch, Leap, Boost, and Dive/Surface buttons. Pause and Exit remain
-isolated in the top HUD. Starting the adventure now requires two short,
+App Build 2 uses a controller-style touch layout on phones and tablets: the
+right control pad steers Fred while the four large circular Munch, Leap, Boost,
+and Dive/Surface actions form a separate wheel on the left. Pause and Exit
+remain isolated in the top HUD, and inactive controls hide behind countdown and
+pause overlays. Starting the adventure requires two short,
 touch-friendly screens: the Moonpetal Promise explains why Fred must become the
 hero in every little frog's dreams, and How to Be a Marsh Hero teaches the
 movement, action, danger, life, fairy, objective, coin, and customization rules.
-separate at the top. The desktop owner shortcut displays this same interface
-and maps mouse dragging through the exact touch-control path for review.
+The desktop owner runtime can display this same interface and maps pointer
+dragging through the exact touch-control path for review.
 
 The physical-phone handoff is hash guarded and read-only by default. With no
 authorized phone connected it returns `DEVICE_NOT_CONNECTED / UNVERIFIED`;

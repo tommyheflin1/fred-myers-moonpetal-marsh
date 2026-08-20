@@ -84,8 +84,10 @@ func _run() -> void:
 	for prohibited: String in ["BLOOD", "GORE", "KILL FRED"]:
 		check(prohibited not in source.to_upper(), "PG presentation excludes graphic language: %s" % prohibited)
 	var action_rects := Layout.touch_action_rects()
-	for rect: Rect2 in [Rect2(action_rects.tongue), Rect2(action_rects.leap), Rect2(action_rects.boost), Rect2(action_rects.depth), Layout.PAUSE_RECT, Layout.HOME_RECT]:
-		check(rect.size.x >= 120.0 and rect.size.y >= 54.0, "essential touch actions remain child-sized")
+	for rect: Rect2 in [Rect2(action_rects.tongue), Rect2(action_rects.leap), Rect2(action_rects.boost), Rect2(action_rects.depth)]:
+		check(rect.size.x >= 84.0 and rect.size.y >= 84.0, "circular action targets remain child-sized")
+	for rect: Rect2 in [Layout.PAUSE_RECT, Layout.HOME_RECT]:
+		check(rect.size.x >= 120.0 and rect.size.y >= 54.0, "top touch actions remain child-sized")
 
 	game.menu_music.stop()
 	game.chase_music.stop()

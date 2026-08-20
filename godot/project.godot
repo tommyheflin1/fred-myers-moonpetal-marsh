@@ -25,6 +25,10 @@ window/stretch/mode="canvas_items"
 window/stretch/aspect="keep"
 window/handheld/orientation=0
 
+[audio]
+
+general/ios/session_category=3
+
 [input]
 
 move_left={

@@ -218,6 +218,16 @@ edge-lit, woven garment layers improve volume without changing gameplay,
 collision, touch controls, progression, save v1 or Core. This is verified local
 M2 evidence and does not change milestone percentages before owner acceptance.
 
+App Build 2 corrects the first physical-phone feedback without changing the
+campaign or save contract. Both supplied MP3 tracks are packaged as looping
+streams and iOS uses the Playback audio-session category. Phone movement is now
+owned by a right-side control pad, with Munch, Leap, Dive/Surface and Boost in a
+separate four-button circular cluster on the left. Foreground recovery keeps the
+game safely paused but gives the visible Resume overlay its own exact touch hit
+target. Inactive controls hide during countdown and pause. The complete local
+25-suite matrix passes 5,236 checks; actual iPhone audio, lifecycle feel and
+Build 2 TestFlight acceptance remain separate physical/store gates.
+
 ## M1 sequencing
 
 1. Expand the repository source tree and retain the legacy build under `legacy-web/` or a tagged legacy branch.

@@ -8,12 +8,19 @@ const LIVES_RECT := Rect2(795.0, 14.0, 185.0, 56.0)
 const PAUSE_RECT := Rect2(990.0, 14.0, 120.0, 56.0)
 const HOME_RECT := Rect2(1125.0, 14.0, 125.0, 56.0)
 const ENERGY_RECT := Rect2(900.0, 78.0, 330.0, 18.0)
-const STATUS_TOUCH_RECT := Rect2(340.0, 568.0, 500.0, 42.0)
+const STATUS_TOUCH_RECT := Rect2(500.0, 568.0, 340.0, 42.0)
 const STATUS_DESKTOP_RECT := Rect2(820.0, 642.0, 410.0, 42.0)
 const TELEMETRY_ANCHOR := Vector2(25.0, 700.0)
-const TOUCH_MOVEMENT_RECT := Rect2(25.0, 115.0, 1230.0, 495.0)
-const TOUCH_GUIDE_RECT := Rect2(20.0, 620.0, 310.0, 88.0)
-const TOUCH_ACTION_BAR_RECT := Rect2(340.0, 620.0, 910.0, 88.0)
+const PAUSED_RESUME_RECT := Rect2(490.0, 410.0, 300.0, 65.0)
+const TOUCH_ACTION_WHEEL_CENTER := Vector2(365.0, 590.0)
+const TOUCH_ACTION_WHEEL_RECT := Rect2(235.0, 470.0, 260.0, 240.0)
+const TOUCH_CONTROL_PAD_CENTER := Vector2(1095.0, 607.0)
+const TOUCH_CONTROL_PAD_RADIUS := 92.0
+const TOUCH_CONTROL_PAD_RECT := Rect2(1003.0, 515.0, 184.0, 184.0)
+# Compatibility aliases keep existing layout consumers on one authoritative contract.
+const TOUCH_MOVEMENT_RECT := TOUCH_CONTROL_PAD_RECT
+const TOUCH_GUIDE_RECT := TOUCH_CONTROL_PAD_RECT
+const TOUCH_ACTION_BAR_RECT := TOUCH_ACTION_WHEEL_RECT
 const TOUCH_MOVEMENT_DEADZONE := 18.0
 
 const BACKGROUND_LABELS: Array[String] = [
@@ -120,12 +127,11 @@ static func status_rect(touch_visible: bool) -> Rect2:
 	return STATUS_TOUCH_RECT if touch_visible else STATUS_DESKTOP_RECT
 
 static func touch_centers() -> Dictionary:
-	var rects := touch_action_rects()
 	return {
-		"tongue": Rect2(rects.tongue).get_center(),
-		"leap": Rect2(rects.leap).get_center(),
-		"boost": Rect2(rects.boost).get_center(),
-		"depth": Rect2(rects.depth).get_center(),
+		"tongue": Vector2(312.0, 537.0),
+		"leap": Vector2(418.0, 537.0),
+		"depth": Vector2(312.0, 643.0),
+		"boost": Vector2(418.0, 643.0),
 	}
 
 static func touch_radii() -> Dictionary:
@@ -137,30 +143,46 @@ static func touch_radii() -> Dictionary:
 	}
 
 static func touch_action_rects() -> Dictionary:
+	var centers := touch_centers()
+	var radii := touch_radii()
+	var rects := {}
+	for action: String in centers:
+		var radius := float(radii[action])
+		var center := Vector2(centers[action])
+		rects[action] = Rect2(center - Vector2.ONE * radius, Vector2.ONE * radius * 2.0)
 	return {
-		"tongue": Rect2(350.0, 622.0, 205.0, 84.0),
-		"leap": Rect2(575.0, 622.0, 205.0, 84.0),
-		"boost": Rect2(800.0, 622.0, 205.0, 84.0),
-		"depth": Rect2(1025.0, 622.0, 205.0, 84.0),
+		"tongue": rects.tongue,
+		"leap": rects.leap,
+		"depth": rects.depth,
+		"boost": rects.boost,
 	}
 
 static func touch_movement_at(position: Vector2) -> bool:
-	return TOUCH_MOVEMENT_RECT.has_point(position)
+	return position.distance_to(TOUCH_CONTROL_PAD_CENTER) <= TOUCH_CONTROL_PAD_RADIUS
 
 static func clamp_touch_target(position: Vector2) -> Vector2:
-	return position.clamp(
-		TOUCH_MOVEMENT_RECT.position,
-		TOUCH_MOVEMENT_RECT.end - Vector2.ONE
-	)
+	var delta := position - TOUCH_CONTROL_PAD_CENTER
+	if delta.length() <= TOUCH_CONTROL_PAD_RADIUS:
+		return position
+	return TOUCH_CONTROL_PAD_CENTER + delta.normalized() * TOUCH_CONTROL_PAD_RADIUS
 
-static func touch_action_at(position: Vector2) -> String:
+static func touch_movement_vector(position: Vector2) -> Vector2:
+	var delta := clamp_touch_target(position) - TOUCH_CONTROL_PAD_CENTER
+	if delta.length() < TOUCH_MOVEMENT_DEADZONE:
+		return Vector2.ZERO
+	return delta.normalized()
+
+static func touch_action_at(position: Vector2, paused: bool = false) -> String:
 	if HOME_RECT.has_point(position):
 		return "home"
 	if PAUSE_RECT.has_point(position):
 		return "pause"
-	var rects := touch_action_rects()
-	for action: String in rects:
-		if Rect2(rects[action]).has_point(position):
+	if paused and PAUSED_RESUME_RECT.has_point(position):
+		return "pause"
+	var centers := touch_centers()
+	var radii := touch_radii()
+	for action: String in centers:
+		if position.distance_to(Vector2(centers[action])) <= float(radii[action]):
 			return action
 	if touch_movement_at(position):
 		return "steer"

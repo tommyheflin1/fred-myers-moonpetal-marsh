@@ -57,7 +57,7 @@ static func _label_for(level: int) -> String:
 
 static func _twist_for(level: int) -> String:
 	var introductions := {
-		1: "Touch the marsh to move",
+		1: "Use the right control pad",
 		2: "Land on the lily path",
 		3: "Munch the glowing bugs",
 		4: "Follow a gentle current",

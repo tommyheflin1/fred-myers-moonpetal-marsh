@@ -25,6 +25,8 @@ const WHIRLPOOLS := [Vector2(500,405), Vector2(790,315), Vector2(960,500)]
 const FAIRY_POSITIONS := [Vector2(455,205), Vector2(835,545), Vector2(1080,365)]
 const PREDATOR_SPECIES: Array[String] = ["BASS", "PIKE", "HERON", "SNAKE", "MUSKIE"]
 const RESPAWN_COUNTDOWN_SECONDS := 2.0
+const MENU_MUSIC_PATH := "res://assets/audio/the_marshland_march.mp3"
+const GAMEPLAY_MUSIC_PATH := "res://assets/audio/marshland_chase.mp3"
 const TITLE_START_RECT := Rect2(90,405,390,68)
 const TITLE_CUSTOMIZE_RECT := Rect2(90,490,390,58)
 const TITLE_LEADERBOARD_RECT := Rect2(90,565,390,58)
@@ -116,6 +118,10 @@ func _handle_application_paused() -> void:
     pointer_touch_active = false
     _refresh_touch_holds()
     _fixed_accumulator = 0.0
+    if is_instance_valid(menu_music):
+        menu_music.stream_paused = true
+    if is_instance_valid(chase_music):
+        chase_music.stream_paused = true
     if screen == Screen.PLAYING:
         session.paused = true
         _save("[PAUSED] Fred is safe while the app is in the background.")
@@ -129,9 +135,14 @@ func _handle_application_resumed() -> void:
     pointer_touch_active = false
     _refresh_touch_holds()
     _fixed_accumulator = 0.0
+    if is_instance_valid(menu_music):
+        menu_music.stream_paused = false
+    if is_instance_valid(chase_music):
+        chase_music.stream_paused = false
     if screen == Screen.PLAYING:
         session.paused = true
         _set_feedback("[PAUSED] Fred is safe. Tap RESUME when you are ready.")
+    _sync_music()
 
 func _handle_back_request() -> String:
     touch_contacts.clear()
@@ -184,8 +195,8 @@ func _ready() -> void:
     menu_music = AudioStreamPlayer.new()
     chase_music = AudioStreamPlayer.new()
     if audio_enabled:
-        menu_music.stream = load("res://assets/audio/the_marshland_march.mp3")
-        chase_music.stream = load("res://assets/audio/marshland_chase.mp3")
+        menu_music.stream = _load_looping_music(MENU_MUSIC_PATH, "Menu music")
+        chase_music.stream = _load_looping_music(GAMEPLAY_MUSIC_PATH, "Gameplay music")
     title_art = load("res://assets/art/moonpetal-title-fred-v4-sport.png")
     gameplay_art = load("res://assets/art/moonpetal-gameplay-marsh-v1.png")
     menu_music.volume_db = -8.0
@@ -310,13 +321,25 @@ func _sync_music() -> void:
         menu_music.stop()
         chase_music.stop()
         return
-    var wants_menu := screen in [Screen.TITLE, Screen.STORY, Screen.INSTRUCTIONS, Screen.LEADERBOARD, Screen.CUSTOMIZE]
+    var wants_menu := _music_route() == "menu"
     if wants_menu:
         if chase_music.playing: chase_music.stop()
-        if not menu_music.playing: menu_music.play()
+        if menu_music.stream != null and not menu_music.playing: menu_music.play()
     else:
         if menu_music.playing: menu_music.stop()
-        if not chase_music.playing: chase_music.play()
+        if chase_music.stream != null and not chase_music.playing: chase_music.play()
+
+func _music_route() -> String:
+    return "menu" if screen in [Screen.TITLE, Screen.STORY, Screen.INSTRUCTIONS, Screen.LEADERBOARD, Screen.CUSTOMIZE] else "gameplay"
+
+func _load_looping_music(path: String, label: String) -> AudioStream:
+    var stream: AudioStream = load(path)
+    if stream == null:
+        push_warning("%s could not be loaded from the packaged game." % label)
+        return null
+    if stream is AudioStreamMP3:
+        (stream as AudioStreamMP3).loop = true
+    return stream
 
 func _route_point(point: Vector2) -> Vector2:
     return MarshRouteLayout.route_point(point, level_number)
@@ -694,7 +717,7 @@ func _move_touch(index: int, position: Vector2) -> void:
     _refresh_touch_holds()
 
 func _touch_action_at(position: Vector2) -> String:
-    return MarshRouteLayout.touch_action_at(position)
+    return MarshRouteLayout.touch_action_at(position, screen == Screen.PLAYING and session.paused)
 
 func _refresh_touch_holds() -> void:
     touch_movement = Vector2.ZERO
@@ -708,9 +731,7 @@ func _refresh_touch_holds() -> void:
             steering_index = int(raw_index)
     if steering_index != 2147483647:
         var target := Vector2(touch_positions[steering_index])
-        var delta := target - fred
-        if delta.length() >= MarshRouteLayout.TOUCH_MOVEMENT_DEADZONE:
-            touch_movement = delta.normalized()
+        touch_movement = MarshRouteLayout.touch_movement_vector(target)
 
 func _handle_click(position: Vector2) -> void:
     if screen == Screen.TITLE and TITLE_START_RECT.has_point(position): _open_story()
@@ -739,7 +760,7 @@ func _handle_click(position: Vector2) -> void:
         _set_feedback("[PAUSED] Your last checkpoint is safe." if session.paused else "[PLAYING] Adventure resumed.")
     elif screen == Screen.PLAYING and MarshRouteLayout.HOME_RECT.has_point(position):
         _go_home()
-    elif screen == Screen.PLAYING and session.paused and Rect2(490,410,300,65).has_point(position):
+    elif screen == Screen.PLAYING and session.paused and MarshRouteLayout.PAUSED_RESUME_RECT.has_point(position):
         session.paused = false; _set_feedback("[PLAYING] Adventure resumed.")
     elif screen == Screen.PLAYING:
         _request_leap(position - fred)
@@ -973,7 +994,7 @@ func _draw() -> void:
             _draw_overlay("Campaign 1 Complete!", "Fred is the hero in every little frog's dreams!", "Celebrate at Home", Rect2(490,500,300,60), "100 / 100")
         else:
             _draw_overlay("Lily Leap Complete!", "Level %03d is ready." % (level_number + 1), "Next Level", Rect2(490,500,300,60), "LEVEL CLEAR")
-    elif session.paused: _draw_overlay("Marsh Paused", "Your checkpoint is safe.", "Resume", Rect2(490,410,300,65), "PAUSED")
+    elif session.paused: _draw_overlay("Marsh Paused", "Your checkpoint is safe.", "Resume", MarshRouteLayout.PAUSED_RESUME_RECT, "PAUSED")
     elif countdown_seconds > 0.0: _draw_countdown()
 
 func _draw_title() -> void:
@@ -1053,8 +1074,8 @@ func _draw_instructions() -> void:
     draw_texture_rect(gameplay_art, Rect2(0,0,1280,720), false, Color(0.56,0.68,0.64,1.0))
     draw_rect(Rect2(0,0,1280,720), Color(0.005,0.025,0.05,0.78), true)
     _text(Vector2(640,55), "HOW TO BE A MARSH HERO", 40, Color("ffe184"), HORIZONTAL_ALIGNMENT_CENTER, 1050)
-    _text(Vector2(640,93), "Touch the marsh to move. Use the big action buttons when Fred needs them.", 17, Color("d9f4e2"), HORIZONTAL_ALIGNMENT_CENTER, 1050)
-    _draw_instruction_card(Rect2(55,120,370,145), "TOUCH + DRAG", ["Steer Fred anywhere", "in the open marsh."], Color("70d6c2"))
+    _text(Vector2(640,93), "Guide Fred with the right control pad. Use the left action wheel when he needs it.", 17, Color("d9f4e2"), HORIZONTAL_ALIGNMENT_CENTER, 1050)
+    _draw_instruction_card(Rect2(55,120,370,145), "RIGHT CONTROL PAD", ["Slide in any direction", "to guide Fred."], Color("70d6c2"))
     _draw_instruction_card(Rect2(455,120,370,145), "MUNCH", ["Eat nearby bugs.", "Fairies can add a life."], Color("e67b4a"))
     _draw_instruction_card(Rect2(855,120,370,145), "LEAP", ["Jump over predators.", "Land and keep moving."], Color("67c96f"))
     _draw_instruction_card(Rect2(55,295,370,145), "BOOST", ["Hold for a quick burst.", "Rest while energy refills."], Color("e4b943"))
@@ -1256,7 +1277,7 @@ func _draw_level() -> void:
     _status_panel(MarshRouteLayout.status_rect(touch_controls_visible), 15)
     _button(MarshRouteLayout.PAUSE_RECT, "PAUSE")
     _button(MarshRouteLayout.HOME_RECT, "EXIT")
-    if touch_controls_visible:
+    if touch_controls_visible and screen == Screen.PLAYING and not session.paused and countdown_seconds <= 0.0:
         _draw_touch_controls()
 
 func _ellipse_points(center: Vector2, radii: Vector2, rotation: float, close: bool = false) -> PackedVector2Array:
@@ -1349,22 +1370,32 @@ func _nearest_assisted_target() -> Dictionary:
 
 func _draw_touch_controls() -> void:
     var held: Array = touch_contacts.values()
-    var guide := MarshRouteLayout.TOUCH_GUIDE_RECT
-    draw_rect(guide, Color(0.01,0.08,0.11,0.88), true)
-    draw_rect(guide, Color("70d6c2"), false, 3.0)
-    _text(guide.position + Vector2(guide.size.x / 2.0, 35.0), "TOUCH + DRAG", 19, Color("fff0ae"), HORIZONTAL_ALIGNMENT_CENTER, guide.size.x - 20.0)
-    _text(guide.position + Vector2(guide.size.x / 2.0, 65.0), "TO STEER FRED", 15, Color.WHITE, HORIZONTAL_ALIGNMENT_CENTER, guide.size.x - 20.0)
-    var action_rects := MarshRouteLayout.touch_action_rects()
-    _draw_touch_action_button(Rect2(action_rects.tongue), "MUNCH", "tongue" in held, Color("e67b4a"))
-    _draw_touch_action_button(Rect2(action_rects.leap), "LEAP", "leap" in held, Color("67c96f"))
-    _draw_touch_action_button(Rect2(action_rects.boost), "BOOST", "boost" in held, Color("e4b943"))
+    var wheel_center := MarshRouteLayout.TOUCH_ACTION_WHEEL_CENTER
+    draw_circle(wheel_center, 126.0, Color(0.01,0.06,0.09,0.74))
+    draw_arc(wheel_center, 126.0, 0.0, TAU, 48, Color("70d6c2"), 3.0)
+    _text(wheel_center + Vector2(0.0, 4.0), "ACTIONS", 14, Color("fff0ae"), HORIZONTAL_ALIGNMENT_CENTER, 104.0)
+    var centers := MarshRouteLayout.touch_centers()
+    var radii := MarshRouteLayout.touch_radii()
+    _draw_touch_action_button(Vector2(centers.tongue), float(radii.tongue), "MUNCH", "tongue" in held, Color("e67b4a"))
+    _draw_touch_action_button(Vector2(centers.leap), float(radii.leap), "LEAP", "leap" in held, Color("67c96f"))
+    _draw_touch_action_button(Vector2(centers.boost), float(radii.boost), "BOOST", "boost" in held, Color("e4b943"))
     var depth_label := "SURFACE" if depth.state != DepthTraversal.State.SURFACE else "DIVE"
-    _draw_touch_action_button(Rect2(action_rects.depth), depth_label, "depth" in held, Color("4d9fd8"))
+    _draw_touch_action_button(Vector2(centers.depth), float(radii.depth), depth_label, "depth" in held, Color("4d9fd8"))
+    var pad_center := MarshRouteLayout.TOUCH_CONTROL_PAD_CENTER
+    var pad_radius := MarshRouteLayout.TOUCH_CONTROL_PAD_RADIUS
+    draw_circle(pad_center, pad_radius + 12.0, Color(0.01,0.06,0.09,0.78))
+    draw_circle(pad_center, pad_radius, Color(0.05,0.18,0.21,0.92))
+    draw_arc(pad_center, pad_radius, 0.0, TAU, 48, Color("70d6c2"), 4.0)
+    for direction in [Vector2.UP, Vector2.RIGHT, Vector2.DOWN, Vector2.LEFT]:
+        var arrow_tip: Vector2 = pad_center + direction * 68.0
+        draw_line(pad_center + direction * 32.0, arrow_tip, Color(0.78,1.0,0.91,0.58), 8.0)
+        draw_circle(arrow_tip, 7.0, Color("fff0ae"))
     var steering_target := _active_touch_target()
-    if steering_target != Vector2.ZERO:
-        draw_line(fred, steering_target, Color(0.72,1.0,0.88,0.38), 4.0)
-        draw_circle(steering_target, 22.0, Color(0.12,0.85,0.57,0.22))
-        draw_arc(steering_target, 28.0, 0.0, TAU, 28, Color("b9f5c7"), 3.0)
+    var thumb := pad_center if steering_target == Vector2.ZERO else MarshRouteLayout.clamp_touch_target(steering_target)
+    draw_circle(thumb + Vector2(0.0, 4.0), 25.0, Color(0.0,0.02,0.03,0.52))
+    draw_circle(thumb, 23.0, Color("3a9f7b") if steering_target != Vector2.ZERO else Color("1b5e58"))
+    draw_arc(thumb, 23.0, 0.0, TAU, 28, Color("fff4bd"), 3.0)
+    _text(pad_center + Vector2(0.0, -108.0), "MOVE", 15, Color.WHITE, HORIZONTAL_ALIGNMENT_CENTER, 100.0)
 
 func _active_touch_target() -> Vector2:
     var steering_index := 2147483647
@@ -1373,16 +1404,14 @@ func _active_touch_target() -> Vector2:
             steering_index = int(raw_index)
     return Vector2(touch_positions[steering_index]) if steering_index != 2147483647 else Vector2.ZERO
 
-func _draw_touch_action_button(rect: Rect2, label: String, active: bool, accent: Color) -> void:
-    var shadow := Rect2(rect.position + Vector2(0.0, 5.0), rect.size)
-    draw_rect(shadow, Color(0.0,0.02,0.03,0.62), true)
+func _draw_touch_action_button(center: Vector2, radius: float, label: String, active: bool, accent: Color) -> void:
     var fill := accent.lightened(0.16) if active else accent.darkened(0.34)
-    draw_rect(rect, fill, true)
-    draw_rect(rect.grow(-4.0), fill.lightened(0.08), true)
-    draw_rect(rect, Color("fff4bd"), false, 3.0)
-    draw_line(rect.position + Vector2(8.0,8.0), rect.position + Vector2(rect.size.x - 8.0,8.0), Color(1,1,1,0.44), 3.0)
-    draw_circle(rect.position + Vector2(28.0, 24.0), 8.0, Color(1,1,1,0.38))
-    _text(rect.get_center() + Vector2(0.0, 8.0), label, 20, Color.WHITE, HORIZONTAL_ALIGNMENT_CENTER, rect.size.x - 18.0)
+    draw_circle(center + Vector2(0.0, 5.0), radius, Color(0.0,0.02,0.03,0.62))
+    draw_circle(center, radius, fill)
+    draw_circle(center - Vector2(5.0, 7.0), radius - 8.0, fill.lightened(0.08))
+    draw_arc(center, radius, 0.0, TAU, 28, Color("fff4bd"), 3.0)
+    draw_circle(center - Vector2(12.0, 14.0), 7.0, Color(1,1,1,0.34))
+    _text(center + Vector2(0.0, 7.0), label, 15 if label.length() > 5 else 17, Color.WHITE, HORIZONTAL_ALIGNMENT_CENTER, radius * 1.72)
 
 func _draw_water_current() -> void:
     var flow := FredWaterCurrentVisual.profile(

@@ -9,7 +9,7 @@ import subprocess
 ROOT = Path(__file__).resolve().parents[1]
 APP_VAULT = ROOT.parent
 EXPECTED_CORE_TREE = "288d87420c5694f80c071f00aa71a0b581f9f60c"
-EXPECTED_RUNTIME_COMMIT = "c8fcf859e4aa7a9c419e88f1bde7f1ecabbdb943"
+BUILD_1_RUNTIME_COMMIT = "c8fcf859e4aa7a9c419e88f1bde7f1ecabbdb943"
 EXPECTED_BUNDLE_ID = "com.flinsvault.fredmyers"
 EXPECTED_IPA_SHA256 = "f5bfb51d8fcad4ab6e8a2320f91d885d541ef2b44296546feb38e36a19e32620"
 EXTERNAL_EVIDENCE_PATH = ROOT / "docs" / "APPLE_BUILD_1_EXTERNAL_EVIDENCE.json"
@@ -66,7 +66,7 @@ def main() -> None:
     external = read_json(EXTERNAL_EVIDENCE_PATH)
     external_evidence_valid = (
         external.get("schema") == "fred-apple-external-evidence-v1"
-        and external.get("runtime_source_commit") == EXPECTED_RUNTIME_COMMIT
+        and external.get("runtime_source_commit") == BUILD_1_RUNTIME_COMMIT
         and external.get("bundle_identifier") == EXPECTED_BUNDLE_ID
         and external.get("version") == "1.0"
         and external.get("build") == "1"
@@ -83,6 +83,12 @@ def main() -> None:
         for path in (ROOT / "docs").glob("*IOS*EVIDENCE*.md")
         if "PLAN" not in path.name.upper()
     ]
+    current_build_number = "2" if 'application/version="2"' in preset else ""
+    current_candidate_external_evidence = (
+        external_evidence_valid
+        and external.get("build") == current_build_number
+        and external.get("runtime_source_commit") == git("rev-parse", "HEAD")
+    )
 
     reuse = {
         "independent_game_repository": (ROOT / ".git").exists(),
@@ -141,17 +147,18 @@ def main() -> None:
             and external.get("xcode_26_ios_26_sdk_validation") is True
         ),
         "simulator_runtime_evidence": (
-            external_evidence_valid and external.get("simulator_runtime_evidence") is True
+            current_candidate_external_evidence
+            and external.get("simulator_runtime_evidence") is True
         ),
         "physical_iphone_ipad_evidence": (
-            external_evidence_valid
+            current_candidate_external_evidence
             and external.get("physical_iphone_ipad_evidence") is True
         ),
         "live_game_center_or_sign_in_with_apple": (
-            external_evidence_valid
+            current_candidate_external_evidence
             and external.get("live_game_center_or_sign_in_with_apple") is True
         ),
-        "signed_archive_uploaded_to_testflight": external_evidence_valid,
+        "signed_archive_uploaded_to_testflight": current_candidate_external_evidence,
     }
 
     missing = [name for name, ready in apple.items() if not ready]
@@ -183,12 +190,14 @@ def main() -> None:
             "runtime_source_commit": external.get("runtime_source_commit"),
             "binary_state": external.get("binary_state"),
             "owner_tester_status": external.get("owner_tester_status"),
+            "applies_to_current_candidate": current_candidate_external_evidence,
         },
         "missing_apple_gates": missing,
         "protected_next_action": (
-            "The invited owner must install exact TestFlight Build 1 on a physical iPhone or iPad, "
-            "complete the documented touch, lifecycle, save and live Game Center matrix, and provide "
-            "the commercial media-rights answer; do not submit App Review or release publicly."
+            "Create a clean hash-guarded iOS Build 2 handoff from the committed candidate, then use "
+            "the authorized Mac to sign and upload Build 2 without releasing publicly. After Apple "
+            "processing, attach only Build 2 to the internal group and repeat physical iPhone audio, "
+            "touch, lifecycle, save and live Game Center acceptance."
         ),
     }
     print(json.dumps(output, sort_keys=True))
