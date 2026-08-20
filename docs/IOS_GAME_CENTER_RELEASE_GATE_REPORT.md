@@ -128,6 +128,11 @@ Until that physical TestFlight sequence passes, live Game Center status is
 - The $2.99 U.S. price, eight iPhone screenshots, eight iPad screenshots,
   Game Center version checkbox, manual release selection and TestFlight
   feedback email are verified.
+- Fred's release availability is verified against Snake Reactor at 143
+  identical available countries, with zero missing or extra storefronts.
+  Fred's two Apple-blocked storefronts are explicitly unavailable, so its
+  summary reads `32 Not Available` instead of Snake's `30 Not Available` plus
+  `2 Cannot Sell`; the customer-facing available set is identical.
 - The currently published studio `/privacy` page is Pokemon Field
   Academy-specific. Fred requires the separately approved and published
   `/fred-myers/privacy` page before its privacy URL is entered.

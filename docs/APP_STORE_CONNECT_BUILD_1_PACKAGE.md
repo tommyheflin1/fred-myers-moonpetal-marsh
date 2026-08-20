@@ -190,6 +190,14 @@ notifications, and use RGB output without an alpha channel.
 - U.S. customer price is verified at $2.99; Apple's equivalent prices are
   configured for 175 countries or regions, while release availability remains
   separately controlled.
+- Release availability now matches Snake Reactor's exact 143-country set. An
+  authenticated App Store Connect comparison found zero missing and zero extra
+  countries. Fred reports `143 Available` and `32 Not Available`; Snake reports
+  the same 143 available storefronts as `143 Available`, with 30 explicitly
+  unavailable and Afghanistan and Morocco classified separately by Apple as
+  `Cannot Sell`. Automatic availability for future App Store countries remains
+  enabled, matching Snake. Apple states that availability changes can take up
+  to 24 hours to appear.
 - Version 1.0 contains eight inspected iPhone screenshots and eight inspected
   iPad screenshots, the full description, promotional text, touch-first review
   notes, manual release selection and the Game Center checkbox.
