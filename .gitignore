@@ -1,5 +1,6 @@
 .godot/
 godot/.godot/
+godot/ios/
 builds/
 exports/
 *.tmp
