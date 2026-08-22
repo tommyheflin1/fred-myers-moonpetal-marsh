@@ -88,6 +88,9 @@ The latest local Build 3 graphics pass also turns the eight athletic builds
 into materially different Fred silhouettes and raises each predator to an
 explicit thirteen-layer, species-specific anatomy treatment without changing
 gameplay or save contracts.
+Build 3 also guards Game Center presentation as a lifecycle state: duplicate
+authenticated taps cannot re-present Apple's controller, and foreground return
+uses a bounded cooldown before another dashboard request is accepted.
 Each ten-level chapter repeats the readable climb with additional bounded
 predator, current, lily, prey and whirlpool pressure. The full 27-suite matrix
 passes 8,176 checks after adding the retryable Game Center access regression

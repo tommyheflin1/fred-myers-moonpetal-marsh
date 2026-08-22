@@ -110,6 +110,16 @@ func _run() -> void:
 		and str(plugin.presented[0].get("leaderboard_name", "")) == Adapter.SCORE_LEADERBOARD_ID,
 		"native presentation targets Fred's adventure leaderboard"
 	)
+	check(not adapter.show_leaderboards() and plugin.presented.size() == 1, "repeated dashboard tap cannot present a second native controller")
+	adapter.notify_application_paused()
+	check(adapter.dashboard_state == "presented", "native dashboard pause marks the presentation active")
+	adapter.notify_application_resumed()
+	check(adapter.dashboard_state == "cooldown" and not adapter.show_leaderboards(), "foreground return blocks immediate dashboard re-entry")
+	adapter._process(Adapter.DASHBOARD_REENTRY_GUARD_SECONDS + 0.01)
+	check(adapter.dashboard_state == "idle" and adapter.show_leaderboards() and plugin.presented.size() == 2, "dashboard becomes safely reusable after the bounded return guard")
+	adapter.notify_application_paused()
+	adapter.notify_application_resumed()
+	adapter._process(Adapter.DASHBOARD_REENTRY_GUARD_SECONDS + 0.01)
 	plugin.presentation_error = ERR_UNAVAILABLE
 	check(not adapter.show_leaderboards(), "native dashboard presentation failure is reported instead of masquerading as open")
 	plugin.presentation_error = OK

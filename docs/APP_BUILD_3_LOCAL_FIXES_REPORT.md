@@ -17,6 +17,10 @@ too much thumb reach and Fred should begin directly above it.
 The next owner review requested visibly stronger body-build customization and
 another realism increase for every named predator.
 
+Physical Build 2 testing then found that tapping Game Center again after a
+successful sign-in could freeze the game by presenting Apple's native Game
+Center controller more than once.
+
 ## Implemented changes
 
 - The energy meter moved from `930..1230 x 72..86`, with a smaller label, so
@@ -50,11 +54,17 @@ another realism increase for every named predator.
   layered detail groups.
 - These changes are presentation-only: collision, damage, movement, difficulty,
   touch targets, coins, ownership IDs, saves and scoring are unchanged.
+- Game Center dashboard presentation now has an independent lifecycle gate.
+  The first authenticated tap presents once; repeated taps while presenting
+  are ignored; iOS pause/resume enters a 1.25-second re-entry cooldown; and a
+  four-second fail-safe releases a presentation only when lifecycle callbacks
+  are unavailable. This prevents duplicate native view controllers without
+  blocking later intentional access.
 
 ## Validation
 
 - Godot 4.7.1 import/parse gate: passed.
-- Full deterministic matrix: **27 suites, 8,184 passed, 0 failed**.
+- Full deterministic matrix: **27 suites, 8,189 passed, 0 failed**.
 - Chapter difficulty: **1,541 passed, 0 failed**, including 100 stable traces
   and 10,000 profile calculations.
 - Phone lives/routes/layout: **54 passed, 0 failed**, including the energy
@@ -65,6 +75,9 @@ another realism increase for every named predator.
 - Authored Fred rig: **2,044 passed, 0 failed**.
 - Predator/depth rig: **339 passed, 0 failed**, including the upgraded anatomy
   and thirteen-layer realism contract for all five predators.
+- Game Center adapter: **42 passed, 0 failed**, including duplicate tap,
+  pause/resume, immediate re-entry rejection and safe later reopening.
+- Menu/lives/leaderboard integration: **36 passed, 0 failed**.
 - Campaign: **1,430 passed, 0 failed**.
 - M2 foundation: **751 passed, 0 failed**.
 - Touch-only regression: **22 passed, 0 failed**.

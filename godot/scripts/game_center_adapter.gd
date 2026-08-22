@@ -9,6 +9,8 @@ const SCORE_SUBMISSION_TIMEOUT_SECONDS := 20.0
 const SCORE_RETRY_DELAY_SECONDS := 2.0
 const MAX_SCORE_RETRIES := 2
 const MAX_PENDING_RECORDS := 4
+const DASHBOARD_REENTRY_GUARD_SECONDS := 1.25
+const DASHBOARD_FAILSAFE_SECONDS := 4.0
 const SCORE_LEADERBOARD_ID := "com.flinsvault.fredmyers.adventure_score"
 const LEVEL_LEADERBOARD_ID := "com.flinsvault.fredmyers.highest_level"
 
@@ -22,6 +24,8 @@ var submission_elapsed_seconds := 0.0
 var retry_delay_seconds := 0.0
 var last_auth_error := ""
 var last_auth_error_code := 0
+var dashboard_state := "idle"
+var dashboard_elapsed_seconds := 0.0
 
 
 func configure(plugin_override: Object = null) -> bool:
@@ -63,6 +67,7 @@ func diagnostic_snapshot() -> Dictionary:
 		"last_auth_error": last_auth_error,
 		"last_auth_error_code": last_auth_error_code,
 		"pending_score_count": pending_score_count(),
+		"dashboard_state": dashboard_state,
 	}
 
 
@@ -98,12 +103,32 @@ func pending_score_count() -> int:
 
 
 func show_leaderboards() -> bool:
-	if not is_authenticated() or not plugin.has_method("show_game_center"):
+	if not can_show_leaderboards():
 		return false
-	return int(plugin.call("show_game_center", {
+	var error := int(plugin.call("show_game_center", {
 		"view": "leaderboards",
 		"leaderboard_name": SCORE_LEADERBOARD_ID,
-	})) == OK
+	}))
+	if error != OK:
+		return false
+	dashboard_state = "presenting"
+	dashboard_elapsed_seconds = 0.0
+	return true
+
+
+func can_show_leaderboards() -> bool:
+	return is_authenticated() and plugin.has_method("show_game_center") and dashboard_state == "idle"
+
+
+func notify_application_paused() -> void:
+	if dashboard_state == "presenting":
+		dashboard_state = "presented"
+
+
+func notify_application_resumed() -> void:
+	if dashboard_state in ["presenting", "presented"]:
+		dashboard_state = "cooldown"
+		dashboard_elapsed_seconds = 0.0
 
 
 func poll() -> void:
@@ -119,6 +144,12 @@ func _process(delta: float) -> void:
 	if not is_available():
 		return
 	poll()
+	if dashboard_state in ["presenting", "cooldown"]:
+		dashboard_elapsed_seconds += maxf(0.0, delta)
+		var release_after := DASHBOARD_FAILSAFE_SECONDS if dashboard_state == "presenting" else DASHBOARD_REENTRY_GUARD_SECONDS
+		if dashboard_elapsed_seconds >= release_after:
+			dashboard_state = "idle"
+			dashboard_elapsed_seconds = 0.0
 	if state == "authenticating":
 		elapsed_seconds += maxf(0.0, delta)
 		if elapsed_seconds >= SIGN_IN_TIMEOUT_SECONDS:
@@ -259,3 +290,5 @@ func _reset_transient_state() -> void:
 	display_name = ""
 	last_auth_error = ""
 	last_auth_error_code = 0
+	dashboard_state = "idle"
+	dashboard_elapsed_seconds = 0.0

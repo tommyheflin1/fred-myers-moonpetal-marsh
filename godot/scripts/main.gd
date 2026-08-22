@@ -116,6 +116,8 @@ func _handle_application_paused() -> void:
     if application_backgrounded:
         return
     application_backgrounded = true
+    if is_instance_valid(game_center) and game_center.has_method("notify_application_paused"):
+        game_center.notify_application_paused()
     touch_contacts.clear()
     touch_positions.clear()
     pointer_touch_active = false
@@ -133,6 +135,8 @@ func _handle_application_resumed() -> void:
     if not application_backgrounded:
         return
     application_backgrounded = false
+    if is_instance_valid(game_center) and game_center.has_method("notify_application_resumed"):
+        game_center.notify_application_resumed()
     touch_contacts.clear()
     touch_positions.clear()
     pointer_touch_active = false
@@ -802,8 +806,14 @@ func _handle_click(position: Vector2) -> void:
     elif screen == Screen.FAILED and Rect2(665,500,250,64).has_point(position): _go_home()
     elif screen == Screen.LEADERBOARD and LEADERBOARD_GAME_CENTER_RECT.has_point(position) and _game_center_available():
         if game_center.is_authenticated():
-            if not game_center.show_leaderboards():
+            if game_center.has_method("can_show_leaderboards") and not game_center.can_show_leaderboards():
+                game_center_status = "GAME CENTER IS ALREADY OPEN — PLEASE WAIT"
+                queue_redraw()
+            elif not game_center.show_leaderboards():
                 game_center_status = "GAME CENTER COULD NOT OPEN — TAP TO RETRY"
+                queue_redraw()
+            else:
+                game_center_status = "OPENING GAME CENTER"
                 queue_redraw()
         else:
             _request_game_center_connection()

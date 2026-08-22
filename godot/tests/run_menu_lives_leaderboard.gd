@@ -15,6 +15,7 @@ class FakeGameCenterNode:
 	var state := "ready"
 	var sign_in_requests := 0
 	var presentation_requests := 0
+	var dashboard_ready := true
 
 	func is_available() -> bool:
 		return available
@@ -31,8 +32,14 @@ class FakeGameCenterNode:
 		return true
 
 	func show_leaderboards() -> bool:
+		if not dashboard_ready:
+			return false
 		presentation_requests += 1
+		dashboard_ready = false
 		return true
+
+	func can_show_leaderboards() -> bool:
+		return dashboard_ready
 
 func check(condition: bool, label: String) -> void:
 	if condition:
@@ -154,6 +161,8 @@ func _run() -> void:
 	game._on_game_center_sign_in_completed({"ok": true})
 	game._handle_click(Main.LEADERBOARD_GAME_CENTER_RECT.get_center())
 	check(fake_game_center.presentation_requests == 1, "authenticated player can open the Apple Game Center dashboard")
+	game._handle_click(Main.LEADERBOARD_GAME_CENTER_RECT.get_center())
+	check(fake_game_center.presentation_requests == 1 and game.game_center_status.contains("ALREADY OPEN"), "repeated Game Center tap is ignored without freezing the leaderboard screen")
 	game._handle_click(Main.LEADERBOARD_HOME_SPLIT_RECT.get_center())
 	check(game.screen == game.Screen.TITLE, "leaderboard Home button returns to title")
 	game.queue_free()
