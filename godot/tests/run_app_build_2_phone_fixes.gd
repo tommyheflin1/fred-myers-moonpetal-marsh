@@ -32,6 +32,7 @@ func _init() -> void:
 func _run() -> void:
 	clean_files()
 	check(int(ProjectSettings.get_setting("audio/general/ios/session_category", -1)) == 3, "iOS uses Playback audio so Fred's music works with the silent switch enabled")
+	check(int(ProjectSettings.get_setting("display/window/handheld/orientation", -1)) == 4, "phones and tablets automatically rotate between both landscape directions")
 	check(ResourceLoader.exists(Main.MENU_MUSIC_PATH), "The Marshland March is packaged for the main menu")
 	check(ResourceLoader.exists(Main.GAMEPLAY_MUSIC_PATH), "Marshland Chase is packaged for gameplay")
 	check(Main.MENU_MUSIC_PATH != Main.GAMEPLAY_MUSIC_PATH, "menu and gameplay use distinct music resources")

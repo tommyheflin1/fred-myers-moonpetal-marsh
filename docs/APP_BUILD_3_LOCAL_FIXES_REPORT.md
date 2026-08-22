@@ -21,6 +21,9 @@ Physical Build 2 testing then found that tapping Game Center again after a
 successful sign-in could freeze the game by presenting Apple's native Game
 Center controller more than once.
 
+Owner review also required the phone and tablet presentation to follow device
+rotation without admitting a portrait layout that would distort the controls.
+
 ## Implemented changes
 
 - The energy meter moved from `930..1230 x 72..86`, with a smaller label, so
@@ -60,16 +63,20 @@ Center controller more than once.
   four-second fail-safe releases a presentation only when lifecycle callbacks
   are unavailable. This prevents duplicate native view controllers without
   blocking later intentional access.
+- Mobile orientation now uses Godot's sensor-landscape policy. Rotating a
+  phone or tablet between landscape-left and landscape-right rotates Fred with
+  it, while portrait orientations remain excluded so the authored touch layout
+  retains its shape and safe reach zones.
 
 ## Validation
 
 - Godot 4.7.1 import/parse gate: passed.
-- Full deterministic matrix: **27 suites, 8,189 passed, 0 failed**.
+- Full deterministic matrix: **27 suites, 8,190 passed, 0 failed**.
 - Chapter difficulty: **1,541 passed, 0 failed**, including 100 stable traces
   and 10,000 profile calculations.
 - Phone lives/routes/layout: **54 passed, 0 failed**, including the energy
   panel separation and Fred/control-clearance assertions.
-- Build 2 phone-control regression: **50 passed, 0 failed**.
+- Build 2 phone-control and rotation regression: **51 passed, 0 failed**.
 - Customization expansion: **324 passed, 0 failed**, including eight unique
   runtime body silhouettes and the broad Strong profile.
 - Authored Fred rig: **2,044 passed, 0 failed**.

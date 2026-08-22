@@ -13,8 +13,9 @@ service readiness.
 - Shared client: Mobile Game Core 0.5.1 at exact tree
   `288d87420c5694f80c071f00aa71a0b581f9f60c`.
 - Save: `fred_save` v1, offline-first with atomic backup recovery.
-- Orientation: landscape, preserving the current 1280 by 720 design and
-  safe-area/touch layout contract.
+- Orientation: sensor landscape, rotating between landscape-left and
+  landscape-right while preserving the current 1280 by 720 design and
+  safe-area/touch layout contract. Portrait remains unsupported.
 - Identity: guest play remains available. `FredAppleGameScoring` defines the
   platform-neutral `fred_marsh_adventure_progress` event and bounded offline
   queue. `FredGameCenterAdapter` uses the official native plugin only on iOS;
