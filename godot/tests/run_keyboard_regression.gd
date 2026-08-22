@@ -83,6 +83,9 @@ func _run() -> void:
 	check(game.screen == Main.Screen.PLAYING, "screen touch begins Level 1")
 
 	game.predator = Vector2(1200, 650)
+	game.hazards_enabled = false
+	# Isolate keyboard rejection from the newly active Level 1 water current.
+	game.level_profile.current_strength = 0.0
 	game.fred = Vector2(400, 400)
 	var before: Vector2 = game.fred
 	await send_key(game, KEY_D, true)

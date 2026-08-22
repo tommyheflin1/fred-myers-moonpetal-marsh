@@ -120,6 +120,7 @@ func _run() -> void:
 	check(not Rect2(hud.lives).intersects(Rect2(hud.pause)), "lives and Pause panels do not overlap")
 	check(not Rect2(hud.pause).intersects(Rect2(hud.home)), "Pause and Exit panels do not overlap")
 	check(not Rect2(hud.energy).intersects(Rect2(hud.status)), "energy and status panels remain separated")
+	check(Rect2(hud.energy).end.y <= 86.0, "compact energy panel stays above the route-summary glyph band")
 
 	var centers := Layout.touch_centers()
 	var radii := Layout.touch_radii()

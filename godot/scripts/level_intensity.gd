@@ -8,15 +8,17 @@ const CAMPAIGN_NAME := "Campaign 1: The Moonpetal Promise"
 const CONTENT_RATING := "PG"
 const TARGET_MIN_AGE := 5
 const CHAPTER_SIZE := 10
+const OPENING_CHALLENGE := 1.9
 
 static func profile(level: int) -> Dictionary:
 	var safe_level := clampi(level, MIN_LEVEL, MAX_LEVEL)
 	var chapter := mini(10, ((safe_level - 1) / CHAPTER_SIZE) + 1)
 	var chapter_level := ((safe_level - 1) % CHAPTER_SIZE) + 1
-	# Each chapter repeats the same readable ten-step climb at a higher base:
-	# 1.0x...1.9x, 2.0x...2.9x, through 10.0x...10.9x.
-	var challenge_multiplier := float(chapter) + float(chapter_level - 1) * 0.1
-	var campaign_progress := (challenge_multiplier - 1.0) / 9.9
+	# Owner testing found the original first chapter too empty. Level 1 now
+	# begins at the former Level 10 pressure and every level still advances one
+	# exact tenth: 1.9x...2.8x through 10.9x...11.8x.
+	var challenge_multiplier := OPENING_CHALLENGE + float(safe_level - 1) * 0.1
+	var campaign_progress := (challenge_multiplier - OPENING_CHALLENGE) / 9.9
 	# A concave pressure curve makes the first ten levels visibly different
 	# without pushing late-game motion beyond the age-five safety caps.
 	var pressure_curve := sqrt(campaign_progress)
@@ -41,7 +43,7 @@ static func profile(level: int) -> Dictionary:
 		"assist_mode": "FULL" if chapter <= 2 else ("GUIDED" if chapter <= 6 else "HERO"),
 		"label": _label_for(safe_level),
 		"new_twist": _twist_for(safe_level),
-		"current_strength": 0.0 if safe_level == 1 else snappedf(4.0 + pressure_curve * 28.0, 0.01),
+		"current_strength": snappedf(4.0 + pressure_curve * 28.0, 0.01),
 		"weaving_patrol": safe_level >= 3,
 		"predator_weave_amplitude": 0.0 if safe_level < 3 else snappedf(22.0 + pressure_curve * 93.0, 0.01),
 		"predator_weave_speed": snappedf(0.68 + pressure_curve * 0.52, 0.0001),
@@ -49,7 +51,7 @@ static func profile(level: int) -> Dictionary:
 		"current_reversal_frequency": snappedf(0.45 + pressure_curve * 0.75, 0.0001),
 		"safe_radius": snappedf(70.0 - pressure_curve * 20.0, 0.01),
 		"danger_radius": snappedf(34.0 + pressure_curve * 12.0, 0.01),
-		"predator_count": mini(5, chapter),
+		"predator_count": mini(5, chapter + 1),
 		"whirlpool_count": whirlpool_count,
 		"lily_drift": snappedf(0.8 + pressure_curve * 10.0, 0.01),
 		"bug_flight_radius": snappedf(3.0 + pressure_curve * 14.0, 0.01),

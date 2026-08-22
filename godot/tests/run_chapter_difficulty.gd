@@ -18,9 +18,9 @@ func _init() -> void:
 
 func _run() -> void:
 	var level_one := FredLevelIntensity.profile(1)
-	check(is_equal_approx(float(level_one.challenge_multiplier), 1.0), "Level 1 starts at the 1.0x learning baseline")
-	check(float(level_one.current_strength) == 0.0, "Level 1 has no forced current while the player learns")
-	check(int(level_one.predator_count) == 1 and int(level_one.whirlpool_count) == 0, "Level 1 starts with one readable predator and no whirlpool")
+	check(is_equal_approx(float(level_one.challenge_multiplier), 1.9), "Level 1 starts at the former Level 10 challenge baseline")
+	check(float(level_one.current_strength) > 0.0, "Level 1 starts with an active readable current")
+	check(int(level_one.predator_count) == 2 and int(level_one.whirlpool_count) == 0, "Level 1 starts with two readable predators and no whirlpool")
 
 	var previous := level_one
 	var profile_signatures: Dictionary = {}
@@ -28,13 +28,13 @@ func _run() -> void:
 		var start_level := (chapter - 1) * FredLevelIntensity.CHAPTER_SIZE + 1
 		var chapter_start := FredLevelIntensity.profile(start_level)
 		var chapter_end := FredLevelIntensity.profile(start_level + 9)
-		check(is_equal_approx(float(chapter_start.challenge_multiplier), float(chapter)), "Chapter %02d starts at its exact whole-number multiplier" % chapter)
-		check(is_equal_approx(float(chapter_start.challenge_multiplier), float(level_one.challenge_multiplier) * float(chapter)), "Chapter %02d resets the ten-step cadence at %dx Level 1" % [chapter, chapter])
-		check(is_equal_approx(float(chapter_end.challenge_multiplier), float(chapter) + 0.9), "Chapter %02d finishes nine measured steps above its base" % chapter)
+		var expected_chapter_start := 1.9 + float(chapter - 1)
+		check(is_equal_approx(float(chapter_start.challenge_multiplier), expected_chapter_start), "Chapter %02d starts one full step above the prior chapter" % chapter)
+		check(is_equal_approx(float(chapter_end.challenge_multiplier), expected_chapter_start + 0.9), "Chapter %02d finishes nine measured steps above its base" % chapter)
 		for chapter_level in range(1, 11):
 			var level := start_level + chapter_level - 1
 			var profile := FredLevelIntensity.profile(level)
-			var expected := float(chapter) + float(chapter_level - 1) * 0.1
+			var expected := 1.9 + float(level - 1) * 0.1
 			profile_signatures[JSON.stringify(profile)] = true
 			check(int(profile.chapter) == chapter and int(profile.chapter_level) == chapter_level, "Level %03d maps to chapter %02d step %d" % [level, chapter, chapter_level])
 			check(is_equal_approx(float(profile.challenge_multiplier), expected), "Level %03d uses exact %.1fx challenge" % [level, expected])
@@ -42,7 +42,7 @@ func _run() -> void:
 			check(float(profile.predator_speed_scale) <= 1.27 and float(profile.bug_flight_speed) <= 0.90, "Level %03d stays inside the age-five movement cap" % level)
 			check(float(profile.reaction_window_seconds) >= 1.50 and float(profile.mistake_grace_seconds) >= 1.90, "Level %03d preserves child-readable reaction and recovery time" % level)
 			check(float(profile.safe_radius) >= 50.0 and float(profile.danger_radius) <= 46.0, "Level %03d preserves fair safe and danger geometry" % level)
-			check(int(profile.predator_count) == mini(5, chapter), "Level %03d applies the bounded chapter predator count" % level)
+			check(int(profile.predator_count) == mini(5, chapter + 1), "Level %03d applies the stronger bounded chapter predator count" % level)
 			var expected_whirlpools := 0 if chapter == 1 else mini(3, 1 + ((chapter - 2) / 3))
 			check(int(profile.whirlpool_count) == expected_whirlpools, "Level %03d applies the telegraphed chapter whirlpool count" % level)
 			if level > 1:
@@ -55,15 +55,15 @@ func _run() -> void:
 			previous = profile
 
 	check(profile_signatures.size() == 100, "all 100 levels have distinct deterministic difficulty profiles")
-	check(is_equal_approx(float(FredLevelIntensity.profile(10).challenge_multiplier), 1.9), "Level 10 completes the first 1.0x to 1.9x ramp")
-	check(is_equal_approx(float(FredLevelIntensity.profile(11).challenge_multiplier), 2.0), "Level 11 starts the second chapter at exactly 2.0x")
-	check(is_equal_approx(float(FredLevelIntensity.profile(20).challenge_multiplier), 2.9), "Level 20 completes the 2.0x to 2.9x ramp")
-	check(is_equal_approx(float(FredLevelIntensity.profile(21).challenge_multiplier), 3.0), "Level 21 starts the third chapter at exactly 3.0x")
-	check(is_equal_approx(float(FredLevelIntensity.profile(100).challenge_multiplier), 10.9), "Level 100 reaches the final bounded 10.9x challenge step")
-	check(float(FredLevelIntensity.profile(2).current_strength) > 0.0, "Level 2 introduces a gentle current")
+	check(is_equal_approx(float(FredLevelIntensity.profile(10).challenge_multiplier), 2.8), "Level 10 completes the stronger 1.9x to 2.8x ramp")
+	check(is_equal_approx(float(FredLevelIntensity.profile(11).challenge_multiplier), 2.9), "Level 11 starts the second chapter at exactly 2.9x")
+	check(is_equal_approx(float(FredLevelIntensity.profile(20).challenge_multiplier), 3.8), "Level 20 completes the 2.9x to 3.8x ramp")
+	check(is_equal_approx(float(FredLevelIntensity.profile(21).challenge_multiplier), 3.9), "Level 21 starts the third chapter at exactly 3.9x")
+	check(is_equal_approx(float(FredLevelIntensity.profile(100).challenge_multiplier), 11.8), "Level 100 reaches the final bounded 11.8x challenge step")
+	check(float(FredLevelIntensity.profile(2).current_strength) > float(level_one.current_strength), "Level 2 strengthens the opening current")
 	check(not bool(FredLevelIntensity.profile(2).weaving_patrol) and bool(FredLevelIntensity.profile(3).weaving_patrol), "Level 3 introduces readable predator weaving")
 	check(not bool(FredLevelIntensity.profile(7).reversing_current) and bool(FredLevelIntensity.profile(8).reversing_current), "Level 8 introduces the reversing-current pattern")
-	check(int(FredLevelIntensity.profile(10).predator_count) == 1 and int(FredLevelIntensity.profile(11).predator_count) == 2, "Level 11 visibly adds a second predator")
+	check(int(FredLevelIntensity.profile(10).predator_count) == 2 and int(FredLevelIntensity.profile(11).predator_count) == 3, "Level 11 visibly adds a third predator")
 	check(int(FredLevelIntensity.profile(10).whirlpool_count) == 0 and int(FredLevelIntensity.profile(11).whirlpool_count) == 1, "Level 11 visibly adds the first whirlpool")
 	var even_start := FredMarshRouteLayout.start_point(Main.START, 10)
 	var even_start_bounds := Rect2(even_start - Vector2(42.0,42.0), Vector2(84.0,84.0))

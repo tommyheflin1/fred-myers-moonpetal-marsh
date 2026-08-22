@@ -1540,7 +1540,7 @@ func _draw_energy_meter() -> void:
     draw_rect(meter, Color("e8fbff"), false, 2)
     var threshold_x := meter.position.x + meter.size.x * float(BoostLocomotion.START_THRESHOLD) / 100.0
     draw_line(Vector2(threshold_x,meter.position.y), Vector2(threshold_x,meter.end.y), Color("ff8f70"), 3)
-    _text(Vector2(meter.get_center().x,meter.position.y + 14), "ENERGY %d%%" % session.boost_energy, 11, Color("102935"), HORIZONTAL_ALIGNMENT_CENTER, meter.size.x - 12.0)
+    _text(Vector2(meter.get_center().x,meter.position.y + 11), "ENERGY %d%%" % session.boost_energy, 10, Color("102935"), HORIZONTAL_ALIGNMENT_CENTER, meter.size.x - 12.0)
 
 func _draw_depth_cues() -> void:
     var amount := float(depth.depth)

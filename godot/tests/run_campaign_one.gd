@@ -36,7 +36,7 @@ func _run() -> void:
 		check(float(profile.safe_radius) >= 50.0 and float(profile.danger_radius) <= 48.0, "Level %03d preserves fair safe and danger geometry" % level)
 		check(int(profile.predator_count) >= 1 and int(profile.predator_count) <= 5 and int(profile.whirlpool_count) >= 0 and int(profile.whirlpool_count) <= 3, "Level %03d keeps hazards inside the PG campaign budget" % level)
 		check(float(profile.predator_speed_scale) <= 1.27 and float(profile.bug_flight_speed) <= 0.90, "Level %03d keeps moving targets inside the age-five speed cap" % level)
-		var expected_challenge := float(profile.chapter) + float(int(profile.chapter_level) - 1) * 0.1
+		var expected_challenge := 1.9 + float(level - 1) * 0.1
 		check(is_equal_approx(float(profile.challenge_multiplier), expected_challenge), "Level %03d owns its exact chapter challenge multiplier" % level)
 		check(not str(profile.new_twist).is_empty(), "Level %03d explains its next learnable challenge" % level)
 		if level > 1:
@@ -50,9 +50,9 @@ func _run() -> void:
 	check(chapters.size() == 10, "Campaign 1 contains ten chapters")
 	for chapter in range(1, 11):
 		check(int(chapters.get(chapter, 0)) == 10, "Campaign 1 chapter %02d contains ten levels" % chapter)
-	check(int(profiles[0].predator_count) == 1 and int(profiles[0].whirlpool_count) == 0, "Level 1 begins with one readable patrol and no whirlpool")
-	check(is_equal_approx(float(profiles[10].challenge_multiplier), float(profiles[0].challenge_multiplier) * 2.0), "Level 11 begins at exactly twice Level 1 challenge")
-	check(int(profiles[9].predator_count) == 1 and int(profiles[10].predator_count) == 2, "Level 11 adds the second readable predator at the chapter boundary")
+	check(int(profiles[0].predator_count) == 2 and int(profiles[0].whirlpool_count) == 0, "Level 1 begins with two readable patrols and no whirlpool")
+	check(is_equal_approx(float(profiles[10].challenge_multiplier), 2.9), "Level 11 begins one full challenge step above Level 1")
+	check(int(profiles[9].predator_count) == 2 and int(profiles[10].predator_count) == 3, "Level 11 adds the third readable predator at the chapter boundary")
 	check(int(profiles[9].whirlpool_count) == 0 and int(profiles[10].whirlpool_count) == 1, "Level 11 adds the first telegraphed whirlpool challenge")
 	check(int(profiles[99].predator_count) == 5 and int(profiles[99].whirlpool_count) == 3, "Level 100 reaches the bounded campaign challenge")
 	check(float(profiles[99].intensity) > float(profiles[79].intensity), "the final twenty levels continue increasing")

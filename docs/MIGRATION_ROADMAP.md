@@ -74,8 +74,14 @@ gameplay, Core 0.5.1 and save v1.
 
 The local App Build 2 descendant now also carries the verified 100-level
 chapter-difficulty ladder in `APP_BUILD_2_DIFFICULTY_LADDER_REPORT.md`.
-Levels 1–10 advance from 1.0x to 1.9x, Level 11 starts at exactly 2.0x, and
-each ten-level chapter repeats the readable climb with additional bounded
+Build 3 owner testing raised the opening challenge to the former Level 10
+baseline: Levels 1–10 now advance from 1.9x to 2.8x, Level 11 starts at 2.9x,
+and Level 1 begins with two readable predator patrols plus an active current.
+The compact energy panel also remains above the route/threat summary. See
+`APP_BUILD_3_LOCAL_FIXES_REPORT.md`. The earlier Build 2 ladder started at
+1.0x and is retained below as historical evidence; the current local contract
+supersedes that opening baseline while preserving the exact 0.1x cadence.
+Each ten-level chapter repeats the readable climb with additional bounded
 predator, current, lily, prey and whirlpool pressure. The full 27-suite matrix
 passes 8,176 checks after adding the retryable Game Center access regression
 and the exact 20-choice customization expansion.

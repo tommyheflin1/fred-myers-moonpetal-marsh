@@ -7,7 +7,9 @@ const OBJECTIVE_RECT := Rect2(280.0, 14.0, 500.0, 56.0)
 const LIVES_RECT := Rect2(795.0, 14.0, 185.0, 56.0)
 const PAUSE_RECT := Rect2(990.0, 14.0, 120.0, 56.0)
 const HOME_RECT := Rect2(1125.0, 14.0, 125.0, 56.0)
-const ENERGY_RECT := Rect2(900.0, 78.0, 330.0, 18.0)
+# Keep the compact meter above the route-summary glyph band (86..98). The
+# previous 78..96 panel visually covered the summary on phone screenshots.
+const ENERGY_RECT := Rect2(930.0, 72.0, 300.0, 14.0)
 const STATUS_TOUCH_RECT := Rect2(500.0, 568.0, 340.0, 42.0)
 const STATUS_DESKTOP_RECT := Rect2(820.0, 642.0, 410.0, 42.0)
 const TELEMETRY_ANCHOR := Vector2(25.0, 700.0)

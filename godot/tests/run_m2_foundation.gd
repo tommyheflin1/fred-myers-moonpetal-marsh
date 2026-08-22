@@ -31,8 +31,8 @@ func _run() -> void:
 		check(current == FredLevelIntensity.profile(level), "level %03d profile is deterministic" % level)
 		previous = current
 	check(float(FredLevelIntensity.profile(100).intensity) > float(FredLevelIntensity.profile(80).intensity), "final twenty levels retain increasing intensity")
-	check(is_equal_approx(float(FredLevelIntensity.profile(11).intensity), float(FredLevelIntensity.profile(1).intensity) * 2.0), "level eleven begins at exactly twice level-one challenge")
-	check(is_equal_approx(float(FredLevelIntensity.profile(100).intensity), 10.9), "level 100 reaches the final ten-chapter multiplier")
+	check(is_equal_approx(float(FredLevelIntensity.profile(11).intensity) - float(FredLevelIntensity.profile(1).intensity), 1.0), "level eleven begins one full challenge step above level one")
+	check(is_equal_approx(float(FredLevelIntensity.profile(100).intensity), 11.8), "level 100 reaches the final stronger campaign multiplier")
 	check(FredLevelIntensity.profile(100).label == "Moonpetal Mastery", "level 100 has mastery identity")
 	check(float(FredLevelIntensity.profile(100).reaction_window_seconds) >= 1.35, "even Level 100 preserves a readable reaction window")
 	check(float(FredLevelIntensity.profile(100).mistake_grace_seconds) >= 1.8, "even Level 100 preserves recovery grace")
@@ -44,7 +44,7 @@ func _run() -> void:
 	check(not FredLevelIntensity.profile(2).weaving_patrol and FredLevelIntensity.profile(3).weaving_patrol, "the readable patrol weave begins on level three")
 	check(not FredLevelIntensity.profile(7).reversing_current and FredLevelIntensity.profile(8).reversing_current, "reversing flow begins on level eight after current practice")
 	check(float(FredLevelIntensity.profile(6).danger_radius) > float(FredLevelIntensity.profile(5).danger_radius), "level six widens danger reach")
-	check(int(FredLevelIntensity.profile(1).predator_count) == 1, "level one starts with one readable predator")
+	check(int(FredLevelIntensity.profile(1).predator_count) == 2, "level one starts with two readable predators")
 	check(int(FredLevelIntensity.profile(10).whirlpool_count) == 0 and int(FredLevelIntensity.profile(11).whirlpool_count) == 1, "whirlpools wait until the child completes the first chapter")
 	check(int(FredLevelIntensity.profile(100).predator_count) == 5, "late levels reach five active predators")
 	check(int(FredLevelIntensity.profile(100).whirlpool_count) == 3, "late levels combine three whirlpools")
@@ -97,7 +97,7 @@ func _run() -> void:
 	game.level_number = 1
 	game.level_profile = FredLevelIntensity.profile(1)
 	game._update_secondary_predators()
-	check(game._active_predator_positions().size() == 1, "level one activates one readable fish patrol")
+	check(game._active_predator_positions().size() == 2, "level one activates two readable predator patrols")
 	var pad_one_start: Vector2 = game._pad_position(0)
 	var bug_one_start: Vector2 = game._bug_position(0)
 	game.simulation_time = 3.0
