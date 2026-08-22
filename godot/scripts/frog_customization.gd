@@ -6,6 +6,16 @@ const DEFAULT_PATH := "user://fred_profile.json"
 const MAX_PROFILE_BYTES := 32768
 const MAX_COINS := 999999
 const CATEGORIES: Array[String] = ["body", "size", "tongue", "attire"]
+const BODY_PROPORTIONS := {
+	"quick": Vector2(0.90, 1.06),
+	"classic": Vector2(1.00, 1.00),
+	"power": Vector2(1.18, 0.94),
+	"pocket_hopper": Vector2(0.82, 1.12),
+	"springy": Vector2(0.78, 1.20),
+	"swift": Vector2(0.84, 1.08),
+	"trail_fit": Vector2(1.04, 1.02),
+	"strong": Vector2(1.24, 0.98),
+}
 const BUILD_2_EXPANSION_IDS := {
 	"body": ["golden_glider", "river_sapphire", "berry_bolt", "night_hero", "pearl_hopper"],
 	"size": ["pocket_hopper", "springy", "swift", "trail_fit", "strong"],
@@ -114,9 +124,12 @@ func select_next(category: String) -> Dictionary:
 	return {"ok":true, "category":category, "item":item_id, "label":str(next.label), "coins":coins}
 
 func current_style() -> Dictionary:
+	var body_build := str(_selected_entry("size").id)
 	return {
 		"body_color": Color(str(_selected_entry("body").value)),
 		"size_scale": float(_selected_entry("size").value),
+		"body_build": body_build,
+		"body_proportions": Vector2(BODY_PROPORTIONS.get(body_build, Vector2.ONE)),
 		"tongue_color": Color(str(_selected_entry("tongue").value)),
 		"attire": str(_selected_entry("attire").value),
 	}

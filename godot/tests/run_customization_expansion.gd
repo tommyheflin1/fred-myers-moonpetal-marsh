@@ -54,6 +54,16 @@ func _run() -> void:
 	check(Customization.CATALOG.body.size() == 9 and Customization.CATALOG.tongue.size() == 9, "frog and tongue colors each expose nine choices")
 	check(Customization.CATALOG["size"].size() == 8 and Customization.CATALOG.attire.size() == 9, "build and fitted gear expose eight and nine choices")
 	check(Rig.ATTIRE_IDS.size() == 9, "all nine attire choices are accepted by the authored rig")
+	check(Customization.BODY_PROPORTIONS.size() == Customization.CATALOG["size"].size(), "every body build owns an explicit silhouette proportion")
+	var build_silhouettes: Dictionary = {}
+	var build_probe := Customization.new("")
+	for build_entry: Dictionary in Customization.CATALOG["size"]:
+		build_probe.selected.size = str(build_entry.id)
+		var build_style: Dictionary = build_probe.current_style()
+		var proportions := Vector2(build_style.body_proportions)
+		build_silhouettes["%.2f:%.2f" % [proportions.x, proportions.y]] = true
+		check(absf(proportions.x - 1.0) >= 0.03 or absf(proportions.y - 1.0) >= 0.03 or str(build_entry.id) == "classic", "%s visibly changes Fred's width or height" % str(build_entry.label))
+	check(build_silhouettes.size() == Customization.CATALOG["size"].size(), "all eight body builds have distinct silhouettes")
 	for attire_id: String in Customization.BUILD_2_EXPANSION_IDS.attire:
 		check(attire_id in Rig.ATTIRE_IDS, "%s is connected to Fred's runtime rig" % attire_id)
 		check(Rig.ATTIRE_LABELS.has(attire_id) and Rig.ATTIRE_EYEWEAR.has(attire_id), "%s has named fitted eyewear metadata" % attire_id)
@@ -77,6 +87,7 @@ func _run() -> void:
 	var style := profile.current_style()
 	check(str(style.attire) == "lily_lifeguard", "the final gear choice equips through the typed style contract")
 	check(float(style.size_scale) == 1.12, "the final athletic build remains presentation-only and bounded")
+	check(str(style.body_build) == "strong" and Vector2(style.body_proportions).x >= 1.20, "Strong resolves to a visibly broad athletic silhouette")
 	check(Color(style.body_color).to_html(false) == "d6e7cf", "the final frog color resolves to Pearl Hopper")
 	check(Color(style.tongue_color).to_html(false) == "ffd34e", "the final tongue color resolves to Golden Zap")
 	check(profile.next_cost("attire") == 0 and profile.next_label("attire") == "Runner Goggles", "a completed gear carousel wraps to the owned starter without another charge")

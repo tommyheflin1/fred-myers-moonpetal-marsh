@@ -84,6 +84,10 @@ supersedes that opening baseline while preserving the exact 0.1x cadence.
 The same local Build 3 report records the short-reach phone layout: the action
 wheel is at the far-left thumb edge and Fred begins directly above it with a
 deterministic clearance boundary.
+The latest local Build 3 graphics pass also turns the eight athletic builds
+into materially different Fred silhouettes and raises each predator to an
+explicit thirteen-layer, species-specific anatomy treatment without changing
+gameplay or save contracts.
 Each ten-level chapter repeats the readable climb with additional bounded
 predator, current, lily, prey and whirlpool pressure. The full 27-suite matrix
 passes 8,176 checks after adding the retryable Game Center access regression

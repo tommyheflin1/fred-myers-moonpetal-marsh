@@ -1619,9 +1619,9 @@ func _predator_identity_profile(species: String) -> Dictionary:
                 "snout_length": 45.0,
                 "facing": -1.0,
                 "pattern": "broken_lateral_band",
-                "anatomy": ["large hinged jaw", "spiny dorsal fin", "dark lateral band", "rounded operculum", "paired pectoral fins", "forked caudal fin"],
+                "anatomy": ["large hinged jaw", "spiny dorsal fin", "dark lateral band", "rounded operculum", "paired pectoral fins", "forked caudal fin", "layered cycloid scales", "thick upper lip"],
                 "motion_channels": ["tail flex", "pectoral sweep", "body lift"],
-                "detail_layers": 9,
+                "detail_layers": 13,
                 "phone_readable": true,
             }
         "PIKE":
@@ -1635,9 +1635,9 @@ func _predator_identity_profile(species: String) -> Dictionary:
                 "snout_length": 55.0,
                 "facing": 1.0,
                 "pattern": "pale_chain_spots",
-                "anatomy": ["duckbill snout", "rear dorsal fin", "long torpedo body", "paired pelvic fins", "lateral line", "forked caudal fin"],
+                "anatomy": ["duckbill snout", "rear dorsal fin", "long torpedo body", "paired pelvic fins", "lateral line", "forked caudal fin", "needle teeth", "chain-pattern scales"],
                 "motion_channels": ["tail flex", "pectoral sweep", "body lift"],
-                "detail_layers": 9,
+                "detail_layers": 13,
                 "phone_readable": true,
             }
         "MUSKIE":
@@ -1651,9 +1651,9 @@ func _predator_identity_profile(species: String) -> Dictionary:
                 "snout_length": 56.0,
                 "facing": -1.0,
                 "pattern": "vertical_bars",
-                "anatomy": ["long predator jaw", "rear dorsal fin", "vertical flank bars", "paired pelvic fins", "lateral line", "forked caudal fin"],
+                "anatomy": ["long predator jaw", "rear dorsal fin", "vertical flank bars", "paired pelvic fins", "lateral line", "forked caudal fin", "cheek scales", "needle teeth"],
                 "motion_channels": ["tail flex", "pectoral sweep", "body lift"],
-                "detail_layers": 9,
+                "detail_layers": 13,
                 "phone_readable": true,
             }
         "SNAKE":
@@ -1663,9 +1663,9 @@ func _predator_identity_profile(species: String) -> Dictionary:
                 "belly": Color("cbbb70"),
                 "marking": Color("364326"),
                 "pattern": "dorsal_blobs",
-                "anatomy": ["tapered scale body", "flattened head", "forked tongue", "overlapping dorsal scales", "belly scutes", "hinged jaw line"],
+                "anatomy": ["tapered scale body", "flattened head", "forked tongue", "overlapping dorsal scales", "belly scutes", "hinged jaw line", "keeled neck scales", "vertical pupils"],
                 "motion_channels": ["spinal wave", "head lead", "tongue flick"],
-                "detail_layers": 8,
+                "detail_layers": 13,
                 "phone_readable": true,
             }
         "HERON":
@@ -1675,9 +1675,9 @@ func _predator_identity_profile(species: String) -> Dictionary:
                 "wing": Color("718d9a"),
                 "marking": Color("263b43"),
                 "pattern": "layered_flight_feathers",
-                "anatomy": ["S-curved neck", "spear bill", "long legs and toes", "layered primary feathers", "shoulder mantle", "crown plume"],
+                "anatomy": ["S-curved neck", "spear bill", "long legs and toes", "layered primary feathers", "shoulder mantle", "crown plume", "scapular feather fringe", "knuckled gripping toes"],
                 "motion_channels": ["wing breathing", "neck poise", "toe balance"],
-                "detail_layers": 9,
+                "detail_layers": 13,
                 "phone_readable": true,
             }
     return {
@@ -1836,6 +1836,30 @@ func _draw_fish(position: Vector2, species: String, profile: Dictionary, rig_pos
     for muscle_band in range(3):
         var band_x := (-18.0+float(muscle_band)*17.0)*facing
         draw_arc(fish_position+Vector2(band_x,-1.0),radii.y*(0.50+float(muscle_band)*0.04),3.35,5.92,12,Color(body.lightened(0.44),0.14+float(rig_surface.wet_specular)*0.10),1.1,true)
+    # Species finish adds facial volume, scale direction and fin anatomy that
+    # remain readable at phone size instead of reading as a flat paper cutout.
+    var cheek_center := fish_position + Vector2((radii.x - 22.0) * facing, 2.0)
+    for cheek_scale in range(4):
+        var cheek_angle := -0.8 + float(cheek_scale) * 0.48
+        var cheek_offset := Vector2(cos(cheek_angle), sin(cheek_angle)) * (7.0 + float(cheek_scale % 2) * 2.0)
+        draw_arc(cheek_center + cheek_offset, 3.8, 3.35, 6.02, 8, Color(belly.lightened(0.28), 0.42), 1.1, true)
+    var anal_root := fish_position - Vector2(19.0 * facing, -radii.y * 0.70)
+    var anal_tip := anal_root + Vector2(-12.0 * facing, 14.0 + float(rig_pose.pelvic_sweep) * 0.25)
+    draw_colored_polygon(PackedVector2Array([anal_root, anal_tip, anal_root + Vector2(17.0 * facing, 2.0)]), Color(back.lightened(0.12), 0.90))
+    for anal_ray in range(3):
+        draw_line(anal_root + Vector2(float(anal_ray) * 4.0 * facing, 0), anal_tip + Vector2(float(anal_ray) * 5.0 * facing, -1.5), Color(0.92,0.88,0.64,0.42), 0.9, true)
+    if species == "BASS":
+        _draw_volume_ellipse(nose + Vector2(-5.0 * facing, 5.5), Vector2(14.0, 6.5), 0.0, belly.lightened(0.08), rig_surface, 0.72)
+        draw_arc(nose + Vector2(-7.0 * facing, 4.0), 12.0, -1.15, 1.05, 14, Color("f3e6bd"), 2.2, true)
+        for tooth_index in range(5):
+            var tooth := nose - Vector2((5.0 + float(tooth_index) * 3.2) * facing, -6.0)
+            draw_line(tooth, tooth + Vector2(-0.8 * facing, 2.4), Color("fffbe7"), 0.9, true)
+    elif species in ["PIKE", "MUSKIE"]:
+        draw_line(nose - Vector2(2.0 * facing, 6.0), nose - Vector2(25.0 * facing, 7.0), Color(back.lightened(0.36), 0.56), 1.5, true)
+        draw_circle(nose - Vector2(7.0 * facing, 5.5), 1.8, Color("101718"))
+        for jaw_tooth in range(6):
+            var jaw_x := 7.0 + float(jaw_tooth) * 3.6
+            draw_line(nose - Vector2(jaw_x * facing, -4.0), nose - Vector2((jaw_x + 0.8) * facing, -7.0), Color("fffbe7"), 1.0, true)
     draw_polyline(_ellipse_points(fish_position,radii,body_pitch,true), Color("e9e0b4"), 2.0, true)
 
 func _draw_snake(position: Vector2, profile: Dictionary, rig_pose: Dictionary, rig_surface: Dictionary) -> void:

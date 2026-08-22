@@ -98,14 +98,15 @@ func _run() -> void:
 	for species: String in Main.PREDATOR_SPECIES:
 		var identity: Dictionary = game._predator_identity_profile(species)
 		identity_silhouettes[str(identity.silhouette)] = true
-		check(Array(identity.anatomy).size() >= 6, "%s has at least six explicit species anatomy cues" % species.to_lower())
+		check(Array(identity.anatomy).size() >= 8, "%s has at least eight explicit species anatomy cues" % species.to_lower())
 		check(Array(identity.motion_channels).size() >= 3, "%s has layered species-specific motion channels" % species.to_lower())
-		check(int(identity.detail_layers) >= 8 and bool(identity.phone_readable), "%s realism remains detailed and phone-readable" % species.to_lower())
+		check(int(identity.detail_layers) >= 13 and bool(identity.phone_readable), "%s realism uses the upgraded layered phone-readable rig" % species.to_lower())
 	check(identity_silhouettes.size() == Main.PREDATOR_SPECIES.size(), "every named predator has a distinct rendered silhouette contract")
 	var bass_identity: Dictionary = game._predator_identity_profile("BASS")
 	check(str(bass_identity.silhouette) == "deep_largemouth", "bass uses a deep-bodied largemouth silhouette")
 	check(str(bass_identity.pattern) == "broken_lateral_band", "bass uses its recognizable broken lateral band")
 	check("large hinged jaw" in Array(bass_identity.anatomy) and "spiny dorsal fin" in Array(bass_identity.anatomy), "bass exposes its large jaw and spiny dorsal anatomy")
+	check("layered cycloid scales" in Array(bass_identity.anatomy) and "thick upper lip" in Array(bass_identity.anatomy), "bass adds recognizable scale and lip anatomy")
 	var pike_identity: Dictionary = game._predator_identity_profile("PIKE")
 	check(str(pike_identity.silhouette) == "long_duckbill" and str(pike_identity.pattern) == "pale_chain_spots", "pike uses a long duckbill body with pale chain spots")
 	var muskie_identity: Dictionary = game._predator_identity_profile("MUSKIE")

@@ -205,6 +205,8 @@ var _eye_right: Node2D
 var _style := {
 	"body_color": Color("4fbd68"),
 	"size_scale": 0.92,
+	"body_build": "quick",
+	"body_proportions": Vector2(0.90, 1.06),
 	"tongue_color": Color("ff7ca8"),
 	"attire": "marsh_runner",
 }
@@ -238,8 +240,11 @@ func apply_style(style: Dictionary) -> bool:
 	if typeof(style.get("body_color")) != TYPE_COLOR or typeof(style.get("tongue_color")) != TYPE_COLOR:
 		return false
 	var size_scale := float(style.get("size_scale", 1.0))
+	var body_proportions := Vector2(style.get("body_proportions", Vector2.ONE))
 	var attire := str(style.get("attire", "marsh_runner"))
 	if not is_finite(size_scale) or size_scale < 0.88 or size_scale > 1.14:
+		return false
+	if not is_finite(body_proportions.x) or not is_finite(body_proportions.y) or body_proportions.x < 0.75 or body_proportions.x > 1.30 or body_proportions.y < 0.90 or body_proportions.y > 1.24:
 		return false
 	if attire not in ATTIRE_IDS:
 		return false
@@ -263,7 +268,8 @@ func apply_pose(pose: Dictionary, depth_amount: float = 0.0) -> bool:
 	_root_joint.position = Vector2(pose.body_offset)
 	_root_joint.rotation = float(pose.tilt)
 	var cosmetic_scale := float(_style.size_scale)
-	_root_joint.scale = Vector2(body_scale.x * facing, body_scale.y) * cosmetic_scale
+	var build_proportions := Vector2(_style.get("body_proportions", Vector2.ONE))
+	_root_joint.scale = Vector2(body_scale.x * facing * build_proportions.x, body_scale.y * build_proportions.y) * cosmetic_scale
 	_body_joint.rotation = extension * 0.018
 	_head_joint.position = Vector2(0.0, -17.0 - maxf(0.0, extension) * 1.5)
 	_hind_left.rotation = -0.12 - extension * 0.28
@@ -312,6 +318,7 @@ func render_to(canvas: Node2D, world_position: Vector2, presentation_time_second
 		if points.size() >= 3:
 			canvas.draw_colored_polygon(points, polygon.color)
 	_draw_skin_dimension(canvas, world_position, presentation_time_seconds, reduced_motion_override)
+	_draw_body_build_finish(canvas, world_position)
 	_draw_front_limbs(canvas, world_position)
 	for path in LINE_ORDER:
 		if str(path) in ["RootJoint/FrontLeft", "RootJoint/FrontRight"]:
@@ -326,6 +333,29 @@ func render_to(canvas: Node2D, world_position: Vector2, presentation_time_second
 	_draw_sport_gear(canvas, world_position)
 	_draw_face_finish(canvas, world_position, presentation_time_seconds, reduced_motion_override)
 	return true
+
+func _draw_body_build_finish(canvas: Node2D, world_position: Vector2) -> void:
+	var build := str(_style.get("body_build", "quick"))
+	var body_color := Color(_style.body_color)
+	var highlight := body_color.lightened(0.32)
+	var shadow := body_color.darkened(0.38)
+	match build:
+		"power", "strong":
+			for side in [-1.0, 1.0]:
+				_draw_transformed_ellipse(canvas, _body_joint, Vector2(18.0 * side, -7.0), Vector2(8.5, 11.5), Color(highlight if side < 0.0 else shadow, 0.30), world_position)
+				var thigh := world_position + _node_point(_hind_left if side < 0.0 else _hind_right, Vector2(0.0, 5.0))
+				canvas.draw_arc(thigh, 10.0 * float(_style.size_scale), 3.4, 5.9, 12, Color(highlight, 0.48), 2.2, true)
+			canvas.draw_arc(world_position + _node_point(_body_joint, Vector2(0.0, 3.0)), 21.0, 3.45, 5.98, 18, Color(shadow, 0.40), 2.0, true)
+		"pocket_hopper":
+			_draw_transformed_ellipse(canvas, _head_joint, Vector2(0.0, 0.0), Vector2(27.0, 19.0), Color(highlight, 0.10), world_position)
+			canvas.draw_arc(world_position + _node_point(_body_joint, Vector2(0.0, 8.0)), 14.0, 0.2, PI - 0.2, 14, Color(highlight, 0.38), 1.8, true)
+		"springy", "swift":
+			for limb in [_hind_left, _hind_right]:
+				var knee := world_position + _node_point(limb, Vector2(0.0, 10.0))
+				canvas.draw_arc(knee, 8.5, 3.25, 6.05, 12, Color(highlight, 0.50), 2.0, true)
+			canvas.draw_line(world_position + _node_point(_body_joint, Vector2(-9.0, 17.0)), world_position + _node_point(_body_joint, Vector2(9.0, 17.0)), Color(shadow, 0.34), 2.0, true)
+		"trail_fit", "classic":
+			canvas.draw_arc(world_position + _node_point(_body_joint, Vector2(0.0, 4.0)), 18.0, 3.35, 6.07, 18, Color(highlight, 0.34), 1.8, true)
 
 func style_snapshot() -> Dictionary:
 	return _style.duplicate(true)

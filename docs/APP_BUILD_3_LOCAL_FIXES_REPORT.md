@@ -14,6 +14,9 @@ Physical Build 2 testing identified two focused issues:
 A subsequent phone screenshot also showed that the left action wheel required
 too much thumb reach and Fred should begin directly above it.
 
+The next owner review requested visibly stronger body-build customization and
+another realism increase for every named predator.
+
 ## Implemented changes
 
 - The energy meter moved from `930..1230 x 72..86`, with a smaller label, so
@@ -34,16 +37,34 @@ too much thumb reach and Fred should begin directly above it.
 - Odd-route levels place Fred at x=160 with a protected 64-pixel clearance
   above the action wheel. Reversed routes place Fred above the right movement
   pad using the same rule.
+- All eight athletic builds now own distinct width/height proportions in
+  addition to overall scale. Strong and Power broaden Fred's torso and thighs;
+  Springy and Swift narrow and lengthen the silhouette; Pocket Hopper becomes
+  compact with a larger head profile; Classic and Trail Fit retain balanced
+  but distinct contours. Build-specific muscle, knee, belly and head finish
+  layers make the selection visible in the customizer and during play.
+- Bass, pike and muskie gain denser cheek scales, facial volume,
+  species-specific lips/snouts/teeth, anal fins and individual fin rays.
+  Snake and heron retain their articulated scale/feather rigs, and every named
+  predator contract now exposes at least eight anatomy cues and thirteen
+  layered detail groups.
+- These changes are presentation-only: collision, damage, movement, difficulty,
+  touch targets, coins, ownership IDs, saves and scoring are unchanged.
 
 ## Validation
 
 - Godot 4.7.1 import/parse gate: passed.
-- Full deterministic matrix: **27 suites, 8,172 passed, 0 failed**.
+- Full deterministic matrix: **27 suites, 8,184 passed, 0 failed**.
 - Chapter difficulty: **1,541 passed, 0 failed**, including 100 stable traces
   and 10,000 profile calculations.
 - Phone lives/routes/layout: **54 passed, 0 failed**, including the energy
   panel separation and Fred/control-clearance assertions.
 - Build 2 phone-control regression: **50 passed, 0 failed**.
+- Customization expansion: **324 passed, 0 failed**, including eight unique
+  runtime body silhouettes and the broad Strong profile.
+- Authored Fred rig: **2,044 passed, 0 failed**.
+- Predator/depth rig: **339 passed, 0 failed**, including the upgraded anatomy
+  and thirteen-layer realism contract for all five predators.
 - Campaign: **1,430 passed, 0 failed**.
 - M2 foundation: **751 passed, 0 failed**.
 - Touch-only regression: **22 passed, 0 failed**.
