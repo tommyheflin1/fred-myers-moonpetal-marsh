@@ -60,7 +60,7 @@ func _run() -> void:
 	game.hazards_enabled = false
 	game.predator = Vector2(1200, 650)
 
-	game.fred = game.START
+	game.fred = game._level_start_position()
 	check(not game._request_dive(), "shore perch blocks invalid dive entry")
 	check(game.save_feedback.begins_with("[DIVE BLOCKED]"), "invalid entry has readable non-color feedback")
 	game.fred = Vector2(550, 300)

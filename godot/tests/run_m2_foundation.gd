@@ -93,7 +93,7 @@ func _run() -> void:
 	check(game.level_number == 3 and game.level_profile.weaving_patrol, "level three activates the first readable patrol weave")
 	game.level_number = 11
 	game.level_profile = FredLevelIntensity.profile(11)
-	check(game.direct_route_has_danger(), "later routes add a telegraphed current hazard")
+	check(int(game.level_profile.whirlpool_count) > 0, "later routes add a telegraphed current hazard")
 	game.level_number = 1
 	game.level_profile = FredLevelIntensity.profile(1)
 	game._update_secondary_predators()

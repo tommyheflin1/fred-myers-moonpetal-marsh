@@ -60,6 +60,7 @@ func _run() -> void:
 	var centers := Layout.touch_centers()
 	var radii := Layout.touch_radii()
 	check(Layout.TOUCH_ACTION_WHEEL_CENTER.x < Layout.CANVAS_SIZE.x * 0.5, "four circular action buttons are grouped on the left")
+	check(Layout.TOUCH_ACTION_WHEEL_CENTER.x <= 160.0, "action wheel remains in the short-reach left-thumb zone")
 	check(Layout.TOUCH_CONTROL_PAD_CENTER.x > Layout.CANVAS_SIZE.x * 0.5, "movement control pad is grouped on the right")
 	check(Layout.TOUCH_ACTION_WHEEL_CENTER.y > Layout.CANVAS_SIZE.y * 0.7, "action wheel sits in the lower phone-safe reach zone")
 	check(Layout.TOUCH_CONTROL_PAD_CENTER.y > Layout.CANVAS_SIZE.y * 0.7, "movement pad sits in the lower phone-safe reach zone")

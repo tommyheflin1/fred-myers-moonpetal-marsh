@@ -81,6 +81,9 @@ The compact energy panel also remains above the route/threat summary. See
 `APP_BUILD_3_LOCAL_FIXES_REPORT.md`. The earlier Build 2 ladder started at
 1.0x and is retained below as historical evidence; the current local contract
 supersedes that opening baseline while preserving the exact 0.1x cadence.
+The same local Build 3 report records the short-reach phone layout: the action
+wheel is at the far-left thumb edge and Fred begins directly above it with a
+deterministic clearance boundary.
 Each ten-level chapter repeats the readable climb with additional bounded
 predator, current, lily, prey and whirlpool pressure. The full 27-suite matrix
 passes 8,176 checks after adding the retryable Game Center access regression

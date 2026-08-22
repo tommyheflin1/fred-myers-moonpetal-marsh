@@ -100,6 +100,9 @@ func _run() -> void:
 	check(even_start.x > even_exit.x and even_first_pad.x > even_last_pad.x, "even levels author a right-to-left lily route")
 	check(Layout.route_label(1) == "LEFT TO RIGHT" and Layout.route_label(2) == "RIGHT TO LEFT", "HUD route labels match the playable direction")
 	check(is_equal_approx(odd_start.x + even_start.x, Layout.CANVAS_SIZE.x), "alternating starts mirror across the logical phone canvas")
+	check(is_equal_approx(odd_start.x, Layout.TOUCH_ACTION_WHEEL_CENTER.x), "odd-route Fred starts directly above the left action wheel")
+	check(odd_start.y + Layout.TOUCH_ACTOR_CLEARANCE <= Layout.TOUCH_ACTION_WHEEL_RECT.position.y, "Fred starts clear above the action wheel")
+	check(is_equal_approx(even_start.x, Layout.TOUCH_CONTROL_PAD_CENTER.x), "reversed-route Fred starts directly above the right movement pad")
 	check(is_equal_approx(odd_exit.x + even_exit.x, Layout.CANVAS_SIZE.x), "alternating exits mirror without entering the top HUD")
 	game.level_number = 4
 	game.level_profile = FredLevelIntensity.profile(4)
@@ -125,6 +128,7 @@ func _run() -> void:
 	var centers := Layout.touch_centers()
 	var radii := Layout.touch_radii()
 	var actions: Array[String] = ["tongue", "leap", "depth", "boost"]
+	check(Layout.TOUCH_ACTION_WHEEL_RECT.position.x <= 50.0, "action wheel occupies the easy-reach left thumb edge")
 	for action: String in actions:
 		var center := Vector2(centers[action])
 		var radius := float(radii[action])

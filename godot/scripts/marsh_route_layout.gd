@@ -14,9 +14,9 @@ const STATUS_TOUCH_RECT := Rect2(500.0, 568.0, 340.0, 42.0)
 const STATUS_DESKTOP_RECT := Rect2(820.0, 642.0, 410.0, 42.0)
 const TELEMETRY_ANCHOR := Vector2(25.0, 700.0)
 const PAUSED_RESUME_RECT := Rect2(490.0, 410.0, 300.0, 65.0)
-const TOUCH_ACTION_WHEEL_CENTER := Vector2(340.0, 570.0)
+const TOUCH_ACTION_WHEEL_CENTER := Vector2(160.0, 570.0)
 const TOUCH_ACTION_WHEEL_RADIUS := 112.0
-const TOUCH_ACTION_WHEEL_RECT := Rect2(228.0, 458.0, 224.0, 224.0)
+const TOUCH_ACTION_WHEEL_RECT := Rect2(48.0, 458.0, 224.0, 224.0)
 const TOUCH_CONTROL_PAD_CENTER := Vector2(1120.0, 585.0)
 const TOUCH_CONTROL_PAD_RADIUS := 86.0
 const TOUCH_CONTROL_PAD_RECT := Rect2(1034.0, 499.0, 172.0, 172.0)
@@ -83,7 +83,11 @@ static func route_label(level: int) -> String:
 static func start_point(base: Vector2, level: int) -> Vector2:
 	var position := route_point(base, level)
 	if is_reversed(level):
+		position.x = TOUCH_CONTROL_PAD_CENTER.x
 		position.y = minf(position.y, TOUCH_CONTROL_PAD_RECT.position.y - TOUCH_ACTOR_CLEARANCE)
+	else:
+		position.x = TOUCH_ACTION_WHEEL_CENTER.x
+		position.y = minf(position.y, TOUCH_ACTION_WHEEL_RECT.position.y - TOUCH_ACTOR_CLEARANCE)
 	return position
 
 static func formation_variant(level: int) -> int:
@@ -143,10 +147,10 @@ static func status_rect(touch_visible: bool) -> Rect2:
 
 static func touch_centers() -> Dictionary:
 	return {
-		"tongue": Vector2(292.0, 522.0),
-		"leap": Vector2(388.0, 522.0),
-		"depth": Vector2(292.0, 618.0),
-		"boost": Vector2(388.0, 618.0),
+		"tongue": TOUCH_ACTION_WHEEL_CENTER + Vector2(-48.0, -48.0),
+		"leap": TOUCH_ACTION_WHEEL_CENTER + Vector2(48.0, -48.0),
+		"depth": TOUCH_ACTION_WHEEL_CENTER + Vector2(-48.0, 48.0),
+		"boost": TOUCH_ACTION_WHEEL_CENTER + Vector2(48.0, 48.0),
 	}
 
 static func touch_radii() -> Dictionary:

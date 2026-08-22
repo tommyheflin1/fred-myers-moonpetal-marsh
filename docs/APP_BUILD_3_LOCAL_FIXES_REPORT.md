@@ -11,6 +11,9 @@ Physical Build 2 testing identified two focused issues:
 1. the energy panel visually overlapped the route/threat summary; and
 2. Levels 1 through 10 were not challenging enough.
 
+A subsequent phone screenshot also showed that the left action wheel required
+too much thumb reach and Fred should begin directly above it.
+
 ## Implemented changes
 
 - The energy meter moved from `930..1230 x 72..86`, with a smaller label, so
@@ -25,15 +28,22 @@ Physical Build 2 testing identified two focused issues:
   reaction time, mistake grace, safe radius, danger radius, five-predator cap,
   and three-whirlpool cap.
 - Difficulty and layout remain transient and do not change `fred_save` v1.
+- The action-wheel center moved from x=340 to x=160. Its four 84-pixel actions
+  now occupy the far-left short-reach thumb zone while retaining the same
+  shared visual and hit-test geometry.
+- Odd-route levels place Fred at x=160 with a protected 64-pixel clearance
+  above the action wheel. Reversed routes place Fred above the right movement
+  pad using the same rule.
 
 ## Validation
 
 - Godot 4.7.1 import/parse gate: passed.
-- Full deterministic matrix: **27 suites, 8,167 passed, 0 failed**.
+- Full deterministic matrix: **27 suites, 8,172 passed, 0 failed**.
 - Chapter difficulty: **1,541 passed, 0 failed**, including 100 stable traces
   and 10,000 profile calculations.
-- Phone lives/routes/layout: **50 passed, 0 failed**, including the new energy
-  panel versus route-text separation assertion.
+- Phone lives/routes/layout: **54 passed, 0 failed**, including the energy
+  panel separation and Fred/control-clearance assertions.
+- Build 2 phone-control regression: **50 passed, 0 failed**.
 - Campaign: **1,430 passed, 0 failed**.
 - M2 foundation: **751 passed, 0 failed**.
 - Touch-only regression: **22 passed, 0 failed**.
