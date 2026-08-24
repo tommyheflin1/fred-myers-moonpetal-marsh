@@ -30,9 +30,29 @@ function Show-OwnerError {
     }
 }
 
+function Resolve-FredGodotExecutable {
+    param([string]$FileName)
+
+    $command = Get-Command $FileName -ErrorAction SilentlyContinue
+    if ($null -ne $command -and -not [string]::IsNullOrWhiteSpace($command.Source)) {
+        return $command.Source
+    }
+
+    # Explorer can keep an older PATH than an interactive shell after WinGet
+    # installs Godot. Resolve the already-installed, pinned package directly so
+    # the desktop link remains reliable without changing machine settings.
+    $winGetPackage = Join-Path $env:LOCALAPPDATA "Microsoft\WinGet\Packages\GodotEngine.GodotEngine_Microsoft.Winget.Source_8wekyb3d8bbwe"
+    $winGetCandidate = Join-Path $winGetPackage $FileName
+    if (Test-Path -LiteralPath $winGetCandidate -PathType Leaf) {
+        return (Get-Item -LiteralPath $winGetCandidate).FullName
+    }
+
+    throw "Godot 4.7.1 is not available. Ask Codex to repair the existing owner-test runtime."
+}
+
 try {
-    $godotCommand = Get-Command "Godot_v4.7.1-stable_win64.exe" -ErrorAction Stop
-    $godotConsole = Get-Command "Godot_v4.7.1-stable_win64_console.exe" -ErrorAction Stop
+    $godotCommand = Resolve-FredGodotExecutable "Godot_v4.7.1-stable_win64.exe"
+    $godotConsole = Resolve-FredGodotExecutable "Godot_v4.7.1-stable_win64_console.exe"
 
     if (-not (Test-Path -LiteralPath $manifestPath -PathType Leaf)) {
         throw "The Fred candidate manifest is missing. Ask Codex to refresh the owner-test link."
@@ -74,7 +94,7 @@ try {
         throw "The Fred Godot project is missing."
     }
 
-    $version = (& $godotConsole.Source --version).Trim()
+    $version = (& $godotConsole --version).Trim()
     if ($LASTEXITCODE -ne 0 -or $version -notlike "4.7.1*") {
         throw "Expected Godot 4.7.1, but found: $version"
     }
@@ -120,7 +140,7 @@ try {
     }
 
     try {
-        $process = Start-Process -FilePath $godotCommand.Source -ArgumentList $arguments -WorkingDirectory $projectRoot -PassThru
+        $process = Start-Process -FilePath $godotCommand -ArgumentList $arguments -WorkingDirectory $projectRoot -PassThru
         $preflight.launch_performed = $true
         if ($IsolatedReview) {
             $process.WaitForExit()

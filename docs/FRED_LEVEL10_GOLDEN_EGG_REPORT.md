@@ -126,6 +126,13 @@ ObjectDB/resource teardown diagnostic during the second capture. The persistent
 runtime review showed no script error, stuck input, overlap, or freeze, and the
 capture-only hook was removed before the candidate commit.
 
+The final desktop-link audit reproduced and fixed an Explorer-only launch
+failure: an already-open Explorer process can retain a PATH that predates the
+Godot WinGet installation. The launcher now resolves the existing pinned Godot
+4.7.1 executables from PATH first and from the user-local WinGet package second.
+It does not install software or change machine settings. The exact `.lnk` path,
+not just a direct script invocation, is required to pass the final launch gate.
+
 The companion website build/tests cover Fred/Snake identity separation, global
 rank continuity, per-game first/rank behavior, HMAC/bearer/idempotency controls,
 server-owned timestamps/ranks, privacy ownership, and public data minimization.
