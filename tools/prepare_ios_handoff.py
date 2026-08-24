@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Create a clean, hash-guarded Fred App Build 2 macOS handoff bundle."""
+"""Create a clean, hash-guarded Fred App Build 3 macOS handoff bundle."""
 
 from __future__ import annotations
 
@@ -37,7 +37,7 @@ def sha256(path: Path) -> str:
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--expected-commit", required=True)
-    parser.add_argument("--output", type=Path, default=ROOT / "builds/ios-handoff-build-2")
+    parser.add_argument("--output", type=Path, default=ROOT / "builds/ios-handoff-build-3")
     args = parser.parse_args()
     expected = args.expected_commit.strip()
     if run("rev-parse", "HEAD") != expected:
@@ -46,8 +46,8 @@ def main() -> int:
         raise SystemExit("Worktree must be clean before creating the iOS handoff.")
     output = args.output.resolve()
     output.mkdir(parents=True, exist_ok=True)
-    bundle = output / "fred-myers-app-build-2.bundle"
-    wrapper = output / "RUN-FRED-APP-BUILD-2.command"
+    bundle = output / "fred-myers-app-build-3.bundle"
+    wrapper = output / "RUN-FRED-APP-BUILD-3.command"
     manifest_path = output / "handoff-manifest.json"
     for path in (bundle, wrapper, manifest_path):
         if path.exists():
@@ -70,13 +70,13 @@ if [[ -z "$GODOT" && -x /Applications/Godot.app/Contents/MacOS/Godot ]]; then GO
 [[ -n "$GODOT" ]] || { echo "Godot 4.7.1 is required." >&2; exit 1; }
 ln -sf "$GODOT" "$WORK/bin/godot"
 export PATH="$WORK/bin:$PATH"
-git clone "$ROOT/fred-myers-app-build-2.bundle" "$SOURCE"
+git clone "$ROOT/fred-myers-app-build-3.bundle" "$SOURCE"
 cd "$SOURCE"
 git checkout --detach "$EXPECTED"
 [[ "$(git rev-parse HEAD)" == "$EXPECTED" ]]
 [[ -z "$(git status --porcelain)" ]]
-export FRED_TESTFLIGHT_UPLOAD_ACK=UPLOAD_BUILD_2
-bash tools/run_fred_app_build_2_macos.sh "$EXPECTED" | tee "$ROOT/FRED-APP-BUILD-2-RESULT.txt"
+export FRED_TESTFLIGHT_UPLOAD_ACK=UPLOAD_BUILD_3
+bash tools/run_fred_app_build_3_macos.sh "$EXPECTED" | tee "$ROOT/FRED-APP-BUILD-3-RESULT.txt"
 """ % expected,
         encoding="utf-8",
         newline="\n",
@@ -94,7 +94,7 @@ bash tools/run_fred_app_build_2_macos.sh "$EXPECTED" | tee "$ROOT/FRED-APP-BUILD
         "runner_sha256": sha256(wrapper),
         "bundle_identifier": "com.flinsvault.fredmyers",
         "marketing_version": "1.0",
-        "build_number": "2",
+        "build_number": "3",
         "testflight_upload_authorized": True,
         "public_app_store_release_authorized": False,
         "credentials_included": False,

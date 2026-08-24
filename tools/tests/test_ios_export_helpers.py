@@ -69,7 +69,7 @@ with tempfile.TemporaryDirectory() as temporary:
     check(plistlib.loads(app.read_bytes())["ITSAppUsesNonExemptEncryption"] is False, "plist encryption key missing")
 
 validation_handoff = (ROOT / "tools" / "ios_validation_handoff.sh").read_text(encoding="utf-8")
-build_handoff = (ROOT / "tools" / "run_fred_app_build_2_macos.sh").read_text(encoding="utf-8")
+build_handoff = (ROOT / "tools" / "run_fred_app_build_3_macos.sh").read_text(encoding="utf-8")
 package_handoff = (ROOT / "tools" / "prepare_ios_handoff.py").read_text(encoding="utf-8")
 plugin_handoff = (ROOT / "tools" / "build_ios_gamecenter_plugin.sh").read_text(encoding="utf-8")
 gitignore = (ROOT / ".gitignore").read_text(encoding="utf-8")
@@ -92,23 +92,26 @@ check(
     "signed-build handoff must discover Godot's sibling Xcode project",
 )
 check(
-    'CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY="Apple Distribution"' in build_handoff
+    'CODE_SIGN_STYLE=Manual' in build_handoff
+    and 'CODE_SIGN_IDENTITY="Apple Distribution"' in build_handoff
     and 'PROVISIONING_PROFILE_SPECIFIER="$profile_name"' in build_handoff
     and '<key>signingStyle</key><string>manual</string>' in build_handoff
     and '<key>com.flinsvault.fredmyers</key><string>$profile_name</string>' in build_handoff,
     "signed-build handoff must use the Fred App Store distribution profile",
 )
 check(
-    "UPLOAD_BUILD_2" in build_handoff
-    and "FredMyers-AppBuild2.xcarchive" in build_handoff
-    and "version=1.0 build=2" in build_handoff,
-    "signed-build handoff must be locked to Fred Build 2",
+    "UPLOAD_BUILD_3" in build_handoff
+    and "FredMyers-AppBuild3.xcarchive" in build_handoff
+    and 'xcrun altool --upload-app' in build_handoff
+    and '<key>destination</key><string>export</string>' in build_handoff
+    and "version=1.0 build=3" in build_handoff,
+    "signed-build handoff must be locked to Fred Build 3 and the proven API-key upload lane",
 )
 check(
-    "fred-myers-app-build-2.bundle" in package_handoff
-    and "RUN-FRED-APP-BUILD-2.command" in package_handoff
-    and '\"build_number\": \"2\"' in package_handoff,
-    "transfer package must identify Build 2 throughout",
+    "fred-myers-app-build-3.bundle" in package_handoff
+    and "RUN-FRED-APP-BUILD-3.command" in package_handoff
+    and '\"build_number\": \"3\"' in package_handoff,
+    "transfer package must identify Build 3 throughout",
 )
 check(
     "IOS_GAMECENTER_PLUGIN_CACHE_REUSED" in plugin_handoff

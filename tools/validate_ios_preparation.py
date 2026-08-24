@@ -18,7 +18,7 @@ EXPECTED_CORE_TREE = "288d87420c5694f80c071f00aa71a0b581f9f60c"
 DEVELOPMENT_BUNDLE_ID = "com.flinsvault.fredmyers.dev"
 PRODUCTION_BUNDLE_ID = "com.flinsvault.fredmyers"
 MARKETING_VERSION = "1.0"
-BUILD_NUMBER = "2"
+BUILD_NUMBER = "3"
 
 
 def _git(*args: str) -> str:
