@@ -1,0 +1,120 @@
+# Fred Level 10 Golden Egg — local implementation evidence
+
+## Scope and secrecy
+
+This local, unpushed branch implements the owner-defined hidden Level 10
+Golden Egg discovery for Fred Myers and the Moonpetal Marsh. The player-facing
+story, instructions, HUD, level objective, failure flow, and public-facing copy
+do not disclose the discovery method. This document deliberately does not
+publish the hidden input sequence.
+
+The implementation is additive and Fred-owned. It does not alter Mobile Game
+Core 0.5.1, `fred_save` v1, ordinary checkpoints, lives, progression, Game
+Center, controls, campaign rules, or normal Level 10 completion.
+
+## Eligibility boundary
+
+- A new protected run begins only from Level 1.
+- Level transitions must be sequential through Level 10.
+- Any life-loss/death event invalidates the run before ordinary recovery or
+  failure handling continues.
+- The hidden Level 10 state machine accepts only the owner-defined order and
+  exact action counts. Wrong, early, repeated, skipped, or extra actions fail
+  closed without player-facing puzzle hints.
+- Only the final qualifying predator contact is intercepted. It does not
+  consume a life and cannot submit twice. Every other player and collision
+  keeps the established behavior.
+
+The guard is stored separately from `fred_save` v1 with atomic replacement.
+That prevents an older ordinary checkpoint from reviving an invalidated run.
+Malformed or incompatible guard data fails closed. This is deterministic local
+anti-rollback state, not a claim that a client device is tamper-proof.
+
+## Reveal and privacy UX
+
+The reveal replaces the ordinary death screen with a full-screen Moonpetal
+cinematic: a dimensional gold egg, metallic rings, petals, marsh glow, bubbles,
+deterministic particles, and a bounded three-note Moonpetal discovery chime.
+The chime is generated locally, contains no external asset or service, and
+plays once only after the qualifying intercept. Reduced-motion mode retains the egg, rings,
+contrast, copy, and privacy choices while suppressing pulsing and orbit motion.
+
+Anonymous is the default. The player may explicitly choose to share their
+existing marsh profile label. No rank, discovery time, public reference, or
+secret code is generated locally. The UI states that those fields require the
+secure App Vault service.
+
+## Shared backend contract
+
+Fred uses the existing universal service at
+`https://theflinsappvaultllc.com/golden-eggs` and its existing bootstrap,
+discovery, privacy, session, and leaderboard endpoints. Fred's local constants
+are:
+
+- game ID: `fred-myers`
+- Golden Egg ID: `moonpetal-golden-egg`
+
+The companion local website registry change adds the same IDs and the App Store
+record `6803295872`. It keeps global chronology across games and gives Fred
+game-local ranks without resetting Overall Rank.
+
+The client request builder implements the existing timestamp, nonce,
+idempotency, player bearer, canonical body hash, and HMAC headers. It rejects
+unsafe methods, endpoint traversal, incomplete server responses, missing bearer
+state, and missing platform signing material. Signing material is ephemeral,
+zeroed on clear, never serialized, and absent from this repository.
+
+An accepted production discovery remains blocked until the owner provisions
+`GOLDEN_EGG_FRED_MYERS_SIGNING_KEY` to both the protected website runtime and
+the approved Apple secure build/key-storage path. That release credential was
+not created, read, printed, stored, uploaded, or deployed in this workstream.
+
+## Retry and recovery
+
+The qualifying event first atomically stages a fictional/local pending record
+with one stable idempotency key. Relaunch recovers that record. Retries keep the
+logical payload/idempotency key while refreshing timestamp, nonce, and HMAC.
+Only a complete authenticated server response can change the record to
+accepted. Privacy updates are player-bound and a copied public code/link has no
+ownership authority under the existing backend.
+
+## Validation
+
+Focused Godot coverage includes eligibility, ordered transitions, tight zones,
+exact action counts, multiple death levels, direct-entry rejection,
+save/reload/rollback resistance, idempotency, duplicate prevention, privacy,
+path safety, ephemeral signing, authoritative server fields, reveal interception,
+and 10,000 ordinary state observations. The complete historical Godot matrix,
+readiness/import, Core/save invariants, owner-save hashes, desktop visuals, and
+single shortcut are revalidated at the final local checkpoint.
+
+Final executed evidence:
+
+- focused Golden Egg suite: **95 passed, 0 failed**;
+- complete Fred matrix: **28 suites, 8,285 passed, 0 failed**;
+- readiness: **139 artifacts, eight fixtures**, Core 0.5.1, Godot 4.7;
+- Windows runtime: normal 1280×720 and reduced-motion 960×540; privacy choices
+  were exercised in the actual Godot window and remained responsive;
+- normal evidence: `godot/docs/evidence/golden-egg-reveal-normal-1280x720.png`,
+  SHA-256 `22b1d17cc9ab32bfff1ac25042d905fbc87c25ccf0a761a85f2d8d4a0a447f68`;
+- reduced-motion evidence:
+  `godot/docs/evidence/golden-egg-reveal-reduced-960x540.png`, SHA-256
+  `f6173e0e76107600d9eab11a036c0ff4a66f248f6e130acbfad9e55a47dea898`.
+
+The short-lived capture runner emitted the repository's known standalone
+ObjectDB/resource teardown diagnostic during the second capture. The persistent
+runtime review showed no script error, stuck input, overlap, or freeze, and the
+capture-only hook was removed before the candidate commit.
+
+The companion website build/tests cover Fred/Snake identity separation, global
+rank continuity, per-game first/rank behavior, HMAC/bearer/idempotency controls,
+server-owned timestamps/ranks, privacy ownership, and public data minimization.
+The local website build completed and all **65 tests passed**. No live endpoint
+or production database was contacted.
+
+## Release boundary
+
+This is local owner-test evidence only. No branch was pushed, no PR was opened,
+no website was deployed, no production database or secret was changed, and no
+Apple build was signed, uploaded, submitted, or released. Live backend and
+physical-device acceptance remain separate owner-controlled gates.

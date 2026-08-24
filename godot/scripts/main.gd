@@ -13,8 +13,11 @@ const AppleGameScoring = preload("res://scripts/apple_game_scoring.gd")
 const GameCenterAdapter = preload("res://scripts/game_center_adapter.gd")
 const PredatorDepth = preload("res://scripts/predator_depth.gd")
 const WildlifeAnimationRig = preload("res://scripts/wildlife_animation_rig.gd")
+const GoldenEggRunState = preload("res://scripts/golden_egg_run_state.gd")
+const GoldenEggDiscoveryStore = preload("res://scripts/golden_egg_discovery_store.gd")
+const GoldenEggClient = preload("res://scripts/golden_egg_client.gd")
 
-enum Screen { TITLE, STORY, INSTRUCTIONS, PLAYING, FAILED, COMPLETE, LEADERBOARD, CUSTOMIZE }
+enum Screen { TITLE, STORY, INSTRUCTIONS, PLAYING, FAILED, COMPLETE, LEADERBOARD, CUSTOMIZE, GOLDEN_EGG }
 const START := Vector2(135, 560)
 const EXIT := Vector2(1150, 165)
 const PADS := [Vector2(220,500), Vector2(350,420), Vector2(490,500), Vector2(630,390), Vector2(760,300), Vector2(900,225), Vector2(1040,165)]
@@ -38,6 +41,8 @@ const STORY_CONTINUE_RECT := Rect2(815,630,380,60)
 const INSTRUCTIONS_HOME_RECT := Rect2(85,630,250,60)
 const INSTRUCTIONS_PLAY_RECT := Rect2(815,630,380,60)
 const CUSTOM_HOME_RECT := Rect2(490,635,300,56)
+const GOLDEN_EGG_PRIVATE_RECT := Rect2(275,590,330,62)
+const GOLDEN_EGG_PUBLIC_RECT := Rect2(675,590,330,62)
 const CUSTOM_CARDS := {
     "body": Rect2(120,205,245,165),
     "size": Rect2(385,205,245,165),
@@ -101,6 +106,13 @@ var touch_movement := Vector2.ZERO
 var touch_boost := false
 var pointer_touch_active := false
 var application_backgrounded := false
+var golden_run: RefCounted = GoldenEggRunState.new()
+var golden_discovery: RefCounted = GoldenEggDiscoveryStore.new()
+var golden_client: RefCounted = GoldenEggClient.new()
+var golden_reveal_seconds := 0.0
+var golden_discovery_status := "pending"
+var golden_privacy := "anonymous"
+var golden_chime: AudioStreamPlayer
 
 func _notification(what: int) -> void:
     match what:
@@ -171,6 +183,8 @@ func _handle_back_request() -> String:
 func _ready() -> void:
     if DisplayServer.get_name() == "headless" and str(customization.path) == FrogCustomization.DEFAULT_PATH:
         customization = FrogCustomization.new("")
+        golden_run = GoldenEggRunState.new("user://headless_fred_golden_egg_guard.json")
+        golden_discovery = GoldenEggDiscoveryStore.new("user://headless_fred_golden_egg_discovery.json")
     if "--reduced-motion" in OS.get_cmdline_user_args():
         reduced_motion = true
     if DisplayServer.is_touchscreen_available() or "--show-touch-controls" in OS.get_cmdline_user_args():
@@ -200,6 +214,7 @@ func _ready() -> void:
     _set_feedback(FredSaveFeedback.load_message(result))
     menu_music = AudioStreamPlayer.new()
     chase_music = AudioStreamPlayer.new()
+    golden_chime = AudioStreamPlayer.new()
     if audio_enabled:
         menu_music.stream = _load_looping_music(MENU_MUSIC_PATH, "Menu music")
         chase_music.stream = _load_looping_music(GAMEPLAY_MUSIC_PATH, "Gameplay music")
@@ -207,8 +222,11 @@ func _ready() -> void:
     gameplay_art = load("res://assets/art/moonpetal-gameplay-marsh-v1.png")
     menu_music.volume_db = -8.0
     chase_music.volume_db = -7.0
+    golden_chime.volume_db = -5.0
+    golden_chime.stream = _build_golden_chime()
     add_child(menu_music)
     add_child(chase_music)
+    add_child(golden_chime)
     _sync_fred_style()
     _sync_music()
     set_process(true)
@@ -276,6 +294,8 @@ func _advance_visual(delta: float) -> void:
     if not session.paused:
         eat_effect_seconds = maxf(0.0, eat_effect_seconds - maxf(0.0, delta))
     impact_burst_seconds = maxf(0.0, impact_burst_seconds - maxf(0.0, delta))
+    if screen == Screen.GOLDEN_EGG:
+        golden_reveal_seconds = minf(12.0, golden_reveal_seconds + maxf(0.0, delta))
     queue_redraw()
 
 func _fixed_tick(delta: float) -> void:
@@ -310,6 +330,8 @@ func _fixed_tick(delta: float) -> void:
     var depth_step: Dictionary = depth.advance(delta)
     if bool(depth_step.completed):
         session.set_underwater(str(depth_step.mode) == "underwater")
+        if str(depth_step.mode) == "surface":
+            golden_run.note_surface_complete(level_number)
         _set_feedback("[DEPTH] Fred reached the %s." % str(depth_step.mode))
     var current := _current_vector()
     if leap.state == LeapTraversal.State.AIRBORNE:
@@ -327,6 +349,7 @@ func _fixed_tick(delta: float) -> void:
             if depth.is_underwater_band():
                 speed *= DepthTraversal.UNDERWATER_BOOST_SCALE
         fred = (fred + (direction * speed + current) * delta).clamp(Vector2(55,105), Vector2(1225,665))
+    golden_run.observe_position(level_number, fred, depth.is_underwater_band())
     _update_animation(direction)
     _update_camera(direction, bool(boost_step.active))
     predator.x += predator_direction * 110.0 * float(level_profile.predator_speed_scale) * delta
@@ -377,6 +400,28 @@ func _load_looping_music(path: String, label: String) -> AudioStream:
         return null
     if stream is AudioStreamMP3:
         (stream as AudioStreamMP3).loop = true
+    return stream
+
+func _build_golden_chime() -> AudioStreamWAV:
+    var stream := AudioStreamWAV.new()
+    stream.mix_rate = 22050
+    stream.format = AudioStreamWAV.FORMAT_16_BITS
+    stream.stereo = false
+    var duration := 0.92
+    var sample_count := int(float(stream.mix_rate) * duration)
+    var pcm := PackedByteArray()
+    pcm.resize(sample_count * 2)
+    var notes: Array[float] = [523.25,659.25,783.99]
+    for sample_index in sample_count:
+        var seconds := float(sample_index) / float(stream.mix_rate)
+        var envelope := pow(maxf(0.0,1.0-seconds/duration),1.65)
+        var value := 0.0
+        for note_index in notes.size():
+            var entry := float(note_index) * 0.12
+            if seconds >= entry:
+                value += sin(TAU * notes[note_index] * (seconds-entry)) * exp(-(seconds-entry)*3.1)
+        pcm.encode_s16(sample_index*2,clampi(roundi(value*envelope*7200.0),-32767,32767))
+    stream.data = pcm
     return stream
 
 func _route_point(point: Vector2) -> Vector2:
@@ -565,6 +610,8 @@ func _check_danger_collision() -> bool:
         return false
     var clears_predators := _leap_clears_predators()
     if not clears_predators and _predator_can_hit(0) and fred.distance_to(predator) < float(level_profile.danger_radius):
+        if _try_golden_egg_predator_event():
+            return true
         _apply_danger_hit(_predator_danger_message(0))
         return true
     if not hazards_enabled:
@@ -573,6 +620,8 @@ func _check_danger_collision() -> bool:
     for index in range(1, active_positions.size()):
         var position: Vector2 = active_positions[index]
         if not clears_predators and _predator_can_hit(index) and fred.distance_to(position) < float(level_profile.danger_radius):
+            if _try_golden_egg_predator_event():
+                return true
             _apply_danger_hit(_predator_danger_message(index))
             return true
     for index in range(mini(int(level_profile.whirlpool_count), WHIRLPOOLS.size())):
@@ -582,6 +631,7 @@ func _check_danger_collision() -> bool:
     return false
 
 func _apply_danger_hit(message: String) -> void:
+    golden_run.note_death(message)
     impact_burst_origin = fred
     impact_burst_seconds = 0.62
     impact_burst_kind = "CURRENT BURST" if message.begins_with("[WHIRLPOOL]") else ("LANDING SPLASH" if message.begins_with("[LANDING]") else "PREDATOR BUMP")
@@ -622,6 +672,7 @@ func _request_leap(requested_direction: Vector2) -> bool:
         return false
     var accepted: bool = leap.request(requested_direction)
     if accepted:
+        golden_run.note_valid_surface_jump(level_number)
         _set_feedback("[LEAP] Fred sprang over the marsh!")
     return accepted
 
@@ -642,6 +693,7 @@ func _request_dive() -> bool:
     var accepted: bool = depth.request_dive(allowed)
     if accepted:
         boost.cancel(session.boost_energy)
+        golden_run.note_dive_after_surface(level_number)
         _set_feedback("[DIVING] Hold your course while Fred descends.")
     elif depth.state == DepthTraversal.State.SURFACE and not allowed:
         _set_feedback("[DIVE BLOCKED] Move into open water.")
@@ -671,6 +723,36 @@ func _resolve_landing() -> bool:
         _set_feedback("[LANDING] Fred found a safe perch.")
     else:
         _set_feedback("[LANDING] Fred kept moving through the marsh.")
+    return true
+
+func _try_golden_egg_predator_event() -> bool:
+    if not golden_run.try_predator_event(level_number):
+        return false
+    leap.reset()
+    depth.reset("surface")
+    tongue.reset()
+    boost.cancel(session.boost_energy)
+    session.set_underwater(false)
+    touch_contacts.clear()
+    touch_positions.clear()
+    pointer_touch_active = false
+    _refresh_touch_holds()
+    impact_burst_origin = fred
+    impact_burst_seconds = 1.2
+    impact_burst_kind = "MOONPETAL DISCOVERY"
+    golden_reveal_seconds = 0.0
+    golden_discovery_status = "pending"
+    golden_privacy = "anonymous"
+    var raw_id := Crypto.new().generate_random_bytes(16).hex_encode()
+    var idempotency_key := "%s-%s-%s-%s-%s" % [raw_id.substr(0,8), raw_id.substr(8,4), raw_id.substr(12,4), raw_id.substr(16,4), raw_id.substr(20,12)]
+    var staged: Dictionary = golden_discovery.stage_pending(golden_run.evidence(), idempotency_key)
+    if not bool(staged.get("ok", false)):
+        golden_discovery_status = "local_recovery_required"
+    screen = Screen.GOLDEN_EGG
+    if audio_enabled and is_instance_valid(golden_chime):
+        golden_chime.play()
+    _set_feedback("[GOLDEN DISCOVERY] Moonpetal magic has awakened!")
+    queue_redraw()
     return true
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -820,6 +902,14 @@ func _handle_click(position: Vector2) -> void:
     elif screen == Screen.LEADERBOARD and (LEADERBOARD_HOME_SPLIT_RECT if _game_center_available() else LEADERBOARD_HOME_CENTER_RECT).has_point(position): _go_home()
     elif screen == Screen.COMPLETE and Rect2(490,500,300,60).has_point(position):
         _advance_level()
+    elif screen == Screen.GOLDEN_EGG and GOLDEN_EGG_PRIVATE_RECT.has_point(position):
+        golden_privacy = "anonymous"
+        golden_discovery.set_privacy("anonymous")
+        _set_feedback("[PRIVATE] Your discovery stays anonymous.")
+    elif screen == Screen.GOLDEN_EGG and GOLDEN_EGG_PUBLIC_RECT.has_point(position):
+        golden_privacy = "public"
+        golden_discovery.set_privacy("public", identity.profile_label)
+        _set_feedback("[SHARE READY] Your chosen marsh name may appear after secure confirmation.")
 
 func _open_story() -> void:
     screen = Screen.STORY
@@ -840,6 +930,8 @@ func _start() -> void:
         session = AdventureSession.new(1337)
         _set_feedback("[NEW GAME] A fresh Lily Leap run is ready.")
     screen = Screen.PLAYING
+    if level_number == 1:
+        golden_run.begin_level_one()
     countdown_seconds = 5.0 if countdown_enabled else 0.0
     fairy_collected = false
     tongue.reset()
@@ -880,6 +972,7 @@ func _retry() -> void:
     fairy_collected = false
     countdown_seconds = 5.0 if countdown_enabled else 0.0
     screen = Screen.PLAYING
+    golden_run.begin_level_one()
     _sync_music()
     _set_feedback("[TRY AGAIN] Level 1 is ready.")
 
@@ -896,6 +989,7 @@ func _go_home() -> void:
     _refresh_touch_holds()
     countdown_seconds = 0.0
     if leaving_gameplay:
+        golden_run.note_run_abandoned()
         level_number = 1
         level_profile = FredLevelIntensity.profile(1)
         session = AdventureSession.new(1337)
@@ -922,6 +1016,7 @@ func _advance_level() -> void:
         return
     var carried_lives := session.health
     var carried_energy := session.boost_energy
+    golden_run.advance_level(level_number, level_number + 1)
     level_number = mini(FredLevelIntensity.MAX_LEVEL, level_number + 1)
     level_profile = FredLevelIntensity.profile(level_number)
     session = AdventureSession.new(1337 + level_number)
@@ -1034,6 +1129,7 @@ func _draw() -> void:
     if screen == Screen.INSTRUCTIONS: _draw_instructions(); return
     if screen == Screen.LEADERBOARD: _draw_leaderboard(); return
     if screen == Screen.CUSTOMIZE: _draw_customizer(); return
+    if screen == Screen.GOLDEN_EGG: _draw_golden_egg_reveal(); return
     _draw_level()
     if screen == Screen.FAILED: _draw_failure()
     elif screen == Screen.COMPLETE:
@@ -1043,6 +1139,39 @@ func _draw() -> void:
             _draw_overlay("Lily Leap Complete!", "Level %03d is ready." % (level_number + 1), "Next Level", Rect2(490,500,300,60), "LEVEL CLEAR")
     elif session.paused: _draw_overlay("Marsh Paused", "Your checkpoint is safe.", "Resume", MarshRouteLayout.PAUSED_RESUME_RECT, "PAUSED")
     elif countdown_seconds > 0.0: _draw_countdown()
+
+func _draw_golden_egg_reveal() -> void:
+    var pulse := 0.0 if reduced_motion else sin(golden_reveal_seconds * 2.4) * 5.0
+    draw_texture_rect(gameplay_art, Rect2(0,0,1280,720), false, Color(0.36,0.44,0.38,1.0))
+    draw_rect(Rect2(0,0,1280,720), Color(0.005,0.018,0.035,0.82), true)
+    for ring in range(6):
+        var radius := 88.0 + float(ring) * 34.0 + pulse
+        draw_arc(Vector2(640,330), radius, 0.0, TAU, 72, Color(1.0,0.78,0.24,0.19-float(ring)*0.022), 4.0)
+    for index in range(30):
+        var angle := float(index) * TAU / 30.0 + (0.0 if reduced_motion else golden_reveal_seconds * (0.06 + float(index % 3) * 0.02))
+        var distance := 125.0 + float((index * 37) % 150)
+        var sparkle := Vector2(640,330) + Vector2.from_angle(angle) * distance
+        draw_circle(sparkle, 2.5 + float(index % 4), Color(1.0,0.84,0.34,0.48 + float(index % 3) * 0.12))
+    draw_colored_polygon(_ellipse_points(Vector2(640,350),Vector2(103+pulse*0.35,135+pulse*0.35),0.0),Color("b87512"))
+    draw_colored_polygon(_ellipse_points(Vector2(640,330),Vector2(96+pulse*0.30,128+pulse*0.30),0.0),Color("f8c947"))
+    draw_colored_polygon(_ellipse_points(Vector2(620,300),Vector2(48,83),-0.22),Color(1.0,0.91,0.45,0.62))
+    draw_arc(Vector2(640,330),96.0,0.0,TAU,72,Color("fff3a6"),6.0)
+    draw_arc(Vector2(640,330),70.0,0.1,TAU-0.1,72,Color("a76109"),7.0)
+    draw_arc(Vector2(640,330),55.0,0.0,TAU,72,Color("ffe989"),4.0)
+    for petal_angle in range(0,360,60):
+        var petal_center := Vector2(640,330)+Vector2.from_angle(deg_to_rad(float(petal_angle)))*54.0
+        draw_colored_polygon(_ellipse_points(petal_center,Vector2(12,25),deg_to_rad(float(petal_angle))),Color("fff0a8"))
+    draw_circle(Vector2(640,330),20.0,Color("fff8d4"))
+    draw_circle(Vector2(633,323),6.0,Color(1,1,1,0.78))
+    _text(Vector2(640,60),"A SECRET OF MOONPETAL MARSH!",36,Color("ffe184"),HORIZONTAL_ALIGNMENT_CENTER,1080)
+    _text(Vector2(640,108),"You found one of the hidden Golden Eggs.",25,Color.WHITE,HORIZONTAL_ALIGNMENT_CENTER,920)
+    _text(Vector2(640,500),"Your place is confirmed only by the secure App Vault service.",17,Color("d9f4e2"),HORIZONTAL_ALIGNMENT_CENTER,880)
+    var status_text := "DISCOVERY SAFELY QUEUED — RETRIES USE THE SAME RECORD" if golden_discovery_status == "pending" else "DISCOVERY SAVED LOCALLY — SECURE CONNECTION REQUIRED"
+    _text(Vector2(640,535),status_text,14,Color("b9f5c7"),HORIZONTAL_ALIGNMENT_CENTER,960)
+    _text(Vector2(640,565),"Choose whether your marsh name may appear publicly. Anonymous is the default.",14,Color("d9f4e2"),HORIZONTAL_ALIGNMENT_CENTER,980)
+    _button(GOLDEN_EGG_PRIVATE_RECT,"KEEP ME ANONYMOUS" if golden_privacy != "anonymous" else "ANONYMOUS ✓")
+    _button(GOLDEN_EGG_PUBLIC_RECT,"SHARE MY MARSH NAME" if golden_privacy != "public" else "PUBLIC NAME ✓")
+    _text(Vector2(640,690),"No rank, time, or secret code is created on this device.",12,Color("9ec8cf"),HORIZONTAL_ALIGNMENT_CENTER,800)
 
 func _draw_title() -> void:
     draw_texture_rect(title_art, Rect2(0,0,1280,720), false)
