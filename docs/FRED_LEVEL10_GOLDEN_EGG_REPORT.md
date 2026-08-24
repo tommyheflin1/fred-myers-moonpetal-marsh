@@ -132,7 +132,9 @@ Godot WinGet installation. The launcher now resolves the existing pinned Godot
 4.7.1 executables from the user-local WinGet package first, falling back to a
 verified PATH file only when needed. A bounded ignored diagnostic records a
 hidden launch failure and is cleared before the next successful attempt. The
-launcher does not install software or change machine settings. The exact `.lnk` path,
+launcher also computes candidate hashes through .NET so an Explorer process
+with a stale PowerShell module path cannot disable integrity verification. It
+does not install software or change machine settings. The exact `.lnk` path,
 not just a direct script invocation, is required to pass the final launch gate.
 
 The companion website build/tests cover Fred/Snake identity separation, global

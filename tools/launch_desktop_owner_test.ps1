@@ -51,6 +51,26 @@ function Resolve-FredGodotExecutable {
     throw "Godot 4.7.1 is not available. Ask Codex to repair the existing owner-test runtime."
 }
 
+function Get-FredSha256 {
+    param([string]$Path)
+
+    $stream = $null
+    $sha = $null
+    try {
+        $stream = [System.IO.File]::OpenRead($Path)
+        $sha = [System.Security.Cryptography.SHA256]::Create()
+        return ([System.BitConverter]::ToString($sha.ComputeHash($stream))).Replace("-", "").ToLowerInvariant()
+    }
+    finally {
+        if ($null -ne $sha) {
+            $sha.Dispose()
+        }
+        if ($null -ne $stream) {
+            $stream.Dispose()
+        }
+    }
+}
+
 try {
     if (Test-Path -LiteralPath $launchErrorPath -PathType Leaf) {
         Remove-Item -LiteralPath $launchErrorPath -Force
@@ -61,7 +81,7 @@ try {
     if (-not (Test-Path -LiteralPath $manifestPath -PathType Leaf)) {
         throw "The Fred candidate manifest is missing. Ask Codex to refresh the owner-test link."
     }
-    $manifestHash = (Get-FileHash -LiteralPath $manifestPath -Algorithm SHA256).Hash.ToLowerInvariant()
+    $manifestHash = Get-FredSha256 $manifestPath
     if (-not [string]::IsNullOrWhiteSpace($ExpectedManifestHash) -and $manifestHash -ne $ExpectedManifestHash.ToLowerInvariant()) {
         throw "The Fred candidate manifest changed. Ask Codex to refresh the owner-test link."
     }
@@ -89,7 +109,7 @@ try {
         if (-not (Test-Path -LiteralPath $candidatePath -PathType Leaf)) {
             throw "A pinned Fred candidate file is missing: $($entry.path)"
         }
-        $actualHash = (Get-FileHash -LiteralPath $candidatePath -Algorithm SHA256).Hash.ToLowerInvariant()
+        $actualHash = Get-FredSha256 $candidatePath
         if ($actualHash -ne ([string]$entry.sha256).ToLowerInvariant()) {
             throw "A pinned Fred candidate file changed: $($entry.path). Ask Codex to refresh the owner-test link."
         }
