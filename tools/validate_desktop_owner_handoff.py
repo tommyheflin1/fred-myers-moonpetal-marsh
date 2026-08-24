@@ -41,6 +41,8 @@ check("Godot_v4.7.1-stable_win64_console.exe" in launcher, "Godot version prefli
 check("Resolve-FredGodotExecutable" in launcher, "desktop launcher Godot resolver is missing")
 check("GodotEngine.GodotEngine_Microsoft.Winget.Source_8wekyb3d8bbwe" in launcher, "Explorer-safe WinGet Godot fallback is missing")
 check("$env:LOCALAPPDATA" in launcher, "Godot fallback must remain user-local and machine-setting free")
+check("last-launch-error.json" in launcher, "hidden shortcut failures need a bounded local diagnostic")
+check("Remove-Item -LiteralPath $launchErrorPath" in launcher, "successful retry must clear stale launch diagnostics")
 check("IsolatedReview" in launcher and "fred-desktop-owner-review-" in launcher, "isolated fictional review mode is missing")
 check("app_build_1_started = $true" in launcher, "launcher must identify the App Build 1 test phase")
 check("Fred Myers Owner Test.lnk" in installer, "canonical shortcut name is missing")
@@ -85,7 +87,7 @@ check(
 project = (ROOT / "godot" / "project.godot").read_text(encoding="utf-8")
 check('config/icon="res://assets/art/fred-app-icon-v3-platform.png"' in project, "Godot project icon is not the v3 platform-safe Moonpetal Crest")
 
-for forbidden in ("git push", "gh pr create", "Export-PfxCertificate", "signtool"):
+for forbidden in ("git push", "gh pr create", "Export-PfxCertificate", "signtool", "Start-BitsTransfer"):
     check(forbidden.lower() not in launcher.lower(), f"launcher contains protected action {forbidden}")
 
 print(f"Desktop owner handoff validation passed: {checks} checks")

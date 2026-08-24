@@ -13,6 +13,7 @@ $ErrorActionPreference = "Stop"
 $projectRoot = Split-Path -Parent $PSScriptRoot
 $godotProject = Join-Path $projectRoot "godot"
 $manifestPath = Join-Path $projectRoot "builds\desktop-owner\candidate.json"
+$launchErrorPath = Join-Path $projectRoot "builds\desktop-owner\last-launch-error.json"
 $expectedCoreTree = "288d87420c5694f80c071f00aa71a0b581f9f60c"
 $reviewRoot = $null
 
@@ -33,24 +34,27 @@ function Show-OwnerError {
 function Resolve-FredGodotExecutable {
     param([string]$FileName)
 
-    $command = Get-Command $FileName -ErrorAction SilentlyContinue
-    if ($null -ne $command -and -not [string]::IsNullOrWhiteSpace($command.Source)) {
-        return $command.Source
-    }
-
     # Explorer can keep an older PATH than an interactive shell after WinGet
-    # installs Godot. Resolve the already-installed, pinned package directly so
-    # the desktop link remains reliable without changing machine settings.
+    # installs Godot. Prefer the already-installed pinned package over any
+    # stale App Execution Alias or WinGet link in that inherited PATH.
     $winGetPackage = Join-Path $env:LOCALAPPDATA "Microsoft\WinGet\Packages\GodotEngine.GodotEngine_Microsoft.Winget.Source_8wekyb3d8bbwe"
     $winGetCandidate = Join-Path $winGetPackage $FileName
     if (Test-Path -LiteralPath $winGetCandidate -PathType Leaf) {
         return (Get-Item -LiteralPath $winGetCandidate).FullName
     }
 
+    $command = Get-Command $FileName -ErrorAction SilentlyContinue
+    if ($null -ne $command -and -not [string]::IsNullOrWhiteSpace($command.Source) -and (Test-Path -LiteralPath $command.Source -PathType Leaf)) {
+        return (Get-Item -LiteralPath $command.Source).FullName
+    }
+
     throw "Godot 4.7.1 is not available. Ask Codex to repair the existing owner-test runtime."
 }
 
 try {
+    if (Test-Path -LiteralPath $launchErrorPath -PathType Leaf) {
+        Remove-Item -LiteralPath $launchErrorPath -Force
+    }
     $godotCommand = Resolve-FredGodotExecutable "Godot_v4.7.1-stable_win64.exe"
     $godotConsole = Resolve-FredGodotExecutable "Godot_v4.7.1-stable_win64_console.exe"
 
@@ -157,6 +161,11 @@ try {
     }
 }
 catch {
+    [ordered]@{
+        status = "BLOCKED"
+        reason = $_.Exception.Message
+        recorded_at = [DateTime]::UtcNow.ToString("o")
+    } | ConvertTo-Json -Compress | Set-Content -LiteralPath $launchErrorPath -Encoding UTF8
     Show-OwnerError $_.Exception.Message
     if ($PreflightOnly) {
         [ordered]@{
