@@ -41,8 +41,10 @@ const STORY_CONTINUE_RECT := Rect2(815,630,380,60)
 const INSTRUCTIONS_HOME_RECT := Rect2(85,630,250,60)
 const INSTRUCTIONS_PLAY_RECT := Rect2(815,630,380,60)
 const CUSTOM_HOME_RECT := Rect2(490,635,300,56)
-const GOLDEN_EGG_PRIVATE_RECT := Rect2(275,590,330,62)
-const GOLDEN_EGG_PUBLIC_RECT := Rect2(675,590,330,62)
+const GOLDEN_EGG_PRIVATE_RECT := Rect2(175,555,400,48)
+const GOLDEN_EGG_PUBLIC_RECT := Rect2(705,555,400,48)
+const GOLDEN_EGG_HUNT_RECT := Rect2(265,625,340,50)
+const GOLDEN_EGG_HOME_RECT := Rect2(675,625,340,50)
 const CUSTOM_CARDS := {
     "body": Rect2(120,205,245,165),
     "size": Rect2(385,205,245,165),
@@ -910,6 +912,20 @@ func _handle_click(position: Vector2) -> void:
         golden_privacy = "public"
         golden_discovery.set_privacy("public", identity.profile_label)
         _set_feedback("[SHARE READY] Your chosen marsh name may appear after secure confirmation.")
+    elif screen == Screen.GOLDEN_EGG and GOLDEN_EGG_HUNT_RECT.has_point(position):
+        _open_golden_egg_hunt()
+    elif screen == Screen.GOLDEN_EGG and GOLDEN_EGG_HOME_RECT.has_point(position):
+        _go_home()
+
+func _golden_egg_hunt_url() -> String:
+    return GoldenEggClient.BASE_URL + GoldenEggClient.HUNT_PATH
+
+func _open_golden_egg_hunt() -> void:
+    var open_result := OS.shell_open(_golden_egg_hunt_url())
+    if open_result == OK:
+        _set_feedback("[GOLDEN EGG HUNT] The official App Vault hunt opened in your browser.")
+    else:
+        _set_feedback("[HUNT LINK] Visit theflinsappvaultllc.com/golden-eggs.")
 
 func _open_story() -> void:
     screen = Screen.STORY
@@ -977,7 +993,7 @@ func _retry() -> void:
     _set_feedback("[TRY AGAIN] Level 1 is ready.")
 
 func _go_home() -> void:
-    var leaving_gameplay := screen in [Screen.PLAYING, Screen.FAILED, Screen.COMPLETE]
+    var leaving_gameplay := screen in [Screen.PLAYING, Screen.FAILED, Screen.COMPLETE, Screen.GOLDEN_EGG]
     leap.reset()
     depth.reset("surface")
     tongue.reset()
@@ -1165,13 +1181,15 @@ func _draw_golden_egg_reveal() -> void:
     draw_circle(Vector2(633,323),6.0,Color(1,1,1,0.78))
     _text(Vector2(640,60),"A SECRET OF MOONPETAL MARSH!",36,Color("ffe184"),HORIZONTAL_ALIGNMENT_CENTER,1080)
     _text(Vector2(640,108),"You found one of the hidden Golden Eggs.",25,Color.WHITE,HORIZONTAL_ALIGNMENT_CENTER,920)
-    _text(Vector2(640,500),"Your place is confirmed only by the secure App Vault service.",17,Color("d9f4e2"),HORIZONTAL_ALIGNMENT_CENTER,880)
+    _text(Vector2(640,486),"Your place is confirmed only by the secure App Vault service.",17,Color("d9f4e2"),HORIZONTAL_ALIGNMENT_CENTER,880)
     var status_text := "DISCOVERY SAFELY QUEUED — RETRIES USE THE SAME RECORD" if golden_discovery_status == "pending" else "DISCOVERY SAVED LOCALLY — SECURE CONNECTION REQUIRED"
-    _text(Vector2(640,535),status_text,14,Color("b9f5c7"),HORIZONTAL_ALIGNMENT_CENTER,960)
-    _text(Vector2(640,565),"Choose whether your marsh name may appear publicly. Anonymous is the default.",14,Color("d9f4e2"),HORIZONTAL_ALIGNMENT_CENTER,980)
+    _text(Vector2(640,516),status_text,14,Color("b9f5c7"),HORIZONTAL_ALIGNMENT_CENTER,960)
+    _text(Vector2(640,542),"Choose whether your marsh name may appear publicly. Anonymous is the default.",14,Color("d9f4e2"),HORIZONTAL_ALIGNMENT_CENTER,980)
     _button(GOLDEN_EGG_PRIVATE_RECT,"KEEP ME ANONYMOUS" if golden_privacy != "anonymous" else "ANONYMOUS ✓")
     _button(GOLDEN_EGG_PUBLIC_RECT,"SHARE MY MARSH NAME" if golden_privacy != "public" else "PUBLIC NAME ✓")
-    _text(Vector2(640,690),"No rank, time, or secret code is created on this device.",12,Color("9ec8cf"),HORIZONTAL_ALIGNMENT_CENTER,800)
+    _button(GOLDEN_EGG_HUNT_RECT,"OPEN GOLDEN EGG HUNT")
+    _button(GOLDEN_EGG_HOME_RECT,"HOME")
+    _text(Vector2(640,705),"No rank, time, or secret code is created on this device.",12,Color("9ec8cf"),HORIZONTAL_ALIGNMENT_CENTER,800)
 
 func _draw_title() -> void:
     draw_texture_rect(title_art, Rect2(0,0,1280,720), false)

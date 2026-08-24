@@ -44,6 +44,13 @@ existing marsh profile label. No rank, discovery time, public reference, or
 secret code is generated locally. The UI states that those fields require the
 secure App Vault service.
 
+The owner-test reveal now has two additional explicit actions. **Open Golden
+Egg Hunt** opens only the canonical HTTPS hunt page, and **Home** exits the
+reveal and begins the next ordinary play session from Level 1. Privacy and
+navigation controls use separate, tested rectangles at both requested review
+sizes. Neither action changes the one-way discovery guard or manufactures a
+server result.
+
 ## Shared backend contract
 
 Fred uses the existing universal service at
@@ -69,6 +76,16 @@ An accepted production discovery remains blocked until the owner provisions
 the approved Apple secure build/key-storage path. That release credential was
 not created, read, printed, stored, uploaded, or deployed in this workstream.
 
+Live read-only verification on 2026-08-23 proved the public hunt page itself
+returns HTTP 200, but the deployed registry still contains Snake Reactor only.
+`GET /api/golden-eggs/leaderboard?game=fred-myers` returns HTTP 400 with
+`Unknown game`, and the `game=all` response lists only Snake Reactor in
+`participating_games`. The tested companion website commit
+`426cb062b72ed20b088b7738c578d10af35cbaa5` therefore has not reached the live
+site. Until that commit is deployed and the Fred signing key is provisioned,
+real Fred discovery submission, server timestamp, global/game rank, cosmetic
+code, and server-backed privacy changes remain **BLOCKED / UNVERIFIED**.
+
 ## Retry and recovery
 
 The qualifying event first atomically stages a fictional/local pending record
@@ -90,16 +107,19 @@ single shortcut are revalidated at the final local checkpoint.
 
 Final executed evidence:
 
-- focused Golden Egg suite: **95 passed, 0 failed**;
-- complete Fred matrix: **28 suites, 8,285 passed, 0 failed**;
+- focused Golden Egg suite: **98 passed, 0 failed**;
+- complete Fred matrix: **28 suites, 8,288 passed, 0 failed**;
 - readiness: **139 artifacts, eight fixtures**, Core 0.5.1, Godot 4.7;
 - Windows runtime: normal 1280×720 and reduced-motion 960×540; privacy choices
-  were exercised in the actual Godot window and remained responsive;
-- normal evidence: `godot/docs/evidence/golden-egg-reveal-normal-1280x720.png`,
-  SHA-256 `22b1d17cc9ab32bfff1ac25042d905fbc87c25ccf0a761a85f2d8d4a0a447f68`;
+  were exercised in the actual Godot window and remained responsive. The final
+  owner-test pass also checks the canonical Hunt URL, non-overlapping controls,
+  and reveal-to-Home Level 1 reset;
+- final owner-handoff normal evidence:
+  `godot/docs/evidence/golden-egg-owner-handoff-normal-1280x720.png`, SHA-256
+  `f55a598ca1fb77c039e0d2c9f0815cb00ed646f95bc3975a00fe529ac4b72474`;
 - reduced-motion evidence:
-  `godot/docs/evidence/golden-egg-reveal-reduced-960x540.png`, SHA-256
-  `f6173e0e76107600d9eab11a036c0ff4a66f248f6e130acbfad9e55a47dea898`.
+  `godot/docs/evidence/golden-egg-owner-handoff-reduced-960x540.png`, SHA-256
+  `70ebbdef4491b6ebf77eccb68d7d24f7c295d4787fade0971811fa93285c8e37`.
 
 The short-lived capture runner emitted the repository's known standalone
 ObjectDB/resource teardown diagnostic during the second capture. The persistent
@@ -109,8 +129,9 @@ capture-only hook was removed before the candidate commit.
 The companion website build/tests cover Fred/Snake identity separation, global
 rank continuity, per-game first/rank behavior, HMAC/bearer/idempotency controls,
 server-owned timestamps/ranks, privacy ownership, and public data minimization.
-The local website build completed and all **65 tests passed**. No live endpoint
-or production database was contacted.
+The local website build completed and all **65 tests passed**. Live endpoints
+were contacted read-only only for the deployment-state checks above; no live
+discovery was submitted and no production database was changed.
 
 ## Release boundary
 

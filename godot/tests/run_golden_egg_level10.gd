@@ -210,6 +210,10 @@ func _run() -> void:
 	check(game._try_golden_egg_predator_event(), "main gameplay intercepts a fully qualified predator event")
 	check(game.screen == Main.Screen.GOLDEN_EGG and game.session.health == 3, "Golden Egg reveal replaces death without consuming a life")
 	check(not game._try_golden_egg_predator_event(), "main gameplay cannot submit the same discovery twice")
+	check(game._golden_egg_hunt_url() == "https://theflinsappvaultllc.com/golden-eggs", "reveal exposes only the canonical HTTPS Golden Egg Hunt link")
+	check(not Main.GOLDEN_EGG_PRIVATE_RECT.intersects(Main.GOLDEN_EGG_HUNT_RECT) and not Main.GOLDEN_EGG_PUBLIC_RECT.intersects(Main.GOLDEN_EGG_HOME_RECT), "reveal privacy and navigation controls do not overlap")
+	game._go_home()
+	check(game.screen == Main.Screen.TITLE and game.level_number == 1, "Home leaves the reveal and resets ordinary play to Level 1")
 	game.queue_free()
 	await process_frame
 	await process_frame
