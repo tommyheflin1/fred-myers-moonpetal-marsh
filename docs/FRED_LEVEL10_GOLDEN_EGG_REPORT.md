@@ -71,20 +71,25 @@ unsafe methods, endpoint traversal, incomplete server responses, missing bearer
 state, and missing platform signing material. Signing material is ephemeral,
 zeroed on clear, never serialized, and absent from this repository.
 
-An accepted production discovery remains blocked until the owner provisions
-`GOLDEN_EGG_FRED_MYERS_SIGNING_KEY` to both the protected website runtime and
-the approved Apple secure build/key-storage path. That release credential was
-not created, read, printed, stored, uploaded, or deployed in this workstream.
+Live verification on 2026-08-23/24 now proves the public hunt page returns HTTP
+200 and the Fred-filtered leaderboard returns HTTP 200 with both `snake-reactor`
+and `fred-myers` in `participating_games`. The tested companion website commit
+`426cb062b72ed20b088b7738c578d10af35cbaa5` has therefore reached the live
+site. A deliberately invalid fictional bootstrap signature returned HTTP 401
+`Request signature is invalid` instead of HTTP 503 `Game integration is not
+configured`. The backend checks configuration before signature verification,
+so this proves the protected Fred runtime key is present without authenticating
+or writing a player, nonce, discovery, rank, or privacy record.
 
-Live read-only verification on 2026-08-23 proved the public hunt page itself
-returns HTTP 200, but the deployed registry still contains Snake Reactor only.
-`GET /api/golden-eggs/leaderboard?game=fred-myers` returns HTTP 400 with
-`Unknown game`, and the `game=all` response lists only Snake Reactor in
-`participating_games`. The tested companion website commit
-`426cb062b72ed20b088b7738c578d10af35cbaa5` therefore has not reached the live
-site. Until that commit is deployed and the Fred signing key is provisioned,
-real Fred discovery submission, server timestamp, global/game rank, cosmetic
-code, and server-backed privacy changes remain **BLOCKED / UNVERIFIED**.
+The owner-test Windows process does not contain a local Fred signer, and this
+candidate intentionally stops at its signed-request builder and durable local
+retry queue when a platform secure provider is unavailable. The credential was
+not read, printed, copied, or stored in this workstream. Real client submission,
+server timestamp/rank/code receipt, authenticated privacy update, and
+discovery-specific link ownership remain **BLOCKED / UNVERIFIED** until an
+approved client secure provider supplies the signer and the transport is
+activated and validated. The secret must not be pasted into chat, committed,
+or embedded in the ordinary save.
 
 ## Retry and recovery
 
@@ -140,13 +145,15 @@ not just a direct script invocation, is required to pass the final launch gate.
 The companion website build/tests cover Fred/Snake identity separation, global
 rank continuity, per-game first/rank behavior, HMAC/bearer/idempotency controls,
 server-owned timestamps/ranks, privacy ownership, and public data minimization.
-The local website build completed and all **65 tests passed**. Live endpoints
-were contacted read-only only for the deployment-state checks above; no live
-discovery was submitted and no production database was changed.
+The local website build completed and all **65 tests passed**. Live GETs and the
+deliberately invalid authentication preflight above were executed; no live
+player or discovery authenticated, no rank/code was issued, and no production
+database record was changed.
 
 ## Release boundary
 
 This is local owner-test evidence only. No branch was pushed, no PR was opened,
-no website was deployed, no production database or secret was changed, and no
-Apple build was signed, uploaded, submitted, or released. Live backend and
-physical-device acceptance remain separate owner-controlled gates.
+and this workstream did not deploy the website or change its production
+database/secret. No Apple build was signed, uploaded, submitted, or released.
+Authenticated app-to-backend and physical-device acceptance remain separate
+owner-controlled gates.
