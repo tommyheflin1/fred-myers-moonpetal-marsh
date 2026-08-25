@@ -100,7 +100,9 @@ func _run() -> void:
 		identity_silhouettes[str(identity.silhouette)] = true
 		check(Array(identity.anatomy).size() >= 8, "%s has at least eight explicit species anatomy cues" % species.to_lower())
 		check(Array(identity.motion_channels).size() >= 3, "%s has layered species-specific motion channels" % species.to_lower())
-		check(int(identity.detail_layers) >= 13 and bool(identity.phone_readable), "%s realism uses the upgraded layered phone-readable rig" % species.to_lower())
+		check(int(identity.detail_layers) >= 18 and bool(identity.phone_readable), "%s realism uses the upgraded layered phone-readable rig" % species.to_lower())
+		check(str(identity.reference).begins_with("https://sketchfab.com/3d-models/") and str(identity.reference_license) in ["CC0", "CC BY"], "%s uses a recorded commercial-compatible Sketchfab anatomy reference" % species.to_lower())
+		check(not bool(identity.runtime_asset_dependency), "%s remains offline with no runtime Sketchfab dependency" % species.to_lower())
 	check(identity_silhouettes.size() == Main.PREDATOR_SPECIES.size(), "every named predator has a distinct rendered silhouette contract")
 	var bass_identity: Dictionary = game._predator_identity_profile("BASS")
 	check(str(bass_identity.silhouette) == "deep_largemouth", "bass uses a deep-bodied largemouth silhouette")

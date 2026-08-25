@@ -89,6 +89,15 @@ const UNDERWATER_HEAD := Color("54b7bd")
 const OUTLINE := Color("152e29")
 const UNDERWATER_OUTLINE := Color("d6f7ff")
 const MAX_COORDINATOR_STATE := 22
+const ART_REFERENCE_PROFILE := {
+	"source": "Sketchfab",
+	"model": "CC0 American Bullfrog",
+	"url": "https://sketchfab.com/3d-models/cc0-american-bullfrog-0850a4b8afc141b88981c4606cf80415",
+	"license": "CC0",
+	"use": "anatomy and silhouette reference only",
+	"runtime_asset_dependency": false,
+	"redistributed_model_files": 0,
+}
 const ATTIRE_IDS := [
 	"marsh_runner", "trail_scout", "moon_champion", "firefly_hero",
 	"pond_pilot", "rain_ranger", "bug_catcher", "star_jumper", "lily_lifeguard",
@@ -190,6 +199,12 @@ const REALISM_FEATURES: Array[String] = [
 	"layered corneal highlights",
 	"beveled garment volume",
 	"pose-aware silhouette lighting",
+	"reference-guided cranial wedge",
+	"layered labial jaw folds",
+	"hindquarter tendon definition",
+	"directional wet-skin highlights",
+	"volumetric throat sac contour",
+	"phone-readable toe webbing",
 ]
 
 var last_error := ""
@@ -318,6 +333,7 @@ func render_to(canvas: Node2D, world_position: Vector2, presentation_time_second
 		if points.size() >= 3:
 			canvas.draw_colored_polygon(points, polygon.color)
 	_draw_skin_dimension(canvas, world_position, presentation_time_seconds, reduced_motion_override)
+	_draw_reference_anatomy_finish(canvas, world_position)
 	_draw_body_build_finish(canvas, world_position)
 	_draw_front_limbs(canvas, world_position)
 	for path in LINE_ORDER:
@@ -396,9 +412,9 @@ func attire_snapshot() -> Dictionary:
 		"structure": float(cut.get("structure", 0.0)),
 		"motion": motion,
 		"fit_features": ATTIRE_FIT_FEATURES.duplicate(),
-		"fabric_layers": 15,
+		"fabric_layers": 18,
 		"eyewear_depth_layers": 5,
-		"tailored_panels": 7,
+		"tailored_panels": 9,
 		"functional_seams": true,
 		"limb_fit": true,
 		"anatomical_openings": 3,
@@ -418,6 +434,9 @@ func attire_snapshot() -> Dictionary:
 		"body_anchor": _node_point(_body_joint, Vector2(0.0, 3.0)),
 		"child_readable": attire in ATTIRE_IDS,
 		"presentation_only": true,
+		"reference_guided": true,
+		"runtime_asset_dependency": false,
+		"mouth_overlay_pixels": 0.0,
 		"collision_mutation": false,
 		"save_fields": 0,
 	}
@@ -447,7 +466,8 @@ func realism_snapshot() -> Dictionary:
 		"features": REALISM_FEATURES.duplicate(),
 		"feature_count": REALISM_FEATURES.size(),
 		"surface_model": "layered vector volume",
-		"volume_layers": 13,
+		"volume_layers": 18,
+		"reference": ART_REFERENCE_PROFILE.duplicate(true),
 		"integrated_joint_caps": true,
 		"facial_depth": true,
 		"presentation_only": true,
@@ -455,6 +475,9 @@ func realism_snapshot() -> Dictionary:
 		"collision_mutation": false,
 		"save_fields": 0,
 	}
+
+func reference_profile_snapshot() -> Dictionary:
+	return ART_REFERENCE_PROFILE.duplicate(true)
 
 func micro_motion_snapshot(presentation_time_seconds: float, reduced_motion_override: bool = false) -> Dictionary:
 	var safe_time := maxf(0.0, presentation_time_seconds) if is_finite(presentation_time_seconds) else 0.0
@@ -544,6 +567,49 @@ func _draw_skin_dimension(canvas: Node2D, world_position: Vector2, presentation_
 		canvas.draw_polyline(muscle, Color(highlight, 0.48), 2.2 * float(_style.size_scale), true)
 		var lower_muscle := _transformed_points(node, PackedVector2Array([Vector2(-27,13),Vector2(-32,19),Vector2(-31,25)]), world_position)
 		canvas.draw_polyline(lower_muscle, Color(shadow,0.34), 1.5 * float(_style.size_scale), true)
+
+func _draw_reference_anatomy_finish(canvas: Node2D, world_position: Vector2) -> void:
+	# Anatomical planes are derived from a commercial-compatible CC0 bullfrog
+	# reference, then rebuilt as original phone-safe vector geometry. They add
+	# depth without importing a remote model or changing the authored joints.
+	var scale_width := float(_style.size_scale)
+	var body_color := (get_node("RootJoint/BodyJoint/Fill") as Polygon2D).color
+	var head_color := (get_node("RootJoint/HeadJoint/Fill") as Polygon2D).color
+	var outline := (get_node("RootJoint/HeadJoint/MouthLine") as Line2D).default_color
+	var cranial_ridge := _transformed_points(_head_joint, PackedVector2Array([
+		Vector2(-24.0,-10.0),Vector2(-14.0,-16.0),Vector2(0.0,-18.5),
+		Vector2(14.0,-16.0),Vector2(24.0,-10.0),
+	]), world_position)
+	canvas.draw_polyline(cranial_ridge, Color(head_color.lightened(0.40),0.52), 2.2 * scale_width, true)
+	var nasal_plane := _transformed_points(_head_joint, PackedVector2Array([
+		Vector2(-12.0,-8.0),Vector2(0.0,-11.0),Vector2(12.0,-8.0),Vector2(8.0,-1.5),Vector2(0.0,1.0),Vector2(-8.0,-1.5),
+	]), world_position)
+	canvas.draw_colored_polygon(nasal_plane, Color(head_color.lightened(0.26),0.13))
+	canvas.draw_polyline(_closed_points(nasal_plane), Color(head_color.lightened(0.42),0.24), 0.9 * scale_width, true)
+	var upper_jaw := _transformed_points(_head_joint, PackedVector2Array([
+		Vector2(-22.0,6.0),Vector2(-12.0,9.0),Vector2(0.0,10.2),Vector2(12.0,9.0),Vector2(22.0,6.0),
+	]), world_position)
+	canvas.draw_polyline(upper_jaw, Color(head_color.lightened(0.34),0.48), 1.6 * scale_width, true)
+	var lower_jaw := _transformed_points(_head_joint, PackedVector2Array([
+		Vector2(-20.0,11.0),Vector2(-11.0,16.0),Vector2(0.0,18.2),Vector2(11.0,16.0),Vector2(20.0,11.0),
+	]), world_position)
+	canvas.draw_polyline(lower_jaw, Color(outline,0.30), 1.45 * scale_width, true)
+	var back_ridge := _transformed_points(_body_joint, PackedVector2Array([
+		Vector2(-18.0,-15.0),Vector2(-9.0,-20.0),Vector2(0.0,-21.5),Vector2(9.0,-20.0),Vector2(18.0,-15.0),
+	]), world_position)
+	canvas.draw_polyline(back_ridge, Color(body_color.lightened(0.43),0.48), 2.0 * scale_width, true)
+	for side: float in [-1.0,1.0]:
+		var flank_tendon := _transformed_points(_body_joint, PackedVector2Array([
+			Vector2(side*17.0,-11.0),Vector2(side*20.5,0.0),Vector2(side*18.0,12.0),
+		]), world_position)
+		canvas.draw_polyline(flank_tendon, Color(body_color.darkened(0.36),0.25), 1.4 * scale_width, true)
+		var hind := _hind_left if side < 0.0 else _hind_right
+		var tendon := _transformed_points(hind, PackedVector2Array([
+			Vector2(-5.0,-1.0),Vector2(-17.0,5.0),Vector2(-27.0,16.0),Vector2(-30.0,25.0),
+		]), world_position)
+		canvas.draw_polyline(tendon, Color(body_color.lightened(0.40),0.44), 1.8 * scale_width, true)
+	for glint in [Vector2(-15.0,-9.0),Vector2(-6.0,-13.0),Vector2(10.0,-8.0)]:
+		_draw_transformed_ellipse(canvas,_head_joint,glint,Vector2(2.6,1.1),Color(0.92,1.0,0.86,0.48),world_position)
 
 func _draw_front_limbs(canvas: Node2D, world_position: Vector2) -> void:
 	var fill := (get_node("RootJoint/BodyJoint/Fill") as Polygon2D).color
@@ -890,7 +956,29 @@ func _draw_sport_gear(canvas: Node2D, world_position: Vector2) -> void:
 			canvas.draw_polyline(runner_mark, Color(shadow,0.82), 1.35 * scale_width, true)
 
 	_draw_limb_attire(canvas, world_position, attire, fabric, panel, shadow, trim, accent)
+	_draw_attire_dimension_finish(canvas, world_position, fabric, panel, shadow, trim)
 	_draw_eyewear(canvas, world_position, eyewear, fabric, trim, lens)
+
+func _draw_attire_dimension_finish(canvas: Node2D, world_position: Vector2, fabric: Color, panel: Color, shadow: Color, trim: Color) -> void:
+	# A raised inner collar, shoulder piping and bound hem make the outfit read
+	# as fitted equipment. All points stay on the torso below the measured jaw
+	# exclusion zone, so no customization can cover Fred's mouth.
+	var scale_width := float(_style.size_scale)
+	var inner_collar := _transformed_points(_body_joint, PackedVector2Array([
+		Vector2(-7.5,0.0),Vector2(-4.5,2.6),Vector2(0.0,7.2),Vector2(4.5,2.6),Vector2(7.5,0.0),
+	]), world_position)
+	canvas.draw_polyline(inner_collar, Color(shadow.darkened(0.28),0.82), 2.7 * scale_width, true)
+	canvas.draw_polyline(inner_collar, Color(trim.lightened(0.18),0.72), 1.0 * scale_width, true)
+	for side: float in [-1.0,1.0]:
+		var shoulder_panel := _transformed_points(_body_joint, PackedVector2Array([
+			Vector2(side*8.0,-1.2),Vector2(side*13.0,-2.2),Vector2(side*17.0,0.5),Vector2(side*15.5,5.5),
+		]), world_position)
+		canvas.draw_polyline(shoulder_panel, Color(panel.lightened(0.28) if side < 0.0 else shadow,0.44), 1.35 * scale_width, true)
+	var raised_hem := _transformed_points(_body_joint, PackedVector2Array([
+		Vector2(-14.5,15.0),Vector2(-9.0,20.0),Vector2(0.0,22.0),Vector2(9.0,20.0),Vector2(14.5,15.0),
+	]), world_position)
+	canvas.draw_polyline(raised_hem, Color(shadow.darkened(0.24),0.70), 2.5 * scale_width, true)
+	canvas.draw_polyline(PackedVector2Array([raised_hem[0]-Vector2(0,1),raised_hem[1]-Vector2(0,1),raised_hem[2]-Vector2(0,1)]), Color(fabric.lightened(0.46),0.28), 0.8 * scale_width, true)
 
 func _draw_limb_attire(canvas: Node2D, world_position: Vector2, attire: String, fabric: Color, panel: Color, shadow: Color, trim: Color, accent: Color) -> void:
 	var scale_width := float(_style.size_scale)

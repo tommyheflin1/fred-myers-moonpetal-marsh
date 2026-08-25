@@ -82,32 +82,32 @@ static func surface_profile(kind: String, actor_index: int, time_seconds: float,
 	result.eye_glint = 0.88 + sin(phase * 0.72) * 0.06 * motion_scale
 	match normalized_kind:
 		"BASS", "PIKE", "MUSKIE":
-			result.volume_layers = 9
+			result.volume_layers = 14
 			result.key_light = 0.30
 			result.underside_shadow = 0.36
 			result.rim_strength = 0.44
 			result.wet_specular = 0.72 + sin(phase * 0.83) * 0.04 * motion_scale
 			result.joint_depth = 0.78
 			result.facial_depth = 0.82
-			result.surface_kind = "overlapping scales and wet muscle volume"
+			result.surface_kind = "reference-guided overlapping scales, translucent fins and wet muscle volume"
 		"SNAKE":
-			result.volume_layers = 10
+			result.volume_layers = 15
 			result.key_light = 0.27
 			result.underside_shadow = 0.42
 			result.rim_strength = 0.38
 			result.wet_specular = 0.48 + sin(phase * 0.64) * 0.035 * motion_scale
 			result.joint_depth = 0.90
 			result.facial_depth = 0.88
-			result.surface_kind = "overlapping keeled scales and muscular spine"
+			result.surface_kind = "reference-guided overlapping keeled scales, brow plates and muscular spine"
 		"HERON":
-			result.volume_layers = 11
+			result.volume_layers = 16
 			result.key_light = 0.34
 			result.underside_shadow = 0.31
 			result.rim_strength = 0.48
 			result.feather_depth = 0.86
 			result.joint_depth = 0.82
 			result.facial_depth = 0.76
-			result.surface_kind = "layered contour feathers and jointed limbs"
+			result.surface_kind = "reference-guided layered contour feathers, covert plates and jointed limbs"
 		"BUG":
 			result.volume_layers = 9
 			result.key_light = 0.31

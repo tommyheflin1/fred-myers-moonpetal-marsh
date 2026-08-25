@@ -3,13 +3,18 @@ extends RefCounted
 
 const CANVAS_SIZE := Vector2(1280.0, 720.0)
 const PLAYFIELD_RECT := Rect2(15.0, 105.0, 1250.0, 530.0)
-const OBJECTIVE_RECT := Rect2(280.0, 14.0, 500.0, 56.0)
-const LIVES_RECT := Rect2(795.0, 14.0, 185.0, 56.0)
-const PAUSE_RECT := Rect2(990.0, 14.0, 120.0, 56.0)
-const HOME_RECT := Rect2(1125.0, 14.0, 125.0, 56.0)
-# Keep the compact meter above the route-summary glyph band (86..98). The
-# previous 78..96 panel visually covered the summary on phone screenshots.
-const ENERGY_RECT := Rect2(930.0, 72.0, 300.0, 14.0)
+const OBJECTIVE_RECT := Rect2(280.0, 10.0, 500.0, 48.0)
+const LIVES_RECT := Rect2(795.0, 10.0, 185.0, 48.0)
+const PAUSE_RECT := Rect2(990.0, 10.0, 120.0, 56.0)
+const HOME_RECT := Rect2(1125.0, 10.0, 125.0, 56.0)
+# Two explicit, non-overlapping text bands prevent the top panels from
+# covering metadata at wide phone/tablet aspect ratios.
+const CAMPAIGN_TEXT_RECT := Rect2(18.0, 61.0, 760.0, 19.0)
+const ROUTE_SUMMARY_RECT := Rect2(18.0, 82.0, 760.0, 20.0)
+# The energy label and fill bar own separate right-side slots. No word is
+# printed over a narrow box and neither slot shares space with route metadata.
+const ENERGY_LABEL_RECT := Rect2(795.0, 73.0, 105.0, 24.0)
+const ENERGY_RECT := Rect2(905.0, 76.0, 345.0, 18.0)
 const STATUS_TOUCH_RECT := Rect2(500.0, 568.0, 340.0, 42.0)
 const STATUS_DESKTOP_RECT := Rect2(820.0, 642.0, 410.0, 42.0)
 const TELEMETRY_ANCHOR := Vector2(25.0, 700.0)
@@ -213,6 +218,9 @@ static func essential_rects(touch_visible: bool) -> Dictionary:
 		"lives": LIVES_RECT,
 		"pause": PAUSE_RECT,
 		"home": HOME_RECT,
+		"campaign": CAMPAIGN_TEXT_RECT,
+		"route_summary": ROUTE_SUMMARY_RECT,
+		"energy_label": ENERGY_LABEL_RECT,
 		"energy": ENERGY_RECT,
 		"status": status_rect(touch_visible),
 		"touch_guide": TOUCH_GUIDE_RECT if touch_visible else Rect2(),

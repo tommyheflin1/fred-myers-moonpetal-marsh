@@ -68,7 +68,7 @@ func _run() -> void:
 	check(rig.get_node("RootJoint/HindLeft/GroundContact") is Marker2D and rig.get_node("RootJoint/HindRight/GroundContact") is Marker2D, "both feet expose authored ground contacts")
 	check(rig.get_node("RootJoint/FrontLeft") is Line2D and rig.get_node("RootJoint/FrontRight") is Line2D, "front limbs remain independently articulated")
 	var realism: Dictionary = rig.realism_snapshot()
-	check(int(realism.feature_count) == 20, "Fred exposes twenty inspectable anatomical, material, volume and micro-motion realism features")
+	check(int(realism.feature_count) == 26, "Fred exposes twenty-six inspectable anatomical, material, volume and micro-motion realism features")
 	for feature: String in ["dorsolateral folds", "visible tympanum", "horizontal frog pupils", "webbed fingers and toe pads", "mottled skin texture", "separated jaw and throat planes", "layered corneal highlights", "beveled garment volume", "pose-aware silhouette lighting"]:
 		check(feature in Array(realism.features), "Fred realism contract includes %s" % feature)
 	check(bool(realism.presentation_only) and bool(realism.phone_safe_vector_rig), "Fred realism remains presentation-only and phone-safe")
@@ -77,7 +77,12 @@ func _run() -> void:
 		check(feature in Array(realism.features), "Fred micro-motion contract includes %s" % feature)
 	for feature: String in ["layered cheek and brow volume","integrated shoulder and knee caps","wet skin rim lighting","subsurface belly shading"]:
 		check(feature in Array(realism.features), "Fred dimensional surface contract includes %s" % feature)
-	check(str(realism.surface_model)=="layered vector volume" and int(realism.volume_layers)>=9,"Fred uses a deep layered vector surface model")
+	for feature: String in ["reference-guided cranial wedge","layered labial jaw folds","hindquarter tendon definition","directional wet-skin highlights","volumetric throat sac contour","phone-readable toe webbing"]:
+		check(feature in Array(realism.features), "Fred reference uplift includes %s" % feature)
+	var art_reference: Dictionary = rig.reference_profile_snapshot()
+	check(str(art_reference.source) == "Sketchfab" and str(art_reference.license) == "CC0", "Fred anatomy reference is a commercial-compatible Sketchfab CC0 model")
+	check(not bool(art_reference.runtime_asset_dependency) and int(art_reference.redistributed_model_files) == 0, "Fred remains offline and redistributes no Sketchfab model file")
+	check(str(realism.surface_model)=="layered vector volume" and int(realism.volume_layers)>=18,"Fred uses an eighteen-layer vector surface model")
 	check(bool(realism.integrated_joint_caps) and bool(realism.facial_depth),"Fred surface model integrates joint caps and facial depth")
 	var micro_reference: Dictionary = rig.micro_motion_snapshot(2.37,false)
 	check(micro_reference == rig.micro_motion_snapshot(2.37,false), "Fred breathing and blink micro-motion is deterministic")
@@ -116,8 +121,9 @@ func _run() -> void:
 		check(Array(right_gear.fit_features).size() == 19, "%s exposes nineteen tailored fit features" % attire_id)
 		for fit_feature: String in ["contoured torso panels", "ribbed mouth-clear collar", "three-point mouth clearance", "cheek and jaw exclusion zone", "outfit-specific neckline", "articulated shoulder gussets", "layered eyewear gasket", "attire-specific closures", "pose-aware cloth folds", "joint-mounted sleeves and bracers", "soft anatomical armholes", "tapered limb tailoring", "curved bound hems", "garment-specific accessory placement", "soft edge finishing", "raised fabric edge lighting"]:
 			check(fit_feature in Array(right_gear.fit_features), "%s attire contract includes %s" % [attire_id, fit_feature])
-		check(int(right_gear.fabric_layers) >= 15 and int(right_gear.eyewear_depth_layers) >= 5, "%s uses layered fabric and eyewear depth" % attire_id)
-		check(int(right_gear.tailored_panels) == 7 and bool(right_gear.functional_seams) and bool(right_gear.limb_fit), "%s clothing is fitted around Fred's torso and limbs" % attire_id)
+		check(int(right_gear.fabric_layers) >= 18 and int(right_gear.eyewear_depth_layers) >= 5, "%s uses upgraded layered fabric and eyewear depth" % attire_id)
+		check(bool(right_gear.reference_guided) and not bool(right_gear.runtime_asset_dependency) and is_zero_approx(float(right_gear.mouth_overlay_pixels)), "%s remains mouth-clear and reference-guided without a runtime model dependency" % attire_id)
+		check(int(right_gear.tailored_panels) >= 9 and bool(right_gear.functional_seams) and bool(right_gear.limb_fit), "%s clothing uses the upgraded fitted torso and limb panels" % attire_id)
 		check(int(right_gear.anatomical_openings) == 3 and float(right_gear.soft_edge_px) <= 2.0, "%s uses soft bound neck and arm openings" % attire_id)
 		check(bool(right_gear.presentation_only) and not bool(right_gear.collision_mutation) and int(right_gear.save_fields) == 0, "%s attire cannot alter collision or save-v1 authority" % attire_id)
 		check(Vector2(right_gear.left_eye_anchor).is_finite() and Vector2(right_gear.right_eye_anchor).is_finite(), "%s eyewear anchors remain finite" % attire_id)

@@ -1468,7 +1468,7 @@ func _draw_level() -> void:
         _draw_impact_burst()
     draw_set_transform(Vector2.ZERO)
     _text(Vector2(25,42), "LILY LEAP", 27, Color("f7d36a"), HORIZONTAL_ALIGNMENT_LEFT, 270)
-    _text(Vector2(25,76), "CAMPAIGN 1  •  LEVEL %03d / 100  •  %s" % [level_profile.level, level_profile.label], 13, Color("d9f4e2"), HORIZONTAL_ALIGNMENT_LEFT, 310)
+    _text(MarshRouteLayout.CAMPAIGN_TEXT_RECT.position + Vector2(7.0,14.0), "CAMPAIGN 1  •  LEVEL %03d / 100  •  %s" % [level_profile.level, level_profile.label], 13, Color("d9f4e2"), HORIZONTAL_ALIGNMENT_LEFT, MarshRouteLayout.CAMPAIGN_TEXT_RECT.size.x - 14.0)
     var route_summary := "%s  |  %s  |  %.1fx  |  THREATS %d  |  NEW: %s" % [
         MarshRouteLayout.formation_label(level_number).to_upper(),
         MarshRouteLayout.route_label(level_number),
@@ -1478,13 +1478,13 @@ func _draw_level() -> void:
     ]
     if reduced_motion:
         route_summary += "  |  STEADY VIEW"
-    _text(Vector2(25,98), route_summary, 12, Color("fff0ae"), HORIZONTAL_ALIGNMENT_LEFT, 830)
+    _text(MarshRouteLayout.ROUTE_SUMMARY_RECT.position + Vector2(7.0,15.0), route_summary, 12, Color("fff0ae"), HORIZONTAL_ALIGNMENT_LEFT, MarshRouteLayout.ROUTE_SUMMARY_RECT.size.x - 14.0)
     draw_rect(MarshRouteLayout.OBJECTIVE_RECT, Color("06151f"), true)
     draw_rect(MarshRouteLayout.OBJECTIVE_RECT, Color("e8fbff"), false, 2)
-    _text(Vector2(295,49), "OBJECTIVE: " + ("Reach the moonpetal exit" if session.bug_count >= 3 else "Munch 3 marsh bugs"), 17, Color("e8fbff"), HORIZONTAL_ALIGNMENT_LEFT, 465)
+    _text(Vector2(295,42), "OBJECTIVE: " + ("Reach the moonpetal exit" if session.bug_count >= 3 else "Munch 3 marsh bugs"), 17, Color("e8fbff"), HORIZONTAL_ALIGNMENT_LEFT, 465)
     draw_rect(MarshRouteLayout.LIVES_RECT, Color("06151f"), true)
     draw_rect(MarshRouteLayout.LIVES_RECT, Color("f7d36a"), false, 3)
-    _text(Vector2(MarshRouteLayout.LIVES_RECT.get_center().x,49), "LIVES %d  •  COINS %d" % [session.health, customization.coins], 14, Color("fff0ae"), HORIZONTAL_ALIGNMENT_CENTER, MarshRouteLayout.LIVES_RECT.size.x - 10.0)
+    _text(Vector2(MarshRouteLayout.LIVES_RECT.get_center().x,42), "LIVES %d  •  COINS %d" % [session.health, customization.coins], 14, Color("fff0ae"), HORIZONTAL_ALIGNMENT_CENTER, MarshRouteLayout.LIVES_RECT.size.x - 10.0)
     if not touch_controls_visible:
         _text(MarshRouteLayout.TELEMETRY_ANCHOR, "BUGS %d/3   %s %d%%   %s   %s" % [session.bug_count, depth.cue(), roundi(float(depth.depth) * 100.0), tongue.cue(), boost.cue()], 15, Color.WHITE, HORIZONTAL_ALIGNMENT_LEFT, 810)
     _draw_energy_meter()
@@ -1698,7 +1698,8 @@ func _draw_energy_meter() -> void:
     draw_rect(meter, Color("e8fbff"), false, 2)
     var threshold_x := meter.position.x + meter.size.x * float(BoostLocomotion.START_THRESHOLD) / 100.0
     draw_line(Vector2(threshold_x,meter.position.y), Vector2(threshold_x,meter.end.y), Color("ff8f70"), 3)
-    _text(Vector2(meter.get_center().x,meter.position.y + 11), "ENERGY %d%%" % session.boost_energy, 10, Color("102935"), HORIZONTAL_ALIGNMENT_CENTER, meter.size.x - 12.0)
+    var label_rect := MarshRouteLayout.ENERGY_LABEL_RECT
+    _text(Vector2(label_rect.get_center().x,label_rect.position.y + 16.0), "ENERGY %d%%" % session.boost_energy, 12, Color("fff0ae"), HORIZONTAL_ALIGNMENT_CENTER, label_rect.size.x)
 
 func _draw_depth_cues() -> void:
     var amount := float(depth.depth)
@@ -1777,9 +1778,12 @@ func _predator_identity_profile(species: String) -> Dictionary:
                 "snout_length": 45.0,
                 "facing": -1.0,
                 "pattern": "broken_lateral_band",
-                "anatomy": ["large hinged jaw", "spiny dorsal fin", "dark lateral band", "rounded operculum", "paired pectoral fins", "forked caudal fin", "layered cycloid scales", "thick upper lip"],
+                "anatomy": ["large hinged jaw", "spiny dorsal fin", "dark lateral band", "rounded operculum", "paired pectoral fins", "forked caudal fin", "layered cycloid scales", "thick upper lip", "reference-guided cheek plane", "translucent fin rays"],
                 "motion_channels": ["tail flex", "pectoral sweep", "body lift"],
-                "detail_layers": 13,
+                "detail_layers": 18,
+                "reference": "https://sketchfab.com/3d-models/cc0-micropterus-sp-62e182cf1f2d4d5692dde7348e648f76",
+                "reference_license": "CC0",
+                "runtime_asset_dependency": false,
                 "phone_readable": true,
             }
         "PIKE":
@@ -1793,9 +1797,12 @@ func _predator_identity_profile(species: String) -> Dictionary:
                 "snout_length": 55.0,
                 "facing": 1.0,
                 "pattern": "pale_chain_spots",
-                "anatomy": ["duckbill snout", "rear dorsal fin", "long torpedo body", "paired pelvic fins", "lateral line", "forked caudal fin", "needle teeth", "chain-pattern scales"],
+                "anatomy": ["duckbill snout", "rear dorsal fin", "long torpedo body", "paired pelvic fins", "lateral line", "forked caudal fin", "needle teeth", "chain-pattern scales", "reference-guided cranial wedge", "translucent fin rays"],
                 "motion_channels": ["tail flex", "pectoral sweep", "body lift"],
-                "detail_layers": 13,
+                "detail_layers": 18,
+                "reference": "https://sketchfab.com/3d-models/northern-pike-esox-lucius-925bde79283242cf98b93d281259aa20",
+                "reference_license": "CC BY",
+                "runtime_asset_dependency": false,
                 "phone_readable": true,
             }
         "MUSKIE":
@@ -1809,9 +1816,12 @@ func _predator_identity_profile(species: String) -> Dictionary:
                 "snout_length": 56.0,
                 "facing": -1.0,
                 "pattern": "vertical_bars",
-                "anatomy": ["long predator jaw", "rear dorsal fin", "vertical flank bars", "paired pelvic fins", "lateral line", "forked caudal fin", "cheek scales", "needle teeth"],
+                "anatomy": ["long predator jaw", "rear dorsal fin", "vertical flank bars", "paired pelvic fins", "lateral line", "forked caudal fin", "cheek scales", "needle teeth", "reference-guided cranial wedge", "translucent fin rays"],
                 "motion_channels": ["tail flex", "pectoral sweep", "body lift"],
-                "detail_layers": 13,
+                "detail_layers": 18,
+                "reference": "https://sketchfab.com/3d-models/northern-pike-esox-lucius-925bde79283242cf98b93d281259aa20",
+                "reference_license": "CC BY",
+                "runtime_asset_dependency": false,
                 "phone_readable": true,
             }
         "SNAKE":
@@ -1821,9 +1831,12 @@ func _predator_identity_profile(species: String) -> Dictionary:
                 "belly": Color("cbbb70"),
                 "marking": Color("364326"),
                 "pattern": "dorsal_blobs",
-                "anatomy": ["tapered scale body", "flattened head", "forked tongue", "overlapping dorsal scales", "belly scutes", "hinged jaw line", "keeled neck scales", "vertical pupils"],
+                "anatomy": ["tapered scale body", "flattened head", "forked tongue", "overlapping dorsal scales", "belly scutes", "hinged jaw line", "keeled neck scales", "vertical pupils", "reference-guided brow plates", "muscular neck taper"],
                 "motion_channels": ["spinal wave", "head lead", "tongue flick"],
-                "detail_layers": 13,
+                "detail_layers": 18,
+                "reference": "https://sketchfab.com/3d-models/cc0-striped-snake-elaphe-quadrivirgata-0f4f583d5e3842eca1152c0bb021ec32",
+                "reference_license": "CC0",
+                "runtime_asset_dependency": false,
                 "phone_readable": true,
             }
         "HERON":
@@ -1833,9 +1846,12 @@ func _predator_identity_profile(species: String) -> Dictionary:
                 "wing": Color("718d9a"),
                 "marking": Color("263b43"),
                 "pattern": "layered_flight_feathers",
-                "anatomy": ["S-curved neck", "spear bill", "long legs and toes", "layered primary feathers", "shoulder mantle", "crown plume", "scapular feather fringe", "knuckled gripping toes"],
+                "anatomy": ["S-curved neck", "spear bill", "long legs and toes", "layered primary feathers", "shoulder mantle", "crown plume", "scapular feather fringe", "knuckled gripping toes", "reference-guided breast keel", "overlapping covert feathers"],
                 "motion_channels": ["wing breathing", "neck poise", "toe balance"],
-                "detail_layers": 13,
+                "detail_layers": 18,
+                "reference": "https://sketchfab.com/3d-models/realistic-heron-3d-model-95a74fb41f1a46f0acec81a2d6c85093",
+                "reference_license": "CC BY",
+                "runtime_asset_dependency": false,
                 "phone_readable": true,
             }
     return {
@@ -1851,6 +1867,9 @@ func _predator_identity_profile(species: String) -> Dictionary:
         "anatomy": [],
         "motion_channels": [],
         "detail_layers": 1,
+        "reference": "",
+        "reference_license": "none",
+        "runtime_asset_dependency": false,
         "phone_readable": false,
     }
 
@@ -2018,6 +2037,20 @@ func _draw_fish(position: Vector2, species: String, profile: Dictionary, rig_pos
         for jaw_tooth in range(6):
             var jaw_x := 7.0 + float(jaw_tooth) * 3.6
             draw_line(nose - Vector2(jaw_x * facing, -4.0), nose - Vector2((jaw_x + 0.8) * facing, -7.0), Color("fffbe7"), 1.0, true)
+    # Reference-guided scale sheen and muscular flank planes add depth at the
+    # small phone silhouette without altering predator collision geometry.
+    for sheen_index in range(5):
+        var sheen_x := (-28.0 + float(sheen_index) * 13.0) * facing
+        var sheen_y := -radii.y * 0.42 + float(sheen_index % 2) * 5.0
+        draw_arc(fish_position + Vector2(sheen_x,sheen_y), 6.0, 3.35, 5.92, 10, Color(body.lightened(0.56),0.28), 1.3, true)
+    var lateral_glint := PackedVector2Array([
+        fish_position + Vector2(-radii.x*0.62*facing,-radii.y*0.34),
+        fish_position + Vector2(-radii.x*0.12*facing,-radii.y*0.49),
+        fish_position + Vector2(radii.x*0.42*facing,-radii.y*0.33),
+    ])
+    draw_polyline(lateral_glint,Color(0.92,1.0,0.76,0.28+float(rig_surface.wet_specular)*0.16),1.7,true)
+    draw_circle(nose-Vector2(4.5*facing,4.0),1.7,Color("141d1b"))
+    draw_circle(nose-Vector2(5.0*facing,4.6),0.6,Color(0.94,1.0,0.84,0.56))
     draw_polyline(_ellipse_points(fish_position,radii,body_pitch,true), Color("e9e0b4"), 2.0, true)
 
 func _draw_snake(position: Vector2, profile: Dictionary, rig_pose: Dictionary, rig_surface: Dictionary) -> void:
@@ -2060,6 +2093,11 @@ func _draw_snake(position: Vector2, profile: Dictionary, rig_pose: Dictionary, r
     for scale_index in range(5):
         var scale_center := head + Vector2(-13.0+float(scale_index)*8.0,-5.0+float(scale_index%2)*5.0)
         draw_arc(scale_center,4.0,3.3,6.0,8,Color(0.95,0.89,0.52,0.38),1.1,true)
+    for brow_side: float in [-1.0,1.0]:
+        var brow := head + Vector2(9.0,brow_side*7.0)
+        draw_arc(brow,6.5,3.45,5.92,10,Color(body.lightened(0.46),0.50),1.5,true)
+    var jaw_shadow := PackedVector2Array([head+Vector2(-18,8),head+Vector2(4,13),head+Vector2(26,7+float(rig_pose.jaw_open))])
+    draw_polyline(jaw_shadow,Color(marking.darkened(0.28),0.72),2.2,true)
     for eye_y in [-7.0,7.0]:
         var eye := head + Vector2(12,eye_y)
         draw_circle(eye,5.0,Color("d9b63f"))
@@ -2103,12 +2141,20 @@ func _draw_heron(position: Vector2, profile: Dictionary, rig_pose: Dictionary, r
         position+Vector2(-25,7),position+Vector2(-54,-8-wing_lift*0.48),position+Vector2(-37,21+float(rig_pose.wing_secondary)*0.45),position+Vector2(14,15),position+Vector2(8,-15),
     ]),wing)
     _draw_volume_ellipse(position+Vector2(-13,-2),Vector2(17,16),-0.24,wing,rig_surface,0.74)
+    # Overlapping scapular and covert feather plates replace the old flat wing
+    # read with a layered wading-bird shoulder silhouette.
+    for covert in range(5):
+        var covert_center := position + Vector2(-17.0+float(covert)*5.4,-8.0+float(covert%2)*5.0)
+        draw_colored_polygon(_ellipse_points(covert_center,Vector2(10.0,5.5),-0.28),Color(wing.lightened(0.12+float(covert)*0.025),0.52))
+        draw_arc(covert_center,8.5,0.15,PI-0.15,12,Color(0.91,0.98,1.0,0.34),1.0,true)
     for feather in range(7):
         var feather_start := position+Vector2(-37+float(feather)*7.0,-3+float(feather)*3.2)
         var feather_end := feather_start+Vector2(-27+float(feather)*3.0-feather_lift,20-wing_lift*0.28+float(rig_pose.wing_secondary)*0.32)
         draw_line(feather_start,feather_end,Color("dcebf0"),3.0,true)
         draw_line(feather_start+Vector2(1,2),feather_end+Vector2(3,-1),Color(0.18,0.28,0.32,0.42),1.1,true)
     draw_arc(position+Vector2(-5,1),24.0,2.8,5.7,22,Color(0.90,0.97,0.98,0.40),2.0,true)
+    var breast_keel := PackedVector2Array([position+Vector2(14,-12),position+Vector2(22,1),position+Vector2(14,17),position+Vector2(2,21)])
+    draw_polyline(breast_keel,Color(feathers.lightened(0.44),0.46),2.0,true)
     var neck_points := PackedVector2Array([
         position+Vector2(18,-11),position+Vector2(30+float(rig_pose.neck_curve),-25),position+Vector2(25-float(rig_pose.neck_curve)*0.55,-41),position+Vector2(38+float(rig_pose.neck_curve)*0.35,-56),
     ])

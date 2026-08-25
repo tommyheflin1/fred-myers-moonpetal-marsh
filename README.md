@@ -90,6 +90,8 @@ This repository owns Fred gameplay. Core owns only reusable, game-neutral servic
 - [Realistic marsh-current visual uplift](docs/M2_WATER_CURRENT_VISUAL_REPORT.md)
 - [Predator surface and underwater traversal](docs/M2_PREDATOR_DEPTH_TRAVERSAL.md)
 - [Fred and wildlife character-rig realism uplift](docs/M2_CHARACTER_RIG_REALISM_REPORT.md)
+- [Sketchfab art reference and attribution boundary](docs/SKETCHFAB_ART_REFERENCE_AND_ATTRIBUTION.md)
+- [Fred Sketchfab-reference character and HUD uplift](docs/FRED_SKETCHFAB_CHARACTER_HUD_UPLIFT_REPORT.md)
 - [All-character deterministic articulation uplift](docs/M2_ALL_CHARACTER_ARTICULATION_REPORT.md)
 - [All-character volume, surface, and joint uplift](docs/M2_CHARACTER_VOLUME_RIG_REPORT.md)
 
