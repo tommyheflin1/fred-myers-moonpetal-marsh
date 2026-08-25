@@ -69,7 +69,7 @@ with tempfile.TemporaryDirectory() as temporary:
     check(plistlib.loads(app.read_bytes())["ITSAppUsesNonExemptEncryption"] is False, "plist encryption key missing")
 
 validation_handoff = (ROOT / "tools" / "ios_validation_handoff.sh").read_text(encoding="utf-8")
-build_handoff = (ROOT / "tools" / "run_fred_app_build_3_macos.sh").read_text(encoding="utf-8")
+build_handoff = (ROOT / "tools" / "run_fred_app_build_4_macos.sh").read_text(encoding="utf-8")
 package_handoff = (ROOT / "tools" / "prepare_ios_handoff.py").read_text(encoding="utf-8")
 plugin_handoff = (ROOT / "tools" / "build_ios_gamecenter_plugin.sh").read_text(encoding="utf-8")
 gitignore = (ROOT / ".gitignore").read_text(encoding="utf-8")
@@ -100,18 +100,19 @@ check(
     "signed-build handoff must use the Fred App Store distribution profile",
 )
 check(
-    "UPLOAD_BUILD_3" in build_handoff
-    and "FredMyers-AppBuild3.xcarchive" in build_handoff
+    "UPLOAD_BUILD_4" in build_handoff
+    and "FredMyers-AppBuild4.xcarchive" in build_handoff
     and 'xcrun altool --upload-app' in build_handoff
     and '<key>destination</key><string>export</string>' in build_handoff
-    and "version=1.0 build=3" in build_handoff,
-    "signed-build handoff must be locked to Fred Build 3 and the proven API-key upload lane",
+    and "version=1.0 build=4" in build_handoff,
+    "signed-build handoff must be locked to Fred Build 4 and the proven API-key upload lane",
 )
 check(
-    "fred-myers-app-build-3.bundle" in package_handoff
-    and "RUN-FRED-APP-BUILD-3.command" in package_handoff
-    and '\"build_number\": \"3\"' in package_handoff,
-    "transfer package must identify Build 3 throughout",
+    "fred-myers-app-build-4.bundle" in package_handoff
+    and "RUN-FRED-APP-BUILD-4.command" in package_handoff
+    and '\"build_number\": \"4\"' in package_handoff
+    and "EXPECTED_BUNDLE_SHA" in package_handoff,
+    "transfer package must identify and hash-guard Build 4 throughout",
 )
 check(
     "IOS_GAMECENTER_PLUGIN_CACHE_REUSED" in plugin_handoff

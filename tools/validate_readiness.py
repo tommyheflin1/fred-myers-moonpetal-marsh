@@ -143,7 +143,7 @@ REQUIRED = [
     "tools/ios_validation_handoff.sh",
     "tools/run_fred_app_build_1_macos.sh",
     "tools/run_fred_app_build_2_macos.sh",
-    "tools/run_fred_app_build_3_macos.sh",
+    "tools/run_fred_app_build_4_macos.sh",
     "tools/prepare_ios_handoff.py",
     "tools/validate_app_store_screenshots.py",
 ]

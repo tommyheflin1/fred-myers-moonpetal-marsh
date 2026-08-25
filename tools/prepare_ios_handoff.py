@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Create a clean, hash-guarded Fred App Build 3 macOS handoff bundle."""
+"""Create a clean, hash-guarded Fred App Build 4 macOS handoff bundle."""
 
 from __future__ import annotations
 
@@ -37,7 +37,7 @@ def sha256(path: Path) -> str:
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--expected-commit", required=True)
-    parser.add_argument("--output", type=Path, default=ROOT / "builds/ios-handoff-build-3")
+    parser.add_argument("--output", type=Path, default=ROOT / "builds/ios-handoff-build-4")
     args = parser.parse_args()
     expected = args.expected_commit.strip()
     if run("rev-parse", "HEAD") != expected:
@@ -46,8 +46,8 @@ def main() -> int:
         raise SystemExit("Worktree must be clean before creating the iOS handoff.")
     output = args.output.resolve()
     output.mkdir(parents=True, exist_ok=True)
-    bundle = output / "fred-myers-app-build-3.bundle"
-    wrapper = output / "RUN-FRED-APP-BUILD-3.command"
+    bundle = output / "fred-myers-app-build-4.bundle"
+    wrapper = output / "RUN-FRED-APP-BUILD-4.command"
     manifest_path = output / "handoff-manifest.json"
     for path in (bundle, wrapper, manifest_path):
         if path.exists():
@@ -57,27 +57,32 @@ def main() -> int:
         check=True,
     )
     subprocess.run(["git", "bundle", "verify", str(bundle)], check=True, capture_output=True, text=True)
+    bundle_sha = sha256(bundle)
     wrapper.write_text(
         """#!/bin/bash
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")" && pwd)"
 EXPECTED="%s"
+EXPECTED_BUNDLE_SHA="%s"
 WORK="$ROOT/run-$(date -u +%%Y%%m%%dT%%H%%M%%SZ)"
 SOURCE="$WORK/source"
 mkdir -p "$WORK/bin"
+BUNDLE_SHA="$(shasum -a 256 "$ROOT/fred-myers-app-build-4.bundle" | awk '{print toupper($1)}')"
+[[ "$BUNDLE_SHA" == "$EXPECTED_BUNDLE_SHA" ]] || { echo "Source bundle SHA-256 mismatch." >&2; exit 1; }
+echo "Source bundle SHA-256 verified: $BUNDLE_SHA"
 GODOT="$(command -v godot || true)"
 if [[ -z "$GODOT" && -x /Applications/Godot.app/Contents/MacOS/Godot ]]; then GODOT=/Applications/Godot.app/Contents/MacOS/Godot; fi
 [[ -n "$GODOT" ]] || { echo "Godot 4.7.1 is required." >&2; exit 1; }
 ln -sf "$GODOT" "$WORK/bin/godot"
 export PATH="$WORK/bin:$PATH"
-git clone "$ROOT/fred-myers-app-build-3.bundle" "$SOURCE"
+git clone "$ROOT/fred-myers-app-build-4.bundle" "$SOURCE"
 cd "$SOURCE"
 git checkout --detach "$EXPECTED"
 [[ "$(git rev-parse HEAD)" == "$EXPECTED" ]]
 [[ -z "$(git status --porcelain)" ]]
-export FRED_TESTFLIGHT_UPLOAD_ACK=UPLOAD_BUILD_3
-bash tools/run_fred_app_build_3_macos.sh "$EXPECTED" | tee "$ROOT/FRED-APP-BUILD-3-RESULT.txt"
-""" % expected,
+export FRED_TESTFLIGHT_UPLOAD_ACK=UPLOAD_BUILD_4
+bash tools/run_fred_app_build_4_macos.sh "$EXPECTED" | tee "$ROOT/FRED-APP-BUILD-4-RESULT.txt"
+""" % (expected, bundle_sha),
         encoding="utf-8",
         newline="\n",
     )
@@ -89,12 +94,12 @@ bash tools/run_fred_app_build_3_macos.sh "$EXPECTED" | tee "$ROOT/FRED-APP-BUILD
         "branch": run("branch", "--show-current"),
         "bundle": bundle.name,
         "bundle_bytes": bundle.stat().st_size,
-        "bundle_sha256": sha256(bundle),
+        "bundle_sha256": bundle_sha,
         "runner": wrapper.name,
         "runner_sha256": sha256(wrapper),
         "bundle_identifier": "com.flinsvault.fredmyers",
         "marketing_version": "1.0",
-        "build_number": "3",
+        "build_number": "4",
         "testflight_upload_authorized": True,
         "public_app_store_release_authorized": False,
         "credentials_included": False,
