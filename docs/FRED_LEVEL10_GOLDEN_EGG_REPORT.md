@@ -34,6 +34,22 @@ level, and proves ordinary completion resumes after an invalid attempt. This
 closes the gap that allowed the state machine to pass while owner gameplay
 could not finish the sequence.
 
+A second owner attempt reached Level 10 deathless and followed the intended
+route but still did not reveal the egg. The persisted guard showed that the
+first two corners were credited before `wrong_corner_order` invalidated the
+run. Water current and touch steering had moved Fred just outside, then back
+inside, an already credited corner while travelling toward the next corner.
+The state machine incorrectly treated that harmless re-entry as a skipped
+future corner.
+
+Completed-corner re-entry is now idempotent. Entering an already credited
+corner again neither advances nor invalidates the route, while entering an
+unvisited future corner still fails closed. The focused integration test now
+executes the full owner path through `main.gd`: all four ordered underwater
+corners, deliberate current-style re-entry, the completed surface transition,
+four complete leap cycles, and a matching-depth predator collision. That path
+must finish on the Golden Egg reveal screen.
+
 ## Eligibility boundary
 
 - A new protected run begins only from Level 1.
@@ -134,8 +150,8 @@ single shortcut are revalidated at the final local checkpoint.
 
 Final executed evidence:
 
-- focused Golden Egg suite: **104 passed, 0 failed**;
-- complete Fred matrix: **28 suites, 8,294 passed, 0 failed**;
+- focused Golden Egg suite: **122 passed, 0 failed**;
+- complete Fred matrix: **28 suites, 8,312 passed, 0 failed**;
 - readiness: **141 artifacts, eight fixtures**, Core 0.5.1, Godot 4.7;
 - Windows runtime: normal 1280×720 and reduced-motion 960×540; privacy choices
   were exercised in the actual Godot window and remained responsive. The final

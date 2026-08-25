@@ -76,6 +76,10 @@ func _run() -> void:
 		ordered.observe_position(10, RunState.CORNER_RECTS[index].get_center(), true)
 		check(ordered.next_corner == index + 1, "remaining in corner %d cannot double count" % (index + 1))
 		ordered.observe_position(10, Vector2(640,360), true)
+		if index < RunState.CORNER_RECTS.size() - 1:
+			ordered.observe_position(10, RunState.CORNER_RECTS[index].get_center(), true)
+			check(ordered.phase == RunState.Phase.CORNERS and ordered.next_corner == index + 1, "current-driven re-entry into completed corner %d is harmless" % (index + 1))
+			ordered.observe_position(10, Vector2(640,360), true)
 	check(ordered.phase == RunState.Phase.WAIT_SURFACE, "four ordered underwater corners require surfacing next")
 	ordered.note_surface_complete(10)
 	check(ordered.phase == RunState.Phase.JUMPS, "completed surfacing opens the exact jump sequence")
@@ -223,6 +227,48 @@ func _run() -> void:
 	game.depth.reset("surface")
 	game._fixed_tick(0.0)
 	check(game.screen == Main.Screen.COMPLETE and game.session.completed, "ordinary Level 10 completion resumes after the attempt becomes invalid")
+	game.golden_run = RunState.new(GUARD)
+	_advance_to_ten(game.golden_run)
+	game.golden_discovery = DiscoveryStore.new(DISCOVERY)
+	game.level_number = 10
+	game.level_profile = FredLevelIntensity.profile(10)
+	game.screen = Main.Screen.PLAYING
+	game.session = AdventureSession.new(1347)
+	for index in 3:
+		game.session.collect_bug()
+	game.depth.reset("underwater")
+	game.danger_cooldown_seconds = 999.0
+	for corner_index in RunState.CORNER_RECTS.size():
+		game.fred = RunState.CORNER_RECTS[corner_index].get_center()
+		game._fixed_tick(0.0)
+		check(game.golden_run.next_corner == corner_index + 1, "actual gameplay credits ordered corner %d" % (corner_index + 1))
+		if corner_index == 1:
+			game.fred = Vector2(640,360)
+			game._fixed_tick(0.0)
+			game.fred = RunState.CORNER_RECTS[corner_index].get_center()
+			game._fixed_tick(0.0)
+			check(game.golden_run.phase == RunState.Phase.CORNERS and game.golden_run.next_corner == 2, "actual current-style re-entry cannot invalidate the deathless route")
+		game.fred = Vector2(640,360)
+		game._fixed_tick(0.0)
+	check(game.golden_run.phase == RunState.Phase.WAIT_SURFACE, "actual four-corner gameplay waits for Fred to surface")
+	check(game._request_surface(), "actual Level 10 underwater path accepts surfacing")
+	for tick in 50:
+		game._fixed_tick(1.0 / 60.0)
+	check(game.golden_run.phase == RunState.Phase.JUMPS, "completed surface transition opens the actual jump sequence")
+	for jump_index in 4:
+		check(game._request_leap(Vector2.RIGHT), "actual surface jump %d starts" % (jump_index + 1))
+		for tick in 60:
+			game._fixed_tick(1.0 / 60.0)
+	check(game.golden_run.phase == RunState.Phase.ARMED and game.golden_run.surface_jumps == 4, "four completed actual leaps arm the predator reveal")
+	game.simulation_time = 0.0
+	game.depth.reset("surface")
+	game.leap.reset()
+	game.danger_cooldown_seconds = 0.0
+	game.in_safe_location = false
+	game.fred = Vector2(900,300)
+	game.predator = game.fred
+	check(game._check_danger_collision(), "actual matching-depth predator contact is handled")
+	check(game.screen == Main.Screen.GOLDEN_EGG and game.golden_run.phase == RunState.Phase.REVEALED, "complete owner path reaches the Golden Egg reveal through main gameplay")
 	game.golden_run = RunState.new(GUARD)
 	game.golden_discovery = DiscoveryStore.new(DISCOVERY)
 	_qualify(game.golden_run)

@@ -79,6 +79,12 @@ func observe_position(level: int, position: Vector2, underwater: bool) -> void:
 	if corner == _inside_corner:
 		return
 	_inside_corner = corner
+	# Marsh currents and touch steering can move Fred just outside a completed
+	# corner, then back across its boundary while the player is travelling to
+	# the next one. Re-entering an already credited corner is harmless; only
+	# entering an unvisited future corner is genuinely out of order.
+	if corner < next_corner:
+		return
 	if corner != next_corner:
 		invalidate("wrong_corner_order")
 		return
