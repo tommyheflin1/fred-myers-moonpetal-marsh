@@ -366,7 +366,8 @@ func _fixed_tick(delta: float) -> void:
         session.reach_checkpoint(AdventureSession.CHECKPOINTS[1], 1); _save("Midpoint is safe.")
     if _check_danger_collision():
         return
-    if fred.distance_to(_level_exit_position()) < 55 and session.complete_level():
+    var golden_sequence_blocks_exit: bool = golden_run.blocks_ordinary_level_completion(level_number)
+    if not golden_sequence_blocks_exit and fred.distance_to(_level_exit_position()) < 55 and session.complete_level():
         leaderboard.submit(identity.profile_label, level_number, session.bug_count, session.health)
         customization.earn_coins(15 + mini(10, level_number / 10))
         var score_result: Dictionary = game_scoring.record_level_completion(

@@ -12,6 +12,28 @@ The implementation is additive and Fred-owned. It does not alter Mobile Game
 Core 0.5.1, `fred_save` v1, ordinary checkpoints, lives, progression, Game
 Center, controls, campaign rules, or normal Level 10 completion.
 
+## Build 4 local defect correction
+
+Owner testing exposed a real Level 10 route interaction that the original
+state-machine-only coverage did not exercise. Level 10 uses the reversed route,
+which places the ordinary Moonpetal exit at `(130, 165)`. The first required
+underwater corner is centered at `(130, 167.5)`. After the ordinary three-bug
+objective was complete, touching that first corner therefore completed the
+level before the hidden sequence could continue.
+
+The correction is intentionally narrow. Ordinary Level 10 completion remains
+available until the first valid underwater corner is entered. While a valid
+hidden attempt is in progress, the overlapping ordinary exit is suspended. If
+the attempt becomes invalid or is abandoned, ordinary completion immediately
+becomes available again. No exit geometry, campaign objective, life rule,
+secret sequence, collision rule, or save field changed.
+
+The focused suite now drives the actual `main.gd` fixed-tick path with three
+bugs collected. It proves the first corner is observed without completing the
+level, and proves ordinary completion resumes after an invalid attempt. This
+closes the gap that allowed the state machine to pass while owner gameplay
+could not finish the sequence.
+
 ## Eligibility boundary
 
 - A new protected run begins only from Level 1.
@@ -112,9 +134,9 @@ single shortcut are revalidated at the final local checkpoint.
 
 Final executed evidence:
 
-- focused Golden Egg suite: **98 passed, 0 failed**;
-- complete Fred matrix: **28 suites, 8,288 passed, 0 failed**;
-- readiness: **139 artifacts, eight fixtures**, Core 0.5.1, Godot 4.7;
+- focused Golden Egg suite: **104 passed, 0 failed**;
+- complete Fred matrix: **28 suites, 8,294 passed, 0 failed**;
+- readiness: **141 artifacts, eight fixtures**, Core 0.5.1, Godot 4.7;
 - Windows runtime: normal 1280×720 and reduced-motion 960×540; privacy choices
   were exercised in the actual Godot window and remained responsive. The final
   owner-test pass also checks the canonical Hunt URL, non-overlapping controls,

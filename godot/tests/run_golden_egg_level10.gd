@@ -67,9 +67,12 @@ func _run() -> void:
 	var ordered := RunState.new(GUARD)
 	_advance_to_ten(ordered)
 	check(ordered.highest_level == 10 and ordered.phase == RunState.Phase.CORNERS, "sequential Levels 1 through 10 unlock the hidden attempt")
+	check(not ordered.blocks_ordinary_level_completion(10), "ordinary Level 10 completion remains available before the corner sequence starts")
 	for index in RunState.CORNER_RECTS.size():
 		ordered.observe_position(10, RunState.CORNER_RECTS[index].get_center(), true)
 		check(ordered.next_corner == index + 1, "ordered underwater corner %d advances once" % (index + 1))
+		if index == 0:
+			check(ordered.blocks_ordinary_level_completion(10), "the overlapping Level 10 exit cannot end a valid sequence after the first corner")
 		ordered.observe_position(10, RunState.CORNER_RECTS[index].get_center(), true)
 		check(ordered.next_corner == index + 1, "remaining in corner %d cannot double count" % (index + 1))
 		ordered.observe_position(10, Vector2(640,360), true)
@@ -106,6 +109,7 @@ func _run() -> void:
 	surfaced_early.observe_position(10, RunState.CORNER_RECTS[0].get_center(), true)
 	surfaced_early.note_surface_complete(10)
 	check(surfaced_early.phase == RunState.Phase.INVALID, "surfacing after a partial corner sequence invalidates silently")
+	check(not surfaced_early.blocks_ordinary_level_completion(10), "an invalid attempt cannot trap ordinary Level 10 completion")
 	var jumped_early := RunState.new(GUARD)
 	_advance_to_ten(jumped_early)
 	jumped_early.note_valid_surface_jump(10)
@@ -201,11 +205,30 @@ func _run() -> void:
 	var chime: AudioStreamWAV = game._build_golden_chime()
 	check(chime.mix_rate == 22050 and chime.data.size() == int(22050.0*0.92)*2, "Moonpetal reveal chime is bounded, local, and deterministic")
 	check(not chime.loop_mode, "celebratory chime plays once and cannot overlap as looping music")
+	game.countdown_enabled = false
+	game.hazards_enabled = false
+	game.golden_run = RunState.new(GUARD)
+	_advance_to_ten(game.golden_run)
+	game.level_number = 10
+	game.screen = Main.Screen.PLAYING
+	game.session = AdventureSession.new(1347)
+	for index in 3:
+		game.session.collect_bug()
+	game.depth.reset("underwater")
+	game.fred = RunState.CORNER_RECTS[0].get_center()
+	game._fixed_tick(0.0)
+	check(game.golden_run.next_corner == 1, "actual Level 10 gameplay observes the first underwater corner at the reversed exit")
+	check(game.screen == Main.Screen.PLAYING and not game.session.completed, "three collected bugs cannot complete Level 10 through the overlapping exit during a valid attempt")
+	game.golden_run.note_surface_complete(10)
+	game.depth.reset("surface")
+	game._fixed_tick(0.0)
+	check(game.screen == Main.Screen.COMPLETE and game.session.completed, "ordinary Level 10 completion resumes after the attempt becomes invalid")
 	game.golden_run = RunState.new(GUARD)
 	game.golden_discovery = DiscoveryStore.new(DISCOVERY)
 	_qualify(game.golden_run)
 	game.level_number = 10
 	game.screen = Main.Screen.PLAYING
+	game.session = AdventureSession.new(1347)
 	game.session.health = 3
 	check(game._try_golden_egg_predator_event(), "main gameplay intercepts a fully qualified predator event")
 	check(game.screen == Main.Screen.GOLDEN_EGG and game.session.health == 3, "Golden Egg reveal replaces death without consuming a life")

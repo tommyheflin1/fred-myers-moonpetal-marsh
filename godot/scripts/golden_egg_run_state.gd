@@ -133,6 +133,19 @@ func is_run_alive() -> bool:
 func eligible_for_reveal() -> bool:
 	return started_at_level_one and deathless and highest_level == TARGET_LEVEL and next_corner == CORNER_RECTS.size() and surface_jumps == REQUIRED_JUMPS
 
+func blocks_ordinary_level_completion(level: int) -> bool:
+	# Level 10 is a reversed route, so its ordinary Moonpetal exit overlaps the
+	# first required underwater corner. Once that corner has been entered in a
+	# valid run, keep the ordinary exit from ending the level mid-sequence. A
+	# normal surface approach (or an invalid/abandoned attempt) remains free to
+	# complete Level 10 as usual.
+	return (
+		level == TARGET_LEVEL
+		and is_run_alive()
+		and next_corner > 0
+		and phase in [Phase.CORNERS, Phase.WAIT_SURFACE, Phase.JUMPS, Phase.ARMED]
+	)
+
 func snapshot() -> Dictionary:
 	return {
 		"format": FORMAT_VERSION,
