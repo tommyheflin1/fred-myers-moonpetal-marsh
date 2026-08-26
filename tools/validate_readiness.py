@@ -111,6 +111,7 @@ REQUIRED = [
     "godot/scripts/water_current_visual.gd",
     "godot/tools/capture_attire_fit_evidence.gd",
     "godot/tools/capture_app_store_build_1.gd",
+    "godot/tools/capture_app_store_build_4.gd",
     "godot/tools/review_customization_expansion.gd",
     "godot/docs/evidence/app-build-1-r8-attire-marsh_runner.png",
     "godot/docs/evidence/app-build-1-r8-attire-trail_scout.png",
