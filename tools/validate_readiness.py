@@ -32,6 +32,8 @@ REQUIRED = [
     "godot/tests/run_botanical_art.gd",
     "godot/scripts/collectible_wildlife_art.gd",
     "godot/tests/run_collectible_wildlife_art.gd",
+    "godot/scripts/whirlpool_art.gd",
+    "godot/tests/run_whirlpool_art.gd",
     "godot/tests/run_water_contact_art.gd",
     "godot/scripts/predator_fish_art.gd",
     "godot/tools/capture_next_build_graphics.gd",

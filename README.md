@@ -22,6 +22,11 @@ The collectible-wildlife pass adds curved translucent bug wings, richer shell
 detail, a moonlit fairy with petal clothing and crown, and clearer reward labels.
 See [collectible graphics and regression evidence](docs/NEXT_BUILD_COLLECTIBLE_POLISH.md).
 
+The water-hazard pass replaces hard whirlpool rings with shaded funnels, inward
+currents and curved foam. Their artwork freezes during Pause/background return;
+the original danger radius and chapter rules remain intact.
+See [whirlpool artwork and late-game review](docs/NEXT_BUILD_WHIRLPOOL_POLISH.md).
+
 The next-build candidate on `codex/fred-next-build-pause-fix` fixes duplicate
 touch/mouse Pause toggles and clears held controls when pausing or resuming.
 See [reproduction, validation, and delivery handoff](docs/NEXT_BUILD_PAUSE_FIX.md).

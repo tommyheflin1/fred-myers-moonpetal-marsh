@@ -10,6 +10,7 @@ const FredRigScene = preload("res://scenes/fred_rig.tscn")
 const CharacterSurface = preload("res://scripts/character_surface.gd")
 const BotanicalArt = preload("res://scripts/botanical_art.gd")
 const CollectibleWildlifeArt = preload("res://scripts/collectible_wildlife_art.gd")
+const WhirlpoolArt = preload("res://scripts/whirlpool_art.gd")
 const PredatorFishArt = preload("res://scripts/predator_fish_art.gd")
 const WaterContactArt = preload("res://scripts/water_contact_art.gd")
 const MarshRouteLayout = preload("res://scripts/marsh_route_layout.gd")
@@ -1720,24 +1721,14 @@ func _draw_depth_status() -> void:
 func _draw_whirlpools() -> void:
     for index in range(mini(int(level_profile.whirlpool_count), WHIRLPOOLS.size())):
         var center: Vector2 = _whirlpool_position(index)
-        var rotation := 0.0 if reduced_motion else visual_time * (1.1 + float(index) * 0.2)
-        draw_circle(center + Vector2(0,5), 62, Color(0.01,0.06,0.12,0.45))
-        draw_circle(center, 58, Color(0.02,0.20,0.31,0.72))
-        draw_circle(center, 45, Color(0.02,0.13,0.23,0.88))
-        draw_circle(center, 18, Color(0.005,0.035,0.07,0.96))
-        for ring in range(4):
-            var radius := 16.0 + float(ring) * 11.0
-            var brightness := 0.78 - float(ring) * 0.09
-            draw_arc(center, radius, rotation + float(ring) * 0.8, rotation + float(ring) * 0.8 + PI * 1.55, 28, Color(0.55,0.93,1.0,brightness), 3.5)
-        for foam_index in range(8):
-            var foam_angle := rotation * 0.7 + float(foam_index) * TAU / 8.0
-            var foam_position := center + Vector2.from_angle(foam_angle) * (47.0 + float(foam_index % 2) * 7.0)
-            draw_circle(foam_position, 3.5, Color(0.78,0.96,1.0,0.72))
-        draw_colored_polygon(PackedVector2Array([
-            center+Vector2(-9,-4), center+Vector2(1,-11), center+Vector2(11,-2),
-            center+Vector2(6,8), center+Vector2(-7,9)
-        ]), Color(0.0,0.02,0.04,0.9))
-        _text(center + Vector2(0,72), "WHIRLPOOL", 11, Color("cdefff"), HORIZONTAL_ALIGNMENT_CENTER, 110)
+        WhirlpoolArt.draw_water(self, center, _whirlpool_visual(index))
+        _text(center + Vector2(1,WhirlpoolArt.LABEL_Y+1), "WHIRLPOOL", 11, Color(0.01,0.04,0.05,0.85), HORIZONTAL_ALIGNMENT_CENTER, 110)
+        _text(center + Vector2(0,WhirlpoolArt.LABEL_Y), "WHIRLPOOL", 11, Color("cdefff"), HORIZONTAL_ALIGNMENT_CENTER, 110)
+
+func _whirlpool_visual(index: int) -> Dictionary:
+    # The gameplay clock freezes on Pause/background/native overlays; the menu
+    # visual clock does not. This is drawing only and cannot advance a hazard.
+    return WhirlpoolArt.geometry(index, simulation_time, reduced_motion)
 
 func _draw_predator(position: Vector2, species: String, predator_snapshot: Dictionary = {}) -> void:
     var snapshot := predator_snapshot if not predator_snapshot.is_empty() else PredatorDepth.snapshot(species, 0, level_number, simulation_time)

@@ -5,6 +5,16 @@ class CharacterSheet extends "res://scripts/main.gd":
 	var review_page := "builds"
 	var motion_time := 1.2
 
+	func _draw_whirlpool_sheet() -> void:
+		for index in 3:
+			var center := Vector2(220 + index * 420, 325)
+			draw_set_transform(center, 0, Vector2.ONE * 2.45)
+			WhirlpoolArt.draw_water(self, Vector2.ZERO, WhirlpoolArt.geometry(index, 1.2, index == 2))
+			_text(Vector2(0, WhirlpoolArt.LABEL_Y), "WHIRLPOOL", 11, Color("cdefff"), HORIZONTAL_ALIGNMENT_CENTER, 110)
+			draw_set_transform(Vector2.ZERO)
+			_text(center + Vector2(0, 229), ["INWARD WATER / SOFT FUNNEL", "CURVED FOAM / CURRENT SAMPLE", "REDUCED MOTION / STEADY HAZARD"][index], 15, Color("d9f4e2"), HORIZONTAL_ALIGNMENT_CENTER, 405)
+		_text(Vector2(640,625), "Original hazard positions, chapter counts and danger radius retained.", 18, Color("afd3d5"), HORIZONTAL_ALIGNMENT_CENTER, 1176)
+
 	func _draw_collectible_sheet() -> void:
 		var previous_time := simulation_time
 		var previous_calm := reduced_motion
@@ -72,14 +82,19 @@ class CharacterSheet extends "res://scripts/main.gd":
 
 	func _draw() -> void:
 		draw_rect(Rect2(0, 0, 1280, 720), Color("081e29"))
-		var title := "BOTANICAL REVIEW" if review_page == "botanical" else ("COLLECTIBLE REVIEW" if review_page == "collectibles" else "CHARACTER REVIEW")
+		var title := "WATER HAZARD REVIEW" if review_page == "whirlpools" else ("BOTANICAL REVIEW" if review_page == "botanical" else ("COLLECTIBLE REVIEW" if review_page == "collectibles" else "CHARACTER REVIEW"))
 		_text(Vector2(52, 55), "MOONPETAL MARSH / " + title, 26, Color("ffe184"), HORIZONTAL_ALIGNMENT_LEFT, 1176)
 		var description := "Actual game rigs | traversal poses and water contact | local next-build review" if review_page == "water-motion" else "Actual game rigs | same pose, lighting and scale | local next-build review"
 		if review_page == "botanical":
 			description = "Actual game drawing | original placement and gameplay bounds | local next-build review"
 		elif review_page == "collectibles":
 			description = "Actual game drawing | existing flight poses and reward behavior | local next-build review"
+		elif review_page == "whirlpools":
+			description = "Actual game drawing | same hazard footprint | normal and reduced-motion samples"
 		_text(Vector2(52, 86), description, 17, Color("afd3d5"), HORIZONTAL_ALIGNMENT_LEFT, 1176)
+		if review_page == "whirlpools":
+			_draw_whirlpool_sheet()
+			return
 		if review_page == "collectibles":
 			_draw_collectible_sheet()
 			return
@@ -121,6 +136,13 @@ class MeasuredGame extends "res://scripts/main.gd":
 	var measured_predator_draws := 0
 	var collectible_draw_us := 0
 	var measured_collectible_draws := 0
+	var whirlpool_draw_us := 0
+	var measured_whirlpool_passes := 0
+	func _draw_whirlpools() -> void:
+		var started := Time.get_ticks_usec()
+		super._draw_whirlpools()
+		whirlpool_draw_us += Time.get_ticks_usec() - started
+		measured_whirlpool_passes += 1
 	func _draw_bug(at: Vector2, index: int, flutter: float) -> void:
 		var started := Time.get_ticks_usec()
 		super._draw_bug(at, index, flutter)
@@ -171,7 +193,7 @@ func _capture() -> void:
 	await process_frame
 	sheet.set_process(false)
 	sheet.simulation_time = 1.2
-	for page: String in ["builds", "attire", "predators", "water-motion", "botanical", "collectibles"]:
+	for page: String in ["builds", "attire", "predators", "water-motion", "botanical", "collectibles", "whirlpools"]:
 		sheet.review_page = page
 		sheet.customization = FredFrogCustomization.new("")
 		sheet.queue_redraw()
@@ -206,11 +228,40 @@ func _capture() -> void:
 	game.fred = game._level_start_position()
 	game.queue_redraw()
 	await _save("level10-reverse-phone-1792x828")
+	await _measure(game, "level10")
+	for level in 7:
+		game._advance_level()
+	game.simulation_time = 1.2
+	game.reduced_motion = false
+	game.fred = game._level_start_position()
+	game.queue_redraw()
+	await _save("level17-phone-1792x828")
+	for level in 54:
+		game._advance_level()
+	_resize(Vector2i(1366, 1024))
+	game.simulation_time = 1.2
+	game.fred = game._level_start_position()
+	game.queue_redraw()
+	await _save("level71-tablet-1366x1024")
+	await _measure(game, "level71")
+	_resize(Vector2i(1792, 828))
+	game._set_gameplay_paused(true)
+	game.queue_redraw()
+	await _save("level71-paused-phone-1792x828")
+	game.queue_free()
+	await process_frame
+	if not capture_failed:
+		print("NEXT_BUILD_GRAPHICS_CAPTURE_PASS count=14")
+	quit(1 if capture_failed else 0)
+
+func _measure(game: MeasuredGame, label: String) -> void:
 	game.draw_times.clear()
 	game.predator_draw_us = 0
 	game.measured_predator_draws = 0
 	game.collectible_draw_us = 0
 	game.measured_collectible_draws = 0
+	game.whirlpool_draw_us = 0
+	game.measured_whirlpool_passes = 0
 	var save_before := JSON.stringify(game.session.to_save())
 	var gameplay_before := [game.fred,game.predator,game.secondary_predators.duplicate(),game.level_number,game.collected.duplicate(),game.simulation_time]
 	var memory_before := int(Performance.get_monitor(Performance.MEMORY_STATIC))
@@ -220,18 +271,13 @@ func _capture() -> void:
 		await process_frame
 		await RenderingServer.frame_post_draw
 	game.draw_times.sort()
-	print("MEASURE gameplay_draws=%d cpu_p95_us=%d memory_growth_bytes=%d node_growth=%d" % [game.draw_times.size(), game.draw_times[int(game.draw_times.size()*0.95)], int(Performance.get_monitor(Performance.MEMORY_STATIC))-memory_before, int(Performance.get_monitor(Performance.OBJECT_NODE_COUNT))-nodes_before])
-	print("MEASURE predator_draws=%d cpu_average_us=%d" % [game.measured_predator_draws, game.predator_draw_us / maxi(1,game.measured_predator_draws)])
-	print("MEASURE collectible_draws=%d cpu_average_us=%d" % [game.measured_collectible_draws, game.collectible_draw_us / maxi(1,game.measured_collectible_draws)])
+	print("MEASURE %s gameplay_draws=%d cpu_p95_us=%d memory_growth_bytes=%d node_growth=%d" % [label, game.draw_times.size(), game.draw_times[int(game.draw_times.size()*0.95)], int(Performance.get_monitor(Performance.MEMORY_STATIC))-memory_before, int(Performance.get_monitor(Performance.OBJECT_NODE_COUNT))-nodes_before])
+	print("MEASURE %s predator_draws=%d cpu_average_us=%d" % [label, game.measured_predator_draws, game.predator_draw_us / maxi(1,game.measured_predator_draws)])
+	print("MEASURE %s collectible_draws=%d cpu_average_us=%d" % [label, game.measured_collectible_draws, game.collectible_draw_us / maxi(1,game.measured_collectible_draws)])
+	print("MEASURE %s whirlpool_passes=%d hazards_per_pass=%d cpu_average_us=%d" % [label, game.measured_whirlpool_passes, int(game.level_profile.whirlpool_count), game.whirlpool_draw_us / maxi(1,game.measured_whirlpool_passes)])
 	if JSON.stringify(game.session.to_save()) != save_before or gameplay_before != [game.fred,game.predator,game.secondary_predators,game.level_number,game.collected,game.simulation_time]:
 		push_error("Drawing mutated the game session")
-		quit(1)
-		return
-	game.queue_free()
-	await process_frame
-	if not capture_failed:
-		print("NEXT_BUILD_GRAPHICS_CAPTURE_PASS count=10")
-	quit(1 if capture_failed else 0)
+		capture_failed = true
 
 func _resize(size: Vector2i) -> void:
 	capture_viewport.size = size
