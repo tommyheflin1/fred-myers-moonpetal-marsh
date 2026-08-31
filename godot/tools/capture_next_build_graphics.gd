@@ -5,6 +5,27 @@ class CharacterSheet extends "res://scripts/main.gd":
 	var review_page := "builds"
 	var motion_time := 1.2
 
+	func _draw_botanical_sheet() -> void:
+		for index in 3:
+			var center := Vector2(220 + index * 420, 242)
+			draw_set_transform(center, 0, Vector2.ONE * 2.5)
+			BotanicalArt.draw_lily(self, Vector2.ZERO, index, -0.10 + index * 0.10)
+			draw_set_transform(Vector2.ZERO)
+			_text(center + Vector2(0, 117), ["VEINED LILY / OPEN WATER NOTCH", "LAYERED PAD BLOSSOM", "SOFT LEAF EDGE / DEWDROPS"][index], 15, Color("d9f4e2"), HORIZONTAL_ALIGNMENT_CENTER, 395)
+		for index in 3:
+			var center := Vector2(220 + index * 420, 516)
+			draw_set_transform(center, 0, Vector2.ONE * 1.85)
+			if index == 0:
+				_draw_moonpetal_exit(Vector2.ZERO, 45)
+			elif index == 1:
+				_draw_safe_island(Vector2.ZERO, 64)
+			else:
+				for reed in 5:
+					BotanicalArt.draw_reed(self, Vector2((reed - 2) * 21, 42), 46.0 + reed % 3 * 8, 2.0, reed % 3 == 0)
+			draw_set_transform(Vector2.ZERO)
+			# The real exit's label sits below its flower; keep the review caption lower.
+			_text(center + Vector2(0, 177), ["MOONPETAL / LIGHT AND PETAL FOLDS", "MOSSY PERCH / CLEAR CENTRAL LABEL", "CURVED REEDS / ORIGINAL BORDER"][index], 15, Color("d9f4e2"), HORIZONTAL_ALIGNMENT_CENTER, 400)
+
 	func _draw_motion_sheet() -> void:
 		_sync_fred_style()
 		var stages: Array[Dictionary] = [
@@ -31,9 +52,14 @@ class CharacterSheet extends "res://scripts/main.gd":
 
 	func _draw() -> void:
 		draw_rect(Rect2(0, 0, 1280, 720), Color("081e29"))
-		_text(Vector2(52, 55), "MOONPETAL MARSH / CHARACTER REVIEW", 26, Color("ffe184"), HORIZONTAL_ALIGNMENT_LEFT, 1176)
+		_text(Vector2(52, 55), "MOONPETAL MARSH / " + ("BOTANICAL REVIEW" if review_page == "botanical" else "CHARACTER REVIEW"), 26, Color("ffe184"), HORIZONTAL_ALIGNMENT_LEFT, 1176)
 		var description := "Actual game rigs | traversal poses and water contact | local next-build review" if review_page == "water-motion" else "Actual game rigs | same pose, lighting and scale | local next-build review"
+		if review_page == "botanical":
+			description = "Actual game drawing | original placement and gameplay bounds | local next-build review"
 		_text(Vector2(52, 86), description, 17, Color("afd3d5"), HORIZONTAL_ALIGNMENT_LEFT, 1176)
+		if review_page == "botanical":
+			_draw_botanical_sheet()
+			return
 		if review_page == "water-motion":
 			_draw_motion_sheet()
 			return
@@ -107,7 +133,7 @@ func _capture() -> void:
 	await process_frame
 	sheet.set_process(false)
 	sheet.simulation_time = 1.2
-	for page: String in ["builds", "attire", "predators", "water-motion"]:
+	for page: String in ["builds", "attire", "predators", "water-motion", "botanical"]:
 		sheet.review_page = page
 		sheet.customization = FredFrogCustomization.new("")
 		sheet.queue_redraw()
@@ -135,6 +161,13 @@ func _capture() -> void:
 	game.reduced_motion = true
 	game.queue_redraw()
 	await _save("gameplay-tablet-1366x1024")
+	_resize(Vector2i(1792, 828))
+	for level in 9:
+		game._advance_level()
+	game.simulation_time = 1.2
+	game.fred = game._level_start_position()
+	game.queue_redraw()
+	await _save("level10-reverse-phone-1792x828")
 	game.draw_times.clear()
 	game.predator_draw_us = 0
 	game.measured_predator_draws = 0
@@ -156,7 +189,7 @@ func _capture() -> void:
 	game.queue_free()
 	await process_frame
 	if not capture_failed:
-		print("NEXT_BUILD_GRAPHICS_CAPTURE_PASS count=7")
+		print("NEXT_BUILD_GRAPHICS_CAPTURE_PASS count=9")
 	quit(1 if capture_failed else 0)
 
 func _resize(size: Vector2i) -> void:

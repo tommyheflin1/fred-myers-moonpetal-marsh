@@ -13,6 +13,11 @@ The follow-up adds grounded leap shadows, swimming/landing ripples, underwater
 bubbles, heron foot contact, fish detail motion and mirrored outfit leg trim.
 See [water-contact and motion review](docs/NEXT_BUILD_MOTION_POLISH.md).
 
+The marsh continuation adds shaded, veined lily pads, layered Moonpetal petals,
+mossy safe perches and curved reeds. Status feedback now sits below the water
+so it cannot cover the safe-perch label; control positions stay unchanged.
+See [marsh graphics and footer-clearance review](docs/NEXT_BUILD_MARSH_POLISH.md).
+
 The next-build candidate on `codex/fred-next-build-pause-fix` fixes duplicate
 touch/mouse Pause toggles and clears held controls when pausing or resuming.
 See [reproduction, validation, and delivery handoff](docs/NEXT_BUILD_PAUSE_FIX.md).

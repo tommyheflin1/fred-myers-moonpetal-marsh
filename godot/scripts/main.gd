@@ -8,6 +8,7 @@ const CameraFollow = preload("res://scripts/camera_follow.gd")
 const AnimationCoordinator = preload("res://scripts/fred_animation_coordinator.gd")
 const FredRigScene = preload("res://scenes/fred_rig.tscn")
 const CharacterSurface = preload("res://scripts/character_surface.gd")
+const BotanicalArt = preload("res://scripts/botanical_art.gd")
 const PredatorFishArt = preload("res://scripts/predator_fish_art.gd")
 const WaterContactArt = preload("res://scripts/water_contact_art.gd")
 const MarshRouteLayout = preload("res://scripts/marsh_route_layout.gd")
@@ -1554,50 +1555,14 @@ func _draw_volume_ellipse(center: Vector2, radii: Vector2, rotation: float, base
 
 func _draw_lily_pad(position: Vector2, index: int) -> void:
     var rotation := sin(float(level_number * 7 + index * 19)) * 0.28
-    draw_colored_polygon(_ellipse_points(position + Vector2(7,10), Vector2(52,30), rotation), Color(0.005,0.025,0.035,0.52))
-    draw_arc(position + Vector2(2,7), 54, 0.18, PI - 0.18, 28, Color(0.55,0.92,0.93,0.18), 2)
-    draw_colored_polygon(_ellipse_points(position + Vector2(0,4), Vector2(48,29), rotation), Color("153f31"))
-    draw_colored_polygon(_ellipse_points(position, Vector2(48,29), rotation), Color("4ea85d"))
-    draw_colored_polygon(_ellipse_points(position + Vector2(-7,-5), Vector2(37,19), rotation), Color(0.55,0.88,0.45,0.20))
-    draw_polyline(_ellipse_points(position, Vector2(48,29), rotation, true), Color("a6df79"), 2.5, true)
-    var stem_direction := Vector2(42,-7).rotated(rotation)
-    draw_line(position, position + stem_direction, Color("c4eb8b"), 4)
-    for vein_angle in [-0.58, -0.28, 0.28, 0.58]:
-        var vein := Vector2(cos(rotation + vein_angle) * 32.0, sin(rotation + vein_angle) * 20.0)
-        draw_line(position + Vector2(2,0), position + vein, Color(0.82,0.96,0.63,0.50), 1.5)
-    draw_colored_polygon(PackedVector2Array([
-        position + Vector2(2,-1),
-        position + Vector2(51,-18).rotated(rotation),
-        position + Vector2(46,4).rotated(rotation),
-    ]), Color("123d3a"))
-    draw_circle(position + Vector2(-18,-8).rotated(rotation), 4, Color(0.86,0.98,0.68,0.52))
-    if index % 3 == 1:
-        for petal in range(6):
-            var petal_offset := Vector2.from_angle(float(petal) * TAU / 6.0) * 9.0
-            draw_circle(position + Vector2(-7,-8) + petal_offset, 7, Color("e4b7e8"))
-        draw_circle(position + Vector2(-7,-8), 6, Color("ffe17a"))
+    BotanicalArt.draw_lily(self, position, index, rotation)
 
 func _draw_safe_island(position: Vector2, radius: float) -> void:
-    draw_colored_polygon(_ellipse_points(position + Vector2(5,9), Vector2(radius + 12, radius * 0.68), -0.08), Color(0.01,0.04,0.03,0.52))
-    draw_colored_polygon(_ellipse_points(position + Vector2(0,4), Vector2(radius + 7, radius * 0.65), -0.08), Color("3c4930"))
-    draw_colored_polygon(_ellipse_points(position, Vector2(radius, radius * 0.62), -0.08), Color("315d3b"))
-    draw_polyline(_ellipse_points(position, Vector2(radius, radius * 0.62), -0.08, true), Color("8fe5a2"), 2.5, true)
-    for tuft in range(5):
-        var base := position + Vector2(-radius * 0.62 + float(tuft) * radius * 0.31, 4)
-        draw_line(base, base + Vector2(-5,-18 - float(tuft % 2) * 6), Color("8abf67"), 3)
-        draw_line(base, base + Vector2(6,-21), Color("b1db79"), 2)
+    BotanicalArt.draw_perch(self, position, radius)
     _text(position + Vector2(0,8), "SAFE PERCH", 13, Color("e7ffd8"), HORIZONTAL_ALIGNMENT_CENTER, 120)
 
 func _draw_moonpetal_exit(position: Vector2, radius: float) -> void:
-    draw_colored_polygon(_ellipse_points(position + Vector2(4,10), Vector2(radius + 10, (radius + 10) * 0.62), 0.0), Color(0.02,0.03,0.08,0.48))
-    draw_circle(position, radius + 8, Color(0.78,0.63,1.0,0.12))
-    for petal in range(8):
-        var angle := float(petal) * TAU / 8.0
-        var petal_center := position + Vector2.from_angle(angle) * radius * 0.48
-        draw_colored_polygon(_ellipse_points(petal_center, Vector2(radius * 0.47, radius * 0.20), angle), Color("d9b1ef"))
-        draw_polyline(_ellipse_points(petal_center, Vector2(radius * 0.47, radius * 0.20), angle, true), Color("f4ddff"), 1.5, true)
-    draw_circle(position, radius * 0.30, Color("ffe080"))
-    draw_circle(position + Vector2(-5,-5), radius * 0.10, Color("fff7c7"))
+    BotanicalArt.draw_flower(self, position, radius)
     _text(position + Vector2(0,radius + 30), "MOONPETAL EXIT", 12, Color("f7e7ff"), HORIZONTAL_ALIGNMENT_CENTER, 150)
 
 func _nearest_assisted_target() -> Dictionary:
@@ -2087,8 +2052,7 @@ func _draw_heron(position: Vector2, profile: Dictionary, rig_pose: Dictionary, r
 func _draw_reeds(sway: float) -> void:
     for x in range(55,1240,95):
         var base := Vector2(x,680)
-        draw_line(base, base + Vector2(sway,-46 - (x % 3) * 8), Color("78ad63"), 4)
-        draw_line(base + Vector2(sway,-30), base + Vector2(sway + 14,-40), Color("a8d77c"), 3)
+        BotanicalArt.draw_reed(self, base, 46.0 + (x % 3) * 8, sway, x % 3 == 0)
 
 func _draw_bug(position: Vector2, index: int, flutter: float) -> void:
     var rig_pose: Dictionary = WildlifeAnimationRig.pose("BUG", index, simulation_time, reduced_motion)
