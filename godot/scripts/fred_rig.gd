@@ -1,6 +1,8 @@
 class_name FredRig
 extends Node2D
 
+const CharacterSurface = preload("res://scripts/character_surface.gd")
+
 const REQUIRED_POSE_KEYS := [
 	"state",
 	"state_name",
@@ -217,6 +219,7 @@ var _hind_left: Node2D
 var _hind_right: Node2D
 var _eye_left: Node2D
 var _eye_right: Node2D
+var _rounded_polygons: Dictionary = {}
 var _style := {
 	"body_color": Color("4fbd68"),
 	"size_scale": 0.92,
@@ -248,6 +251,10 @@ func validate_contract() -> bool:
 	_hind_right = get_node("RootJoint/HindRight") as Node2D
 	_eye_left = get_node("RootJoint/HeadJoint/EyeLeft") as Node2D
 	_eye_right = get_node("RootJoint/HeadJoint/EyeRight") as Node2D
+	_rounded_polygons.clear()
+	for path in POLYGON_ORDER:
+		var polygon := get_node(str(path)) as Polygon2D
+		_rounded_polygons[path] = CharacterSurface.rounded_contour(polygon.polygon)
 	contract_valid = true
 	return true
 
@@ -329,15 +336,18 @@ func render_to(canvas: Node2D, world_position: Vector2, presentation_time_second
 		var polygon := get_node(str(path)) as Polygon2D
 		if not polygon.visible:
 			continue
-		var points := _transformed_points(polygon, polygon.polygon, world_position)
+		var points := _transformed_points(polygon, _rounded_polygons[path], world_position)
 		if points.size() >= 3:
-			canvas.draw_colored_polygon(points, polygon.color)
+			if str(path).ends_with("/Fill") or str(path).ends_with("/Belly"):
+				CharacterSurface.draw_volume(canvas, points, polygon.color, 0.55)
+			else:
+				canvas.draw_colored_polygon(points, polygon.color)
 	_draw_skin_dimension(canvas, world_position, presentation_time_seconds, reduced_motion_override)
 	_draw_reference_anatomy_finish(canvas, world_position)
 	_draw_body_build_finish(canvas, world_position)
 	_draw_front_limbs(canvas, world_position)
 	for path in LINE_ORDER:
-		if str(path) in ["RootJoint/FrontLeft", "RootJoint/FrontRight"]:
+		if str(path) in ["RootJoint/FrontLeft", "RootJoint/FrontRight"] or "/Hind" in str(path):
 			continue
 		var line := get_node(str(path)) as Line2D
 		if not line.visible:
@@ -346,6 +356,7 @@ func render_to(canvas: Node2D, world_position: Vector2, presentation_time_second
 		if points.size() >= 2:
 			var scale_width := maxf(0.5, absf(_root_joint.scale.x) + absf(_root_joint.scale.y)) * 0.5
 			canvas.draw_polyline(points, line.default_color, line.width * scale_width, true)
+	_draw_webbed_feet(canvas, world_position)
 	_draw_sport_gear(canvas, world_position)
 	_draw_face_finish(canvas, world_position, presentation_time_seconds, reduced_motion_override)
 	return true
@@ -372,6 +383,20 @@ func _draw_body_build_finish(canvas: Node2D, world_position: Vector2) -> void:
 			canvas.draw_line(world_position + _node_point(_body_joint, Vector2(-9.0, 17.0)), world_position + _node_point(_body_joint, Vector2(9.0, 17.0)), Color(shadow, 0.34), 2.0, true)
 		"trail_fit", "classic":
 			canvas.draw_arc(world_position + _node_point(_body_joint, Vector2(0.0, 4.0)), 18.0, 3.35, 6.07, 18, Color(highlight, 0.34), 1.8, true)
+
+func _draw_webbed_feet(canvas: Node2D, world_position: Vector2) -> void:
+	var fill := (get_node("RootJoint/BodyJoint/Fill") as Polygon2D).color
+	for side: float in [-1.0, 1.0]:
+		var hind := _hind_left if side < 0 else _hind_right
+		var foot := PackedVector2Array([Vector2(29 * side, 20), Vector2(41 * side, 27), Vector2(37 * side, 29), Vector2(39 * side, 34), Vector2(33 * side, 32), Vector2(29 * side, 35), Vector2(27 * side, 27)])
+		var points := _transformed_points(hind, CharacterSurface.rounded_contour(foot), world_position)
+		CharacterSurface.draw_volume(canvas, points, fill, 0.4)
+		canvas.draw_polyline(_closed_points(points), Color(fill.darkened(0.58), 0.82), 1.2 * float(_style.size_scale), true)
+		for tip in [Vector2(41 * side, 27), Vector2(39 * side, 34), Vector2(29 * side, 35)]:
+			var root_point := world_position + _node_point(hind, Vector2(30 * side, 23))
+			var tip_point := world_position + _node_point(hind, tip)
+			canvas.draw_line(root_point, tip_point, Color(fill.lightened(0.35), 0.55), 0.9 * float(_style.size_scale), true)
+			canvas.draw_circle(tip_point, 1.6 * float(_style.size_scale), fill.lightened(0.36))
 
 func style_snapshot() -> Dictionary:
 	return _style.duplicate(true)
@@ -561,11 +586,12 @@ func _draw_skin_dimension(canvas: Node2D, world_position: Vector2, presentation_
 	for spot in [Vector2(-13.0,-8.0),Vector2(11.0,-13.0),Vector2(-7.0,17.0),Vector2(14.0,9.0)]:
 		_draw_transformed_ellipse(canvas, _body_joint, spot, Vector2(2.0,1.2), Color(shadow,0.22), world_position)
 	for node in [_hind_left, _hind_right]:
-		_draw_transformed_ellipse(canvas,node,Vector2(-15.0,6.0),Vector2(8.0,7.0),Color(shadow,0.38),world_position)
-		_draw_transformed_ellipse(canvas,node,Vector2(-16.5,4.5),Vector2(5.0,4.0),Color(highlight,0.32),world_position)
-		var muscle := _transformed_points(node, PackedVector2Array([Vector2(-2,-3),Vector2(-17,1),Vector2(-29,12)]), world_position)
+		var side := -1.0 if node == _hind_left else 1.0
+		_draw_transformed_ellipse(canvas,node,Vector2(side*15.0,6.0),Vector2(8.0,7.0),Color(shadow,0.38),world_position)
+		_draw_transformed_ellipse(canvas,node,Vector2(side*16.5,4.5),Vector2(5.0,4.0),Color(highlight,0.32),world_position)
+		var muscle := _transformed_points(node, PackedVector2Array([Vector2(side*2,-3),Vector2(side*17,1),Vector2(side*29,12)]), world_position)
 		canvas.draw_polyline(muscle, Color(highlight, 0.48), 2.2 * float(_style.size_scale), true)
-		var lower_muscle := _transformed_points(node, PackedVector2Array([Vector2(-27,13),Vector2(-32,19),Vector2(-31,25)]), world_position)
+		var lower_muscle := _transformed_points(node, PackedVector2Array([Vector2(side*27,13),Vector2(side*32,19),Vector2(side*31,25)]), world_position)
 		canvas.draw_polyline(lower_muscle, Color(shadow,0.34), 1.5 * float(_style.size_scale), true)
 
 func _draw_reference_anatomy_finish(canvas: Node2D, world_position: Vector2) -> void:
@@ -605,7 +631,7 @@ func _draw_reference_anatomy_finish(canvas: Node2D, world_position: Vector2) -> 
 		canvas.draw_polyline(flank_tendon, Color(body_color.darkened(0.36),0.25), 1.4 * scale_width, true)
 		var hind := _hind_left if side < 0.0 else _hind_right
 		var tendon := _transformed_points(hind, PackedVector2Array([
-			Vector2(-5.0,-1.0),Vector2(-17.0,5.0),Vector2(-27.0,16.0),Vector2(-30.0,25.0),
+			Vector2(side*5.0,-1.0),Vector2(side*17.0,5.0),Vector2(side*27.0,16.0),Vector2(side*30.0,25.0),
 		]), world_position)
 		canvas.draw_polyline(tendon, Color(body_color.lightened(0.40),0.44), 1.8 * scale_width, true)
 	for glint in [Vector2(-15.0,-9.0),Vector2(-6.0,-13.0),Vector2(10.0,-8.0)]:
@@ -793,7 +819,7 @@ func _draw_sport_gear(canvas: Node2D, world_position: Vector2) -> void:
 	for point: Vector2 in under_panel:
 		garment_depth.append(point + Vector2(1.4, 2.0) * scale_width)
 	canvas.draw_colored_polygon(garment_depth, Color(shadow.darkened(0.45), 0.50))
-	canvas.draw_colored_polygon(under_panel, fabric.darkened(0.18))
+	CharacterSurface.draw_volume(canvas, under_panel, fabric, 1.0 - float(ATTIRE_FINISHES[attire].roughness))
 	canvas.draw_polyline(_closed_points(under_panel), Color(shadow.darkened(0.30),0.78), edge_width * scale_width, true)
 	var center_panel := _transformed_points(_body_joint, PackedVector2Array([
 		Vector2(-7,0.0),Vector2(0,7.0),Vector2(7,0.0),Vector2(8.5,7),Vector2(9.5,17),Vector2(5,hem_y),Vector2(0,hem_y+1.2),Vector2(-5,hem_y),Vector2(-9.5,17),Vector2(-8.5,7),
@@ -804,9 +830,9 @@ func _draw_sport_gear(canvas: Node2D, world_position: Vector2) -> void:
 	var right_panel := _transformed_points(_body_joint, PackedVector2Array([
 		Vector2(18.5,1.0),Vector2(16.5,-1.0),Vector2(13,-2.5),Vector2(8,-2.0),Vector2(7,0.0),Vector2(8.5,7),Vector2(9.5,17),Vector2(15.5,15),Vector2(17.5,8),
 	]), world_position)
-	canvas.draw_colored_polygon(left_panel, Color(fabric.lightened(0.06),0.82))
-	canvas.draw_colored_polygon(right_panel, Color(panel,0.54 + structure * 0.24))
-	canvas.draw_colored_polygon(center_panel, Color(fabric.lightened(0.03),0.86))
+	CharacterSurface.draw_volume(canvas, left_panel, Color(fabric.lightened(0.10),0.82), 0.3)
+	CharacterSurface.draw_volume(canvas, right_panel, Color(panel,0.54 + structure * 0.24), 0.3)
+	CharacterSurface.draw_volume(canvas, center_panel, Color(fabric.lightened(0.03),0.86), 1.0 - float(ATTIRE_FINISHES[attire].roughness))
 	var torso_highlight := _transformed_points(_body_joint, PackedVector2Array([
 		Vector2(-12,-1.5),Vector2(-8,-1.5),Vector2(-5,1.0),Vector2(-4,14),Vector2(-7,18),Vector2(-11,14),
 	]), world_position)
@@ -1278,7 +1304,9 @@ func _transformed_ellipse_points(node: Node2D, center: Vector2, radius: Vector2,
 	return _transformed_points(node, _ellipse_points(center, radius, segments), world_position)
 
 func _draw_transformed_ellipse(canvas: Node2D, node: Node2D, center: Vector2, radius: Vector2, color: Color, world_position: Vector2) -> void:
-	canvas.draw_colored_polygon(_transformed_ellipse_points(node, center, radius, world_position, 18), color)
+	var detail := 8 if radius.length() < 8.0 else 16
+	var points := _transformed_ellipse_points(node, center, radius, world_position, detail)
+	CharacterSurface.draw_volume(canvas, points, color, 0.35, color.a < 0.5)
 
 func _marker_point(path: String) -> Vector2:
 	if not contract_valid:

@@ -4,6 +4,11 @@ Fred Myers is a story-driven frog adventure currently playable as a five-level b
 
 ## Next build: Pause fix (2026-08-30)
 
+The 2026-08-31 local graphics pass adds smooth character shading, more natural
+webbed feet, richer attire materials, distinct fish anatomy, a continuous snake
+body, feathered heron wings, and unobscured depth text. It retains the Pause fix.
+See [graphics changes and actual render evidence](docs/NEXT_BUILD_GRAPHICS_UPLIFT.md).
+
 The next-build candidate on `codex/fred-next-build-pause-fix` fixes duplicate
 touch/mouse Pause toggles and clears held controls when pausing or resuming.
 See [reproduction, validation, and delivery handoff](docs/NEXT_BUILD_PAUSE_FIX.md).

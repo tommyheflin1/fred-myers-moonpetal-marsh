@@ -27,6 +27,11 @@ func _init() -> void:
 
 func _run() -> void:
 	clean_files()
+	for rect: Rect2 in [Layout.OBJECTIVE_RECT,Layout.CAMPAIGN_TEXT_RECT,Layout.ROUTE_SUMMARY_RECT,Layout.LIVES_RECT,Layout.PAUSE_RECT,Layout.HOME_RECT,Layout.ENERGY_LABEL_RECT,Layout.ENERGY_RECT,Layout.TOUCH_ACTION_WHEEL_RECT,Layout.TOUCH_CONTROL_PAD_RECT]:
+		check(not Layout.DEPTH_STATUS_RECT.intersects(rect), "depth status owns a separate HUD area")
+	for cue: String in ["DIVING", "UNDERWATER", "SURFACING"]:
+		var text_size := ThemeDB.fallback_font.get_string_size("[%s] DEPTH 100%%" % cue, HORIZONTAL_ALIGNMENT_LEFT, -1, 14)
+		check(text_size.x <= Layout.DEPTH_STATUS_RECT.size.x - 16, cue + " text fits inside the depth status area")
 	var game: Node2D = Main.new()
 	game.audio_enabled = false
 	game.saver = FredSaveAdapter.new(SAVE_PREFIX)

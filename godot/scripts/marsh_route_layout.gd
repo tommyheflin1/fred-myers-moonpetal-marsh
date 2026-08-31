@@ -15,6 +15,7 @@ const ROUTE_SUMMARY_RECT := Rect2(18.0, 82.0, 760.0, 20.0)
 # printed over a narrow box and neither slot shares space with route metadata.
 const ENERGY_LABEL_RECT := Rect2(795.0, 73.0, 105.0, 24.0)
 const ENERGY_RECT := Rect2(905.0, 76.0, 345.0, 18.0)
+const DEPTH_STATUS_RECT := Rect2(515.0, 110.0, 250.0, 28.0)
 const STATUS_TOUCH_RECT := Rect2(500.0, 568.0, 340.0, 42.0)
 const STATUS_DESKTOP_RECT := Rect2(820.0, 642.0, 410.0, 42.0)
 const TELEMETRY_ANCHOR := Vector2(25.0, 700.0)
