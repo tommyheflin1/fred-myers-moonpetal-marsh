@@ -1,0 +1,109 @@
+# Fred facial detail and attire polish — 2026-08-31
+
+## Scope
+
+Local Fred-only continuation on `codex/fred-next-build-pause-fix`, from
+`1b64243afd9e36b79c6dd26e999d281dcdddc70f` (tree
+`f29dc0b1e9cf14e07a710467b2369aa099a97e69`). The existing superhero proportions,
+eight body types and nine outfits are retained. No catalog IDs, prices, owned
+items, save schema, movement, collision, controls, progression, Golden Egg,
+Game Center, audio, app identity or build number changed.
+
+The canonical `shared-build-process` skill guided candidate isolation and
+protected-state checks. The exact-candidate audit remains
+`MIGRATION_REQUIRED`: 22 differences against `1.6.0-candidate.1`. This art pass
+does not migrate release tools or establish Apple readiness.
+
+## Changes
+
+- Removed the rendered legacy nostril stroke that looked like a second smile;
+  kept its authored node for rig compatibility. Fred now has two small tilted
+  nostrils and one smoothly curved smile, with softer cheek/jaw highlights.
+- Replaced bright circular cheek rings and four large spots with subtle
+  skin depressions and 18 fixed irregular mottling patches. The central mouth
+  and nose stay clear. Geometry is deterministic and attached to the head.
+- Added amber-green iris fibers and small catchlights. Face rendering now
+  precedes equipment: pupils sit behind translucent lenses and frames instead
+  of over the goggles/visor. Opaque lens-interior fills were removed while
+  all nine frame shapes, colors and motifs remain.
+- Refined webbed fingers and toes with smaller elliptical pads and thinner
+  tendon highlights; costume insignias now use a per-vertex light gradient
+  and a restrained rim instead of a flat bright fill.
+- All changes extend the existing code-native 2D rig. No external media,
+  textures, new nodes, dependencies, random state or growing caches were added.
+
+## Actual visual evidence
+
+- [Fred, Strong Firefly Hero and Swift Moon Champion](evidence/next-build-face-2026-08-31/hero-detail.png)
+- [All nine outfits](evidence/next-build-face-2026-08-31/attire.png)
+- [Eight body types](evidence/next-build-face-2026-08-31/builds.png)
+- [Swim, leap, landing, dive and surfacing](evidence/next-build-face-2026-08-31/water-motion.png)
+- [Phone customization screen](evidence/next-build-face-2026-08-31/customize-quick-1792x828.png)
+- [Strong Fred tablet customization screen](evidence/next-build-face-2026-08-31/customize-strong-1366x1024.png)
+- [Level 10 reversed phone route](evidence/next-build-face-2026-08-31/level10-reverse-phone-1792x828.png)
+- [Level 71 tablet scene](evidence/next-build-face-2026-08-31/level71-tablet-1366x1024.png)
+- [Phone Pause overlay](evidence/next-build-face-2026-08-31/level71-paused-phone-1792x828.png)
+
+Nineteen inspected PNGs are preserved, including eight `hero-fit-<body>.png`
+sheets covering 72 body/outfit combinations and four phone/tablet customizer
+captures. They are actual Godot renders, not generated concepts. The harness
+uses isolated fictional data with hazards/audio disabled; these are not
+physical-device captures or completed player-controlled runs. Prior evidence
+was not overwritten. All 19 copy hashes match their original renders.
+
+Hero-detail SHA-256:
+`26C2F7AF2DC6CB85D86AD63950F7FCE2ADDB9150DA6111C8E35301291C919365`.
+
+## Executed validation
+
+| Gate | Result |
+| --- | --- |
+| Full Godot regression | 36 suites, all exit 0; 83,290 assertions passed, 0 failed |
+| Hero art suite, included above | 28,719 passed, 0 failed; 987 added detail checks |
+| Pause input, included above | 36 passed, 0 failed |
+| Golden Egg Level 10, included above | 122 passed, 0 failed |
+| Game Center adapter, included above | 42 passed, 0 failed |
+| Python tooling | 5 scripts, 76 checks passed |
+| Readiness | 161 artifacts, 8 fixtures, Core 0.5.1 |
+| Actual renderer | 30 PNGs, exit 0, clean stderr |
+| Repeated redraw guards | Save/session snapshots, actors, level, collected items and simulation time unchanged over 120 redraws each on Levels 10 and 71; zero node growth |
+| Patch formatting | `git diff --check` passed |
+
+Added checks cover fixed patch complexity, finite/triangulatable contours,
+non-overlapping volume meshes, mouth clearance, returned-array isolation,
+curve endpoints, actual curvature, mirroring, invalid inputs, deterministic
+gradients and the active face-before-equipment render order. Existing
+8 bodies x 9 outfits x 23 poses x 2 facings x 2 motion modes and customizer
+fit checks remain. Programmatic pose checks are not visual review of every
+animation frame.
+
+Godot logs: `builds/face-review/full-validation`; focused logs:
+`builds/face-review/first-validation`; render logs/images:
+`builds/face-review/first-render`. Thirteen existing suites emitted
+ObjectDB/resource-at-exit diagnostics; no assertion, parse, script or polygon
+errors occurred. The hero suite and renderer have clean stderr. An unrelated
+App Store capture UID regenerated by editor import was removed.
+
+Windows CPU drawing-preparation p95 was 15.517 ms on Level 10 and 18.700 ms
+on Level 71. These are not GPU/frame timings or phone performance, nor a
+controlled before/after benchmark. The busy scene still exceeds 16.67 ms;
+device profiling and any necessary optimization remain open before release.
+
+## Protected state and remaining gates
+
+- Godot 4.7.1, Core 0.5.1 and save v1 remain unchanged.
+- Submitted Build 4 checkout remains clean at
+  `c261e37979b0f306ff86ce7e450922a2c919c2f0`, tree
+  `543b7800ad8437f663b32f357c13716b983aaace`.
+- Owner save SHA-256 unchanged:
+  `20DE8645123BFECD973D3A1A1F82A4BE4F9731B3A015246C64908A07B40F1318`.
+- Owner backup SHA-256 unchanged:
+  `89056C555969729AB89E17B78E82B0F632F55AA9FFF375B83DCBEC03C9793C76`.
+- Owner-test shortcut SHA-256 unchanged:
+  `F75617364EAD7899D8ECEB2A8D3D87CED2A73F2FA6D3F9347182ECF563A28D2A`.
+- No shortcut redirection, GitHub push, signing, upload, TestFlight assignment,
+  App Review action or public release ran.
+
+Owner visual acceptance, physical iPhone/iPad readability/frame pacing,
+native Pause/background/Resume and rotation remain separate gates. Local
+Golden Egg regression does not prove a website leaderboard entry.

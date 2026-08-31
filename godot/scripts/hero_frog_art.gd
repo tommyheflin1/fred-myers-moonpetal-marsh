@@ -27,6 +27,53 @@ const OUTFITS := {
 	"lily_lifeguard": {"signature":"buoyant marsh rescue suit","shoulder":0.86,"bracer":1.04,"belt":"rescue","chest":"rescue"},
 }
 
+# Fixed art marks, not random state: markings stay attached through every pose.
+# Keep the central nose and mouth clear at phone scale.
+const FACE_MARKS := [
+	Vector4(-22,-10,2.9,1.6),Vector4(-18,-12,1.5,0.8),Vector4(-23,-5,1.6,1.1),
+	Vector4(-19,-3,2.1,1.2),Vector4(-24,1,1.5,1.8),Vector4(-20,5,1.6,0.9),
+	Vector4(-16,2,1.1,0.6),Vector4(-13,-11,0.9,0.6),Vector4(-8,-13,1.1,0.6),
+	Vector4(22,-10,2.5,1.5),Vector4(18,-12,1.6,0.9),Vector4(23,-4,1.8,1.1),
+	Vector4(19,-1,2.0,1.3),Vector4(24,2,1.3,1.5),Vector4(20,6,1.9,0.8),
+	Vector4(16,3,1.0,0.7),Vector4(12,-11,1.1,0.6),Vector4(7,-14,0.9,0.6),
+]
+
+static func skin_patch(mark: Vector4, variation: int) -> PackedVector2Array:
+	if not mark.is_finite() or mark.z <= 0 or mark.w <= 0 or maxf(mark.z,mark.w) > 4:
+		return PackedVector2Array()
+	var points := PackedVector2Array()
+	for index in 10:
+		var angle := TAU*float(index)/10.0
+		var irregularity := 0.80+float(posmod(index*7+variation*3,5))*0.05
+		points.append(Vector2(mark.x,mark.y)+Vector2(cos(angle)*mark.z,sin(angle)*mark.w)*irregularity)
+	return Surface.rounded_contour(points)
+
+static func organic_curve(points: PackedVector2Array) -> PackedVector2Array:
+	var result := PackedVector2Array()
+	if points.size() < 2 or points.size() > 12:
+		return result
+	for point in points:
+		if not point.is_finite(): return result
+	for index in points.size()-1:
+		var a := points[maxi(index-1,0)]
+		var b := points[index]
+		var c := points[index+1]
+		var d := points[mini(index+2,points.size()-1)]
+		for step in 4:
+			var t := float(step)/4.0
+			result.append(0.5*((2*b)+(-a+c)*t+(2*a-5*b+4*c-d)*t*t+(-a+3*b-3*c+d)*t*t*t))
+	result.append(points[-1])
+	return result
+
+static func badge_colors(points: PackedVector2Array, base: Color) -> PackedColorArray:
+	var colors := PackedColorArray()
+	for point in points:
+		var shade := clampf((point.y+point.x*0.3+1.0)/17.0,0,1)
+		var color := base.lightened(0.28).lerp(base.darkened(0.38),shade)
+		color.a = base.a
+		colors.append(color)
+	return colors
+
 static func build(id: String) -> Dictionary:
 	return Dictionary(BUILDS.get(id,BUILDS.quick)).duplicate(true)
 

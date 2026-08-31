@@ -38,6 +38,11 @@ distinct armor, insignias and equipment; Firefly Hero has a wider cape.
 The actual customization preview also clears its cards, caption and return button.
 See [hero anatomy, attire and actual menu review](docs/NEXT_BUILD_HERO_FRED_UPGRADE.md).
 
+The facial-detail pass replaces the doubled nose/smile strokes with separate
+nostrils and a curved lip, adds subtle skin mottling, puts eyes behind the
+transparent lenses, and refines webbed digits and all nine costume insignias.
+See [Fred facial detail and actual renderer review](docs/NEXT_BUILD_FRED_FACE_POLISH.md).
+
 The next-build candidate on `codex/fred-next-build-pause-fix` fixes duplicate
 touch/mouse Pause toggles and clears held controls when pausing or resuming.
 See [reproduction, validation, and delivery handoff](docs/NEXT_BUILD_PAUSE_FIX.md).

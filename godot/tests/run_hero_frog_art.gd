@@ -46,6 +46,51 @@ func _bounds(points: PackedVector2Array) -> Rect2:
 func _init() -> void:
 	_run.call_deferred()
 
+func _check_face_details(rig: Node2D) -> void:
+	check(rig.FINISH_ORDER == ["face","equipment"],"lenses and frames are painted over the eyes, never under them")
+	check(rig.CUSTOM_FACE_LINES == ["RootJoint/HeadJoint/Nostrils","RootJoint/HeadJoint/MouthLine"],"only legacy nose and lip strokes are replaced by custom facial curves")
+	check(Hero.FACE_MARKS.size() == 18,"natural facial mottling uses a fixed bounded set of patches")
+	for index in Hero.FACE_MARKS.size():
+		var mark: Vector4 = Hero.FACE_MARKS[index]
+		var patch := Hero.skin_patch(mark,index)
+		_geometry(patch)
+		check(patch.size() == 20,"skin patch has bounded render complexity")
+		check(patch == Hero.skin_patch(mark,index),"skin markings cannot flicker between frames")
+		for point in patch:
+			check(Rect2(-28,-18,56,28).has_point(point),"mottling stays inside the cheeks and forehead")
+			check(not Rect2(-14,-4,28,16).has_point(point),"central nostrils and smile remain free of spots")
+		patch[0] = Vector2(999,999)
+		check(Hero.skin_patch(mark,index)[0] != patch[0],"returned skin geometry cannot mutate shared art")
+	for mark: Vector4 in [Vector4(NAN,0,1,1),Vector4(0,0,0,1),Vector4(0,0,1,-1),Vector4(0,0,5,1)]:
+		check(Hero.skin_patch(mark,0).is_empty(),"invalid skin mark fails closed")
+	var source := PackedVector2Array([Vector2(-14,5),Vector2(-9,8),Vector2(0,9),Vector2(9,7.5),Vector2(14,4.5)])
+	var curve := Hero.organic_curve(source)
+	check(curve.size() == 17 and curve[0] == source[0] and curve[-1] == source[-1],"organic lip preserves mouth endpoints and bounded samples")
+	check(curve[2] != source[0].lerp(source[1],0.5),"lip is genuinely curved instead of subdividing a straight line")
+	var mirrored := PackedVector2Array()
+	for point in source: mirrored.append(Vector2(-point.x,point.y))
+	var mirrored_curve := Hero.organic_curve(mirrored)
+	for index in curve.size():
+		check(curve[index].is_finite() and Rect2(-15,4,30,6).has_point(curve[index]),"organic mouth curve remains finite inside the lip footprint")
+		check(mirrored_curve[index].is_equal_approx(Vector2(-curve[index].x,curve[index].y)),"facial curvature mirrors with Fred's facing")
+	check(curve == Hero.organic_curve(source),"facial contours are deterministic")
+	check(Hero.organic_curve(PackedVector2Array()).is_empty(),"missing facial curve fails closed")
+	check(Hero.organic_curve(PackedVector2Array([Vector2.ZERO])).is_empty(),"single point facial curve fails closed")
+	check(Hero.organic_curve(PackedVector2Array([Vector2.ZERO,Vector2(INF,0)])).is_empty(),"nonfinite facial curve fails closed")
+	var excessive := PackedVector2Array()
+	excessive.resize(13)
+	check(Hero.organic_curve(excessive).is_empty(),"excess facial curve samples fail closed")
+	for attire: String in rig.ATTIRE_IDS:
+		var emblem := Hero.emblem(Hero.outfit(attire).chest)
+		var colors := Hero.badge_colors(emblem,Color(0.5,0.7,0.2,0.65))
+		check(colors.size() == emblem.size(),"every costume insignia vertex receives its own lighting")
+		var unique := {}
+		for color in colors:
+			check(is_finite(color.r+color.g+color.b) and is_equal_approx(color.a,0.65),"insignia shading stays finite and preserves transparency")
+			unique[color.to_html()] = true
+		check(unique.size() >= 3,"costume insignia lighting is dimensional, not one flat color")
+		check(colors == Hero.badge_colors(emblem,Color(0.5,0.7,0.2,0.65)),"insignia light cannot flicker between frames")
+
 func _check_customizer_fit(rig: Node2D, coordinator: RefCounted) -> void:
 	# Home resets the coordinator before this screen opens. Check both the
 	# reset stance and idle breathing without changing gameplay or card geometry.
@@ -72,6 +117,7 @@ func _run() -> void:
 	var rig: Node2D = RigScene.instantiate()
 	root.add_child(rig)
 	await process_frame
+	_check_face_details(rig)
 	var profile := Customization.new("")
 	var initial_profile := var_to_bytes(profile.to_dictionary())
 	var coordinator := Coordinator.new()

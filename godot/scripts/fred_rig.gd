@@ -85,6 +85,11 @@ const LINE_ORDER := [
 	"RootJoint/HeadJoint/MouthLine",
 ]
 
+# Legacy facial lines are authored anchors only. Render each feature once,
+# with separate nostrils and a curved lip, then place lenses over the eyes.
+const CUSTOM_FACE_LINES := ["RootJoint/HeadJoint/Nostrils", "RootJoint/HeadJoint/MouthLine"]
+const FINISH_ORDER := ["face", "equipment"]
+
 const SURFACE_FILL := Color("4fbd68")
 const SURFACE_HEAD := Color("66d477")
 const UNDERWATER_FILL := Color("3e91a6")
@@ -352,7 +357,7 @@ func render_to(canvas: Node2D, world_position: Vector2, presentation_time_second
 	_draw_body_build_finish(canvas, world_position)
 	_draw_front_limbs(canvas, world_position)
 	for path in LINE_ORDER:
-		if str(path) in ["RootJoint/FrontLeft", "RootJoint/FrontRight"] or "/Hind" in str(path):
+		if str(path) in ["RootJoint/FrontLeft", "RootJoint/FrontRight"] or "/Hind" in str(path) or str(path) in CUSTOM_FACE_LINES:
 			continue
 		var line := get_node(str(path)) as Line2D
 		if not line.visible:
@@ -362,8 +367,11 @@ func render_to(canvas: Node2D, world_position: Vector2, presentation_time_second
 			var scale_width := maxf(0.5, absf(_root_joint.scale.x) + absf(_root_joint.scale.y)) * 0.5
 			canvas.draw_polyline(points, line.default_color, line.width * scale_width, true)
 	_draw_webbed_feet(canvas, world_position)
-	_draw_sport_gear(canvas, world_position)
-	_draw_face_finish(canvas, world_position, presentation_time_seconds, reduced_motion_override)
+	for finish: String in FINISH_ORDER:
+		if finish == "face":
+			_draw_face_finish(canvas, world_position, presentation_time_seconds, reduced_motion_override)
+		else:
+			_draw_sport_gear(canvas, world_position)
 	return true
 
 func _draw_body_build_finish(canvas: Node2D, world_position: Vector2) -> void:
@@ -407,8 +415,8 @@ func _draw_webbed_feet(canvas: Node2D, world_position: Vector2) -> void:
 		for tip in [Vector2(41 * side, 27), Vector2(39 * side, 34), Vector2(29 * side, 35)]:
 			var root_point := world_position + _node_point(hind, Vector2(30 * side, 23))
 			var tip_point := world_position + _node_point(hind, tip)
-			canvas.draw_line(root_point, tip_point, Color(fill.lightened(0.35), 0.55), 0.9 * float(_style.size_scale), true)
-			canvas.draw_circle(tip_point, 1.6 * float(_style.size_scale), fill.lightened(0.36))
+			canvas.draw_line(root_point, tip_point, Color(fill.lightened(0.28), 0.40), 0.75 * float(_style.size_scale), true)
+			_draw_transformed_ellipse(canvas,hind,tip,Vector2(1.8,1.2),fill.lightened(0.24),world_position)
 
 func style_snapshot() -> Dictionary:
 	return _style.duplicate(true)
@@ -580,16 +588,18 @@ func _draw_skin_dimension(canvas: Node2D, world_position: Vector2, presentation_
 	_draw_transformed_ellipse(canvas, _head_joint, Vector2(18.0,4.0), Vector2(10.0,9.0), Color(shadow,0.18), world_position)
 	_draw_transformed_ellipse(canvas, _head_joint, Vector2(0.0, 12.0+throat*0.20), Vector2(17.0+throat*0.32, 6.5+throat*0.38), Color(head_color.lightened(0.34), 0.18), world_position)
 	_draw_transformed_ellipse(canvas, _head_joint, Vector2(0.0, 15.0+throat*0.24), Vector2(11.0+throat*0.25, 3.2+throat*0.30), Color(body_color.lightened(0.34),0.18), world_position)
-	for ear_x in [-23.0, 23.0]:
-		var tympanum := world_position + _node_point(_head_joint, Vector2(ear_x, 1.5))
-		canvas.draw_circle(tympanum, 5.2 * float(_style.size_scale), Color(shadow, 0.30))
-		canvas.draw_arc(tympanum, 4.0 * float(_style.size_scale), 0.25, TAU - 0.25, 16, Color(highlight, 0.42), 1.3 * float(_style.size_scale), true)
+	for side: float in [-1.0,1.0]:
+		# Subtle skin depressions replace bright circular cheek rings.
+		_draw_transformed_ellipse(canvas,_head_joint,Vector2(side*23,0.5),Vector2(3.5,4.0),Color(shadow,0.19),world_position)
+		var crease := HeroArt.organic_curve(PackedVector2Array([Vector2(side*24,-4),Vector2(side*25,0),Vector2(side*23,5)]))
+		canvas.draw_polyline(_transformed_points(_head_joint,crease,world_position),Color(highlight,0.16),0.7,true)
 	var left_fold := _transformed_points(_body_joint, PackedVector2Array([Vector2(-19,-17),Vector2(-18,-5),Vector2(-15,9),Vector2(-11,19)]), world_position)
 	var right_fold := _transformed_points(_body_joint, PackedVector2Array([Vector2(19,-17),Vector2(18,-5),Vector2(15,9),Vector2(11,19)]), world_position)
 	canvas.draw_polyline(left_fold, Color(highlight,0.34), 1.7 * float(_style.size_scale), true)
 	canvas.draw_polyline(right_fold, Color(shadow,0.28), 1.7 * float(_style.size_scale), true)
-	for spot in [Vector2(-19.0, 1.0), Vector2(18.0, -1.0), Vector2(-10.0, 11.0), Vector2(11.0, 12.0)]:
-		_draw_transformed_ellipse(canvas, _head_joint, spot, Vector2(2.2, 1.5), Color(shadow, 0.30), world_position)
+	for index in HeroArt.FACE_MARKS.size():
+		var patch := _transformed_points(_head_joint,HeroArt.skin_patch(HeroArt.FACE_MARKS[index],index),world_position)
+		CharacterSurface.draw_volume(canvas,patch,Color(shadow,0.33 if index%3 == 0 else 0.22),0.0,true)
 	for spot in [Vector2(-13.0,-8.0),Vector2(11.0,-13.0),Vector2(-7.0,17.0),Vector2(14.0,9.0)]:
 		_draw_transformed_ellipse(canvas, _body_joint, spot, Vector2(2.0,1.2), Color(shadow,0.22), world_position)
 	for node in [_hind_left, _hind_right]:
@@ -608,25 +618,15 @@ func _draw_reference_anatomy_finish(canvas: Node2D, world_position: Vector2) -> 
 	var scale_width := float(_style.size_scale)
 	var body_color := (get_node("RootJoint/BodyJoint/Fill") as Polygon2D).color
 	var head_color := (get_node("RootJoint/HeadJoint/Fill") as Polygon2D).color
-	var outline := (get_node("RootJoint/HeadJoint/MouthLine") as Line2D).default_color
 	var cranial_ridge := _transformed_points(_head_joint, PackedVector2Array([
 		Vector2(-24.0,-10.0),Vector2(-14.0,-16.0),Vector2(0.0,-18.5),
 		Vector2(14.0,-16.0),Vector2(24.0,-10.0),
 	]), world_position)
-	canvas.draw_polyline(cranial_ridge, Color(head_color.lightened(0.40),0.52), 2.2 * scale_width, true)
+	canvas.draw_polyline(HeroArt.organic_curve(cranial_ridge), Color(head_color.lightened(0.34),0.22), 1.3 * scale_width, true)
 	var nasal_plane := _transformed_points(_head_joint, PackedVector2Array([
 		Vector2(-12.0,-8.0),Vector2(0.0,-11.0),Vector2(12.0,-8.0),Vector2(8.0,-1.5),Vector2(0.0,1.0),Vector2(-8.0,-1.5),
 	]), world_position)
-	canvas.draw_colored_polygon(nasal_plane, Color(head_color.lightened(0.26),0.13))
-	canvas.draw_polyline(_closed_points(nasal_plane), Color(head_color.lightened(0.42),0.24), 0.9 * scale_width, true)
-	var upper_jaw := _transformed_points(_head_joint, PackedVector2Array([
-		Vector2(-22.0,6.0),Vector2(-12.0,9.0),Vector2(0.0,10.2),Vector2(12.0,9.0),Vector2(22.0,6.0),
-	]), world_position)
-	canvas.draw_polyline(upper_jaw, Color(head_color.lightened(0.34),0.48), 1.6 * scale_width, true)
-	var lower_jaw := _transformed_points(_head_joint, PackedVector2Array([
-		Vector2(-20.0,11.0),Vector2(-11.0,16.0),Vector2(0.0,18.2),Vector2(11.0,16.0),Vector2(20.0,11.0),
-	]), world_position)
-	canvas.draw_polyline(lower_jaw, Color(outline,0.30), 1.45 * scale_width, true)
+	CharacterSurface.draw_volume(canvas,CharacterSurface.rounded_contour(nasal_plane),Color(head_color.lightened(0.25),0.15),0.0,true)
 	var back_ridge := _transformed_points(_body_joint, PackedVector2Array([
 		Vector2(-18.0,-15.0),Vector2(-9.0,-20.0),Vector2(0.0,-21.5),Vector2(9.0,-20.0),Vector2(18.0,-15.0),
 	]), world_position)
@@ -642,7 +642,7 @@ func _draw_reference_anatomy_finish(canvas: Node2D, world_position: Vector2) -> 
 		]), world_position)
 		canvas.draw_polyline(tendon, Color(body_color.lightened(0.40),0.44), 1.8 * scale_width, true)
 	for glint in [Vector2(-15.0,-9.0),Vector2(-6.0,-13.0),Vector2(10.0,-8.0)]:
-		_draw_transformed_ellipse(canvas,_head_joint,glint,Vector2(2.6,1.1),Color(0.92,1.0,0.86,0.48),world_position)
+		_draw_transformed_ellipse(canvas,_head_joint,glint,Vector2(1.6,0.65),Color(0.92,1.0,0.86,0.28),world_position)
 
 func _draw_front_limbs(canvas: Node2D, world_position: Vector2) -> void:
 	var fill := (get_node("RootJoint/BodyJoint/Fill") as Polygon2D).color
@@ -669,57 +669,63 @@ func _draw_front_limbs(canvas: Node2D, world_position: Vector2) -> void:
 		canvas.draw_colored_polygon(web,fill.lightened(0.09))
 		for tip in tips:
 			var finger := _transformed_points(limb,PackedVector2Array([hand,hand.lerp(tip,0.6),tip]),world_position)
-			canvas.draw_polyline(finger,fill.lightened(0.24),2.6*float(_style.size_scale),true)
-			_draw_transformed_ellipse(canvas,limb,tip,Vector2(2.1,1.7),fill.lightened(0.34),world_position)
+			canvas.draw_polyline(finger,fill.darkened(0.16),2.8*float(_style.size_scale),true)
+			canvas.draw_polyline(finger,fill.lightened(0.20),1.8*float(_style.size_scale),true)
+			_draw_transformed_ellipse(canvas,limb,tip,Vector2(2.0,1.45),fill.lightened(0.26),world_position)
 		var tendon := _transformed_points(limb,PackedVector2Array([elbow.lerp(hand,0.25)+sideways*1.5,hand-forward*2]),world_position)
 		canvas.draw_polyline(tendon,Color(fill.lightened(0.40),0.45),1.2,true)
 
 func _draw_face_finish(canvas: Node2D, world_position: Vector2, presentation_time_seconds: float, reduced_motion_override: bool) -> void:
-	var head_color := (get_node("RootJoint/HeadJoint/Fill") as Polygon2D).color
+	var skin := (get_node("RootJoint/HeadJoint/Fill") as Polygon2D).color
 	var outline := (get_node("RootJoint/HeadJoint/MouthLine") as Line2D).default_color
-	_draw_transformed_ellipse(canvas, _head_joint, Vector2(0.0, 13.0), Vector2(14.0, 3.2), Color(head_color.lightened(0.34), 0.24), world_position)
-	_draw_transformed_ellipse(canvas,_head_joint,Vector2(-14.0,-17.0),Vector2(9.0,4.2),Color(head_color.lightened(0.30),0.28),world_position)
-	_draw_transformed_ellipse(canvas,_head_joint,Vector2(14.0,-17.0),Vector2(9.0,4.2),Color(head_color.darkened(0.18),0.18),world_position)
-	for eye in [_eye_left, _eye_right]:
-		_draw_transformed_ellipse(canvas,eye,Vector2(1.0,0.0),Vector2(5.3,4.8),Color("53692e"),world_position)
-		_draw_transformed_ellipse(canvas,eye,Vector2(0.7,-0.2),Vector2(4.1,3.6),Color("b2b65b"),world_position)
-		_draw_transformed_ellipse(canvas,eye,Vector2(1.0,0.2),Vector2(3.8,1.25),Color("0b211b"),world_position)
-		_draw_transformed_ellipse(canvas,eye,Vector2(-1.0,-2.0),Vector2(1.2,0.9),Color("fff6ce"),world_position)
-		var blink := float(micro_motion_snapshot(presentation_time_seconds,reduced_motion_override).blink)
+	var width := float(_style.size_scale)
+	var micro := micro_motion_snapshot(presentation_time_seconds,reduced_motion_override)
+	_draw_transformed_ellipse(canvas,_head_joint,Vector2(-3,12),Vector2(16,4),Color(skin.lightened(0.32),0.24),world_position)
+	_draw_transformed_ellipse(canvas,_head_joint,Vector2(-14,-17),Vector2(9,4.2),Color(skin.lightened(0.28),0.22),world_position)
+	_draw_transformed_ellipse(canvas,_head_joint,Vector2(14,-17),Vector2(9,4.2),Color(skin.darkened(0.18),0.18),world_position)
+	for eye: Node2D in [_eye_left,_eye_right]:
+		# Amber-green iris, fine radial fibers and one clear horizontal pupil.
+		# The equipment pass follows this, so the pupil stays beneath the lens.
+		_draw_transformed_ellipse(canvas,eye,Vector2(0.4,0),Vector2(5.8,5.1),Color("35432a"),world_position)
+		_draw_transformed_ellipse(canvas,eye,Vector2(0.2,-0.15),Vector2(4.9,4.3),Color("c0a955"),world_position)
+		for ray in 12:
+			var angle := TAU*float(ray)/12.0
+			var axis := Vector2(cos(angle),sin(angle))*Vector2(4.3,3.8)
+			var strand := _transformed_points(eye,PackedVector2Array([Vector2(0.2,0)+axis*0.62,Vector2(0.2,0)+axis]),world_position)
+			canvas.draw_polyline(strand,Color(0.23,0.31,0.17,0.48),0.45*width,true)
+		_draw_transformed_ellipse(canvas,eye,Vector2(0.4,0.2),Vector2(4.0,1.4),Color("0c2019"),world_position)
+		_draw_transformed_ellipse(canvas,eye,Vector2(-1.5,-2.0),Vector2(1.15,0.8),Color("fff7da"),world_position)
+		_draw_transformed_ellipse(canvas,eye,Vector2(2.7,1.4),Vector2(0.55,0.35),Color(0.95,1,0.88,0.6),world_position)
+		var blink := float(micro.blink)
 		if blink > 0.02:
-			var eyelid := _transformed_points(eye,PackedVector2Array([Vector2(-6,-1+blink*3),Vector2(0,blink*3),Vector2(6,-1+blink*3)]),world_position)
-			canvas.draw_polyline(eyelid,Color(head_color.darkened(0.18),0.86),1.4+blink*2.2,true)
-	for nostril_x in [-5.0,5.0]:
-		var nostril := world_position + _node_point(_head_joint, Vector2(nostril_x,-0.5))
-		canvas.draw_circle(nostril,1.5 * float(_style.size_scale),Color(outline,0.72))
-		canvas.draw_circle(nostril+Vector2(-0.4,-0.5),0.55 * float(_style.size_scale),Color(0.86,1.0,0.82,0.52))
-	var cheek_color := Color(Color("f0a37f"), 0.28)
-	_draw_transformed_ellipse(canvas, _head_joint, Vector2(-20.0, 7.0), Vector2(4.0, 2.3), cheek_color, world_position)
-	_draw_transformed_ellipse(canvas, _head_joint, Vector2(20.0, 7.0), Vector2(4.0, 2.3), cheek_color, world_position)
-	# A lit lower-jaw plane and a dark throat crease keep Fred's mouth readable
-	# above every outfit, including compressed landing and damage poses.
-	var jaw_plane := _transformed_points(_head_joint, PackedVector2Array([
-		Vector2(-20.0, 11.0), Vector2(-11.0, 16.5), Vector2(0.0, 19.5),
-		Vector2(11.0, 16.5), Vector2(20.0, 11.0),
-	]), world_position)
-	canvas.draw_polyline(CharacterSurface.smooth_line(jaw_plane), Color(head_color.lightened(0.30), 0.38), 1.6 * float(_style.size_scale), true)
-	var throat_crease := _transformed_points(_head_joint, PackedVector2Array([
-		Vector2(-13.0, 18.0), Vector2(0.0, 20.5), Vector2(13.0, 18.0),
-	]), world_position)
-	canvas.draw_polyline(throat_crease, Color(outline, 0.34), 1.25 * float(_style.size_scale), true)
+			var lid := HeroArt.organic_curve(PackedVector2Array([Vector2(-6,-1+blink*3),Vector2(0,blink*3),Vector2(6,-1+blink*3)]))
+			canvas.draw_polyline(_transformed_points(eye,lid,world_position),skin.darkened(0.18),1.4+blink*2.2,true)
+	for side: float in [-1.0,1.0]:
+		var nostril_center := Vector2(side*6.2,-2.0)
+		var nostril := CharacterSurface.ellipse(nostril_center,Vector2(1.7,0.85),side*0.35)
+		CharacterSurface.draw_volume(canvas,_transformed_points(_head_joint,nostril,world_position),Color(outline,0.80),0)
+		_draw_transformed_ellipse(canvas,_head_joint,nostril_center+Vector2(-0.3,-0.9),Vector2(1.3,0.45),Color(skin.lightened(0.4),0.32),world_position)
+		var cheek := HeroArt.organic_curve(PackedVector2Array([Vector2(side*20,5),Vector2(side*18,9),Vector2(side*14,11.5)]))
+		canvas.draw_polyline(_transformed_points(_head_joint,cheek,world_position),Color(skin.darkened(0.35),0.22),0.8*width,true)
+	var jaw := HeroArt.organic_curve(PackedVector2Array([Vector2(-18,13),Vector2(-10,17),Vector2(0,18.5),Vector2(10,17),Vector2(18,13)]))
+	canvas.draw_polyline(_transformed_points(_head_joint,jaw,world_position),Color(skin.lightened(0.28),0.22),1.1*width,true)
+	var throat := HeroArt.organic_curve(PackedVector2Array([Vector2(-10,18.5),Vector2(0,20),Vector2(10,18.5)]))
+	canvas.draw_polyline(_transformed_points(_head_joint,throat,world_position),Color(outline,0.22),0.8*width,true)
 	var mouth := get_node("RootJoint/HeadJoint/MouthCavity") as Polygon2D
 	if mouth.visible:
-		var mouth_points := _transformed_points(mouth, mouth.polygon, world_position)
-		canvas.draw_colored_polygon(mouth_points, mouth.color)
-		canvas.draw_polyline(_closed_points(mouth_points), outline, 1.8 * float(_style.size_scale), true)
+		var mouth_points := _transformed_points(mouth,CharacterSurface.rounded_contour(mouth.polygon),world_position)
+		CharacterSurface.draw_volume(canvas,mouth_points,mouth.color.darkened(0.25),0)
+		canvas.draw_polyline(_closed_points(mouth_points),outline,1.0*width,true)
+		_draw_transformed_ellipse(canvas,mouth,Vector2(0,9),Vector2(3.0,1.1),Color(mouth.color.lightened(0.4),0.35),world_position)
 	else:
 		var mouth_line := get_node("RootJoint/HeadJoint/MouthLine") as Line2D
-		var line_points := _transformed_points(mouth_line, mouth_line.points, world_position)
-		canvas.draw_polyline(CharacterSurface.smooth_line(line_points), outline, 2.2 * float(_style.size_scale), true)
-	var left_corner := world_position + _node_point(_head_joint, Vector2(-11.0, 5.0))
-	var right_corner := world_position + _node_point(_head_joint, Vector2(11.0, 5.0))
-	canvas.draw_circle(left_corner, 1.6 * float(_style.size_scale), outline)
-	canvas.draw_circle(right_corner, 1.6 * float(_style.size_scale), outline)
+		var lip := HeroArt.organic_curve(mouth_line.points)
+		var lower_lip := PackedVector2Array()
+		for point in lip: lower_lip.append(point+Vector2(0,1.35))
+		canvas.draw_polyline(_transformed_points(mouth_line,lower_lip,world_position),Color(skin.lightened(0.3),0.35),1.1*width,true)
+		canvas.draw_polyline(_transformed_points(mouth_line,lip,world_position),outline,1.7*width,true)
+		for corner: Vector2 in [mouth_line.points[0],mouth_line.points[-1]]:
+			_draw_transformed_ellipse(canvas,mouth_line,corner,Vector2(0.85,0.6),Color(outline,0.7),world_position)
 
 func _attire_palette(attire: String) -> Dictionary:
 	match attire:
@@ -859,8 +865,8 @@ func _draw_sport_gear(canvas: Node2D, world_position: Vector2) -> void:
 	for point in emblem:
 		emblem_shadow.append(point+Vector2(0.8,1.0))
 	canvas.draw_colored_polygon(_transformed_points(_body_joint,emblem_shadow,world_position),shadow.darkened(0.5))
-	canvas.draw_colored_polygon(_transformed_points(_body_joint,emblem,world_position),accent if kind in ["drop","star","beetle"] else trim)
-	canvas.draw_polyline(_closed_points(_transformed_points(_body_joint,emblem,world_position)),Color(trim.lightened(0.3),0.75),0.7*float(_style.size_scale),true)
+	canvas.draw_polygon(_transformed_points(_body_joint,emblem,world_position),HeroArt.badge_colors(emblem,accent if kind in ["drop","star","beetle"] else trim))
+	canvas.draw_polyline(_closed_points(_transformed_points(_body_joint,emblem,world_position)),Color(trim.lightened(0.3),0.65),0.6*float(_style.size_scale),true)
 	_draw_hero_limb_gear(canvas,world_position,equipment,palette)
 	_draw_eyewear(canvas,world_position,str(palette.eyewear),fabric,trim,palette.lens)
 
@@ -914,7 +920,7 @@ func _draw_eyewear(canvas: Node2D, world_position: Vector2, eyewear: String, fra
 		var visor := _transformed_points(_head_joint, PackedVector2Array([
 			Vector2(-20.8,-26.5),Vector2(-7,-28.8),Vector2(7,-28.8),Vector2(20.8,-26.5),Vector2(18.2,-18.2),Vector2(6,-15.4),Vector2(-6,-15.4),Vector2(-18.6,-19),
 		]), world_position)
-		canvas.draw_colored_polygon(gasket, frame.darkened(0.42))
+		canvas.draw_polyline(_closed_points(gasket),frame.darkened(0.42),2.8*scale_width,true)
 		canvas.draw_colored_polygon(visor, lens)
 		canvas.draw_polyline(_closed_points(visor), Color(trim,0.90), 1.75 * scale_width, true)
 		var lower_rim := _transformed_points(_head_joint, PackedVector2Array([Vector2(-19.5,-17.5),Vector2(-6.5,-15),Vector2(6.5,-15),Vector2(19.5,-17.5)]), world_position)
@@ -947,12 +953,12 @@ func _draw_eyewear(canvas: Node2D, world_position: Vector2, eyewear: String, fra
 		var gasket_points := _transformed_ellipse_points(_head_joint, center + Vector2(0,0.7), radius + Vector2(1.7,1.7), world_position, 20)
 		var frame_points := _transformed_ellipse_points(_head_joint, center, radius + Vector2(0.7,0.7), world_position, 20)
 		var lens_points := _transformed_ellipse_points(_head_joint, center, radius - Vector2(0.9,0.9), world_position, 20)
-		canvas.draw_colored_polygon(gasket_points, frame.darkened(0.44))
-		canvas.draw_colored_polygon(frame_points, trim.darkened(0.16))
+		canvas.draw_polyline(_closed_points(gasket_points),frame.darkened(0.44),2.0*scale_width,true)
+		canvas.draw_polyline(_closed_points(frame_points),trim.darkened(0.16),1.5*scale_width,true)
 		canvas.draw_colored_polygon(lens_points, lens)
 		canvas.draw_polyline(_closed_points(frame_points), Color(trim.lightened(0.12),0.88), 1.15 * scale_width, true)
-		var lower_lens := _transformed_ellipse_points(_head_joint, center + Vector2(0,1.7), radius - Vector2(1.8,2.6), world_position, 16)
-		canvas.draw_polyline(_closed_points(lower_lens), Color(frame.darkened(0.18),0.34), 0.9 * scale_width, true)
+		var lower_lens := _transformed_points(_head_joint,HeroArt.organic_curve(PackedVector2Array([center+Vector2(-radius.x*0.65,radius.y*0.45),center+Vector2(0,radius.y*0.75),center+Vector2(radius.x*0.65,radius.y*0.45)])),world_position)
+		canvas.draw_polyline(lower_lens, Color(frame.darkened(0.18),0.32), 0.7 * scale_width, true)
 		if eyewear == "pilot_goggles":
 			var pilot_bar := _transformed_points(_head_joint, PackedVector2Array([center+Vector2(-6,0),center+Vector2(6,0)]), world_position)
 			canvas.draw_polyline(pilot_bar, Color(trim,0.54), 0.9 * scale_width, true)
