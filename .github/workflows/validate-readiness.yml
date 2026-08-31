@@ -71,6 +71,8 @@ jobs:
         run: ./Godot_v4.7.1-stable_linux.x86_64 --headless --path godot --script res://tests/run_character_surface.gd
       - name: Run superhero Fred anatomy and attire regressions
         run: ./Godot_v4.7.1-stable_linux.x86_64 --headless --path godot --script res://tests/run_hero_frog_art.gd
+      - name: Run wardrobe ownership, hero styles and touch-selection regressions
+        run: ./Godot_v4.7.1-stable_linux.x86_64 --headless --path godot --script res://tests/run_wardrobe.gd
       - name: Run next-build water contact and wildlife motion regressions
         run: ./Godot_v4.7.1-stable_linux.x86_64 --headless --path godot --script res://tests/run_water_contact_art.gd
       - name: Run next-build botanical geometry and label-clearance regressions

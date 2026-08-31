@@ -27,8 +27,8 @@ func _run() -> void:
 	var all_labels: Dictionary = {}
 	for category: String in Customization.CATEGORIES:
 		var entries: Array = Customization.CATALOG[category]
-		var new_ids: Array = Customization.BUILD_2_EXPANSION_IDS[category]
-		check(new_ids.size() == 5, "%s receives exactly five new Build 2 choices" % category)
+		var new_ids: Array = Customization.BUILD_2_EXPANSION_IDS.get(category, [])
+		check(new_ids.size() == (0 if category == "hero" else 5), "%s retains its original Build 2 choices" % category)
 		check(entries.size() >= new_ids.size() + 1, "%s keeps its starter and earlier choices" % category)
 		total_catalog_count += entries.size()
 		var category_values: Dictionary = {}
@@ -50,10 +50,10 @@ func _run() -> void:
 			check(not expansion_ids.has(item_id), "%s appears once in the expansion" % item_id)
 			expansion_ids[item_id] = true
 	check(expansion_ids.size() == EXPANSION_COUNT, "Build 2 adds exactly twenty unique customizations")
-	check(total_catalog_count == BASE_CATALOG_COUNT + EXPANSION_COUNT, "the catalog grows from fifteen to thirty-five choices")
-	check(Customization.CATALOG.body.size() == 9 and Customization.CATALOG.tongue.size() == 9, "frog and tongue colors each expose nine choices")
-	check(Customization.CATALOG["size"].size() == 8 and Customization.CATALOG.attire.size() == 9, "build and fitted gear expose eight and nine choices")
-	check(Rig.ATTIRE_IDS.size() == 9, "all nine attire choices are accepted by the authored rig")
+	check(total_catalog_count == BASE_CATALOG_COUNT + EXPANSION_COUNT + 9, "wardrobe adds three hero styles, two skin colors and four outfits")
+	check(Customization.CATALOG.body.size() == 11 and Customization.CATALOG.tongue.size() == 9, "eleven skin and nine tongue colors are available")
+	check(Customization.CATALOG["size"].size() == 8 and Customization.CATALOG.attire.size() == 13, "eight builds and thirteen outfits are available")
+	check(Rig.ATTIRE_IDS.size() == 13, "all thirteen outfits are connected to the rig")
 	check(Customization.BODY_PROPORTIONS.size() == Customization.CATALOG["size"].size(), "every body build owns an explicit silhouette proportion")
 	var build_silhouettes: Dictionary = {}
 	var build_probe := Customization.new("")
@@ -81,14 +81,14 @@ func _run() -> void:
 			check(str(result.get("item", "")) == str(entries[index].id), "%s equips the intended catalog ID" % str(entries[index].label))
 		check(profile.selected_position(category) == entries.size(), "%s reaches its final new look" % category)
 		check(profile.item_count(category) == entries.size(), "%s reports the complete choice count" % category)
-		for item_id: String in Customization.BUILD_2_EXPANSION_IDS[category]:
+		for item_id: String in Customization.BUILD_2_EXPANSION_IDS.get(category, []):
 			check(item_id in Array(profile.owned[category]), "%s remains owned after unlock" % item_id)
 	check(profile.coins == Customization.MAX_COINS - expected_spend, "the offline coin wallet deducts each unlock exactly once")
 	var style := profile.current_style()
-	check(str(style.attire) == "lily_lifeguard", "the final gear choice equips through the typed style contract")
+	check(str(style.attire) == "storm_striker", "the final gear choice equips through the typed style contract")
 	check(float(style.size_scale) == 1.12, "the final athletic build remains presentation-only and bounded")
 	check(str(style.body_build) == "strong" and Vector2(style.body_proportions).x >= 1.20, "Strong resolves to a visibly broad athletic silhouette")
-	check(Color(style.body_color).to_html(false) == "d6e7cf", "the final frog color resolves to Pearl Hopper")
+	check(Color(style.body_color).to_html(false) == "397963", "the final frog color resolves to Forest Jade")
 	check(Color(style.tongue_color).to_html(false) == "ffd34e", "the final tongue color resolves to Golden Zap")
 	check(profile.next_cost("attire") == 0 and profile.next_label("attire") == "Runner Goggles", "a completed gear carousel wraps to the owned starter without another charge")
 	check(profile.save_profile(), "the expanded profile saves through the existing local atomic path")
@@ -110,8 +110,8 @@ func _run() -> void:
 	invalid.selected.attire = "floating_paper_hat"
 	check(legacy.restore(invalid) and legacy.selected.attire == "marsh_runner", "unknown gear still fails closed to the fitted starter")
 	var main_source := FileAccess.get_file_as_string("res://scripts/main.gd")
-	check(main_source.contains("35 HERO LOOKS") and main_source.contains("20 NEW"), "the customizer clearly announces the expanded collection")
-	check(main_source.contains("LOOK %d OF %d") and main_source.contains("swatch_center"), "every card shows position and a non-text visual swatch")
+	check(main_source.contains("FRED'S HERO WARDROBE") and main_source.contains("OWNED ONLY"), "the customizer offers a browsable owned wardrobe")
+	check(main_source.contains("CHOICES") and main_source.contains("swatch_center"), "the wardrobe shows choice count and visual swatches")
 
 	_clean()
 	print("RESULT customization_expansion_passed=%d customization_expansion_failed=%d" % [passed,failed])

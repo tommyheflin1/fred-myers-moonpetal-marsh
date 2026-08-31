@@ -3,6 +3,7 @@ extends SceneTree
 # Review-only rendering of the real rigs; never used by the shipped scenes.
 class CharacterSheet extends "res://scripts/main.gd":
 	var review_page := "builds"
+	var outfit_page := 0
 	var motion_time := 1.2
 
 	func _draw_whirlpool_sheet() -> void:
@@ -92,6 +93,19 @@ class CharacterSheet extends "res://scripts/main.gd":
 		elif review_page == "whirlpools":
 			description = "Actual game drawing | same hazard footprint | normal and reduced-motion samples"
 		_text(Vector2(52, 86), description, 17, Color("afd3d5"), HORIZONTAL_ALIGNMENT_LEFT, 1176)
+		if review_page == "hero-styles":
+			for index in 3:
+				var hero_id: String = ["classic_fred","girl_hero","boy_hero"][index]
+				customization.selected.hero = hero_id
+				customization.selected.size = "classic"
+				_sync_fred_style()
+				fred_rig.apply_pose(animation.pose(),0.0)
+				draw_set_transform(Vector2(220+index*420,350),0,Vector2.ONE*2.6)
+				fred_rig.render_to(self,Vector2.ZERO,1.2,true)
+				draw_set_transform(Vector2.ZERO)
+				_text(Vector2(220+index*420,612),customization.selected_label("hero"),24,Color("ffe184"),HORIZONTAL_ALIGNMENT_CENTER,390)
+			_text(Vector2(640,667),"Same skin, build and outfit. Different face, eyes, shoulders and limb proportions.",18,Color("d9f4e2"),HORIZONTAL_ALIGNMENT_CENTER,1160)
+			return
 		if review_page == "hero-detail":
 			var choices := [["quick","marsh_runner","FRED / MARSH SENTINEL"],["strong","firefly_hero","STRONG / FIREFLY HERO"],["swift","moon_champion","SWIFT / MOON CHAMPION"]]
 			for index in choices.size():
@@ -133,13 +147,15 @@ class CharacterSheet extends "res://scripts/main.gd":
 		var entries: Array = FredFrogCustomization.CATALOG[category]
 		var columns := 4 if review_page == "builds" else 3
 		var row_height := 276 if review_page == "builds" else 190
-		for index in entries.size():
+		var page_size := 8 if category == "size" else 9
+		for slot in mini(page_size,entries.size()-outfit_page*page_size):
+			var index := outfit_page*page_size+slot
 			customization.selected[category] = str(entries[index].id)
 			_sync_fred_style()
 			fred_rig.apply_pose(animation.pose(), 0.0)
-			var center := Vector2(160 + (index % columns) * 316, 200 + (index / columns) * row_height)
+			var center := Vector2(160 + (slot % columns) * 316, 200 + (slot / columns) * row_height)
 			if columns == 3:
-				center.x = 210 + (index % columns) * 420
+				center.x = 210 + (slot % columns) * 420
 			var review_scale := 1.7 if columns == 4 else (1.05 if review_page.begins_with("hero-fit-") else 1.3)
 			draw_set_transform(center, 0.0, Vector2.ONE * review_scale)
 			fred_rig.render_to(self, Vector2.ZERO, 1.2, true)
@@ -190,6 +206,7 @@ var output_dir := ""
 var capture_viewport: SubViewport
 var capture_canvas: Node2D
 var capture_failed := false
+var capture_count := 0
 
 func _init() -> void:
 	for argument in OS.get_cmdline_user_args():
@@ -221,12 +238,26 @@ func _capture() -> void:
 		sheet.customization = FredFrogCustomization.new("")
 		sheet.queue_redraw()
 		await _save(page)
+		if page == "attire":
+			sheet.outfit_page = 1
+			sheet.queue_redraw()
+			await _save("attire-new")
+			sheet.outfit_page = 0
 	for build: Dictionary in FredFrogCustomization.CATALOG["size"]:
 		sheet.review_page = "hero-fit-"+str(build.id)
 		sheet.customization = FredFrogCustomization.new("")
 		sheet.queue_redraw()
 		await _save(sheet.review_page)
+		sheet.outfit_page = 1
+		sheet.queue_redraw()
+		await _save(sheet.review_page+"-new")
+		sheet.outfit_page = 0
+	sheet.review_page = "hero-styles"
+	sheet.customization = FredFrogCustomization.new("")
+	sheet.queue_redraw()
+	await _save("hero-styles")
 	sheet.review_page = "hero-detail"
+	sheet.customization = FredFrogCustomization.new("")
 	sheet.queue_redraw()
 	await _save("hero-detail")
 	sheet.queue_free()
@@ -296,17 +327,42 @@ func _capture() -> void:
 	# Exercise the actual customization screen as well as the isolated rig sheets.
 	game.screen = game.Screen.CUSTOMIZE
 	game.animation.reset()
+	game.save_feedback_seconds = 0
 	for build: String in ["quick","strong"]:
-		game.customization.selected.size = build
-		game.customization.selected.attire = "firefly_hero" if build == "strong" else "marsh_runner"
+		game.customization = FredFrogCustomization.new("")
+		game.customization.earn_coins(1500)
+		game.customization.purchase_and_equip("size",build)
+		game.customization.purchase_and_equip("attire","firefly_hero" if build == "strong" else "marsh_runner")
+		game.wardrobe_category = "size"
+		game.wardrobe_owned_only = false
+		game._reset_wardrobe_selection()
 		for size: Vector2i in [Vector2i(1792,828),Vector2i(1366,1024)]:
 			_resize(size)
 			game.queue_redraw()
 			await _save("customize-%s-%dx%d"%[build,size.x,size.y])
+	for hero: String in ["girl_hero","boy_hero"]:
+		game.customization = FredFrogCustomization.new("")
+		game.customization.earn_coins(1500)
+		game.customization.equip("hero",hero)
+		game.customization.purchase_and_equip("size","strong" if hero == "boy_hero" else "quick")
+		game.customization.purchase_and_equip("attire","petal_guardian" if hero == "girl_hero" else "reed_sentinel")
+		game.wardrobe_category = "attire"
+		game.wardrobe_owned_only = false
+		game._reset_wardrobe_selection()
+		for size: Vector2i in [Vector2i(1792,828),Vector2i(1366,1024)]:
+			_resize(size)
+			game.queue_redraw()
+			await _save("wardrobe-%s-%dx%d"%[hero,size.x,size.y])
+	game.wardrobe_owned_only = true
+	game.customization.coins = 0
+	game._reset_wardrobe_selection()
+	game.wardrobe_item = "marsh_runner"
+	game.queue_redraw()
+	await _save("wardrobe-owned-zero-coins")
 	game.queue_free()
 	await process_frame
 	if not capture_failed:
-		print("NEXT_BUILD_GRAPHICS_CAPTURE_PASS count=30")
+		print("NEXT_BUILD_GRAPHICS_CAPTURE_PASS count=%d" % capture_count)
 	quit(1 if capture_failed else 0)
 
 func _measure(game: MeasuredGame, label: String) -> void:
@@ -359,3 +415,5 @@ func _save(label: String) -> void:
 	if rendered == null or rendered.is_empty() or rendered.get_size() != capture_viewport.size or rendered.save_png(output_dir.path_join(label + ".png")) != OK:
 		push_error("Could not save graphics review: " + label)
 		capture_failed = true
+	else:
+		capture_count += 1

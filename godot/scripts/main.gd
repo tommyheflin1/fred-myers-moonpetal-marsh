@@ -16,6 +16,7 @@ const PredatorFishArt = preload("res://scripts/predator_fish_art.gd")
 const WaterContactArt = preload("res://scripts/water_contact_art.gd")
 const MarshRouteLayout = preload("res://scripts/marsh_route_layout.gd")
 const FrogCustomization = preload("res://scripts/frog_customization.gd")
+const Wardrobe = preload("res://scripts/wardrobe_layout.gd")
 const AppleGameScoring = preload("res://scripts/apple_game_scoring.gd")
 const GameCenterAdapter = preload("res://scripts/game_center_adapter.gd")
 const PredatorDepth = preload("res://scripts/predator_depth.gd")
@@ -47,20 +48,15 @@ const STORY_HOME_RECT := Rect2(85,630,250,60)
 const STORY_CONTINUE_RECT := Rect2(815,630,380,60)
 const INSTRUCTIONS_HOME_RECT := Rect2(85,630,250,60)
 const INSTRUCTIONS_PLAY_RECT := Rect2(815,630,380,60)
-const CUSTOM_HOME_RECT := Rect2(490,635,300,56)
-const CUSTOM_PREVIEW_ORIGIN := Vector2(640,483)
-const CUSTOM_PREVIEW_SCALE := 1.6
-const CUSTOM_PREVIEW_RECT := Rect2(400,378,480,204)
+const CUSTOM_HOME_RECT := Wardrobe.HOME
+const CUSTOM_PREVIEW_ORIGIN := Wardrobe.PREVIEW_ORIGIN
+const CUSTOM_PREVIEW_SCALE := Wardrobe.PREVIEW_SCALE
+const CUSTOM_PREVIEW_RECT := Wardrobe.PREVIEW_RECT
 const GOLDEN_EGG_PRIVATE_RECT := Rect2(175,555,400,48)
 const GOLDEN_EGG_PUBLIC_RECT := Rect2(705,555,400,48)
 const GOLDEN_EGG_HUNT_RECT := Rect2(265,625,340,50)
 const GOLDEN_EGG_HOME_RECT := Rect2(675,625,340,50)
-const CUSTOM_CARDS := {
-    "body": Rect2(120,205,245,165),
-    "size": Rect2(385,205,245,165),
-    "tongue": Rect2(650,205,245,165),
-    "attire": Rect2(915,205,245,165),
-}
+const CUSTOM_CARDS := Wardrobe.TABS
 
 var session := AdventureSession.new(1337)
 var saver := FredSaveAdapter.new()
@@ -94,6 +90,10 @@ var camera_offset := Vector2.ZERO
 var camera_follow: RefCounted = CameraFollow.new()
 var leaderboard := FredLocalLeaderboard.new()
 var customization: RefCounted = FrogCustomization.new()
+var wardrobe_category := "hero"
+var wardrobe_page := 0
+var wardrobe_owned_only := false
+var wardrobe_item := ""
 var game_scoring: RefCounted = AppleGameScoring.new()
 var game_center: Node
 var game_center_status := "OFFLINE MARSH BOARD"
@@ -885,6 +885,7 @@ func _refresh_touch_holds() -> void:
 func _handle_click(position: Vector2) -> void:
     if screen == Screen.TITLE and TITLE_START_RECT.has_point(position): _open_story()
     elif screen == Screen.TITLE and TITLE_CUSTOMIZE_RECT.has_point(position):
+        _reset_wardrobe_selection()
         screen = Screen.CUSTOMIZE; _sync_music(); queue_redraw()
     elif screen == Screen.TITLE and TITLE_LEADERBOARD_RECT.has_point(position):
         screen = Screen.LEADERBOARD; _sync_music(); queue_redraw()
@@ -894,16 +895,7 @@ func _handle_click(position: Vector2) -> void:
     elif screen == Screen.INSTRUCTIONS and INSTRUCTIONS_PLAY_RECT.has_point(position): _start()
     elif screen == Screen.CUSTOMIZE and CUSTOM_HOME_RECT.has_point(position): _go_home()
     elif screen == Screen.CUSTOMIZE:
-        for category: String in CUSTOM_CARDS:
-            if Rect2(CUSTOM_CARDS[category]).has_point(position):
-                var result: Dictionary = customization.select_next(category)
-                if bool(result.get("ok", false)):
-                    _sync_fred_style()
-                    _set_feedback("[GEAR READY] Fred equipped %s." % str(result.label))
-                else:
-                    _set_feedback("[MORE COINS NEEDED] Earn %d coins to unlock %s." % [int(result.get("cost", 0)), str(result.get("label", "this upgrade"))])
-                queue_redraw()
-                return
+        _handle_wardrobe_click(position)
     elif screen == Screen.PLAYING and MarshRouteLayout.PAUSE_RECT.has_point(position):
         _set_gameplay_paused(not session.paused)
     elif screen == Screen.PLAYING and MarshRouteLayout.HOME_RECT.has_point(position):
@@ -1050,6 +1042,47 @@ func _go_home() -> void:
 func _sync_fred_style() -> void:
     if is_instance_valid(fred_rig) and fred_rig.has_method("apply_style"):
         fred_rig.apply_style(customization.current_style())
+
+func _reset_wardrobe_selection() -> void:
+    wardrobe_item = str(customization.selected[wardrobe_category])
+    wardrobe_page = 0
+    var entries := Wardrobe.entries(customization,wardrobe_category,wardrobe_owned_only)
+    for index in entries.size():
+        if str(entries[index].id) == wardrobe_item:
+            wardrobe_page = index / Wardrobe.PAGE_SIZE
+
+func _handle_wardrobe_click(position: Vector2) -> void:
+    for category: String in Wardrobe.TABS:
+        if Rect2(Wardrobe.TABS[category]).has_point(position):
+            wardrobe_category = category
+            _reset_wardrobe_selection()
+            queue_redraw()
+            return
+    if Wardrobe.FILTER.has_point(position):
+        wardrobe_owned_only = not wardrobe_owned_only
+        _reset_wardrobe_selection()
+    elif Wardrobe.PREVIOUS.has_point(position) or Wardrobe.NEXT.has_point(position):
+        var entries := Wardrobe.entries(customization,wardrobe_category,wardrobe_owned_only)
+        var direction := -1 if Wardrobe.PREVIOUS.has_point(position) else 1
+        wardrobe_page = posmod(wardrobe_page+direction,Wardrobe.pages(entries.size()))
+    elif Wardrobe.APPLY.has_point(position):
+        var item_id := wardrobe_item if not wardrobe_item.is_empty() else str(customization.selected[wardrobe_category])
+        var result: Dictionary = customization.purchase_and_equip(wardrobe_category,item_id)
+        if bool(result.get("ok",false)):
+            _sync_fred_style()
+            _set_feedback("[EQUIPPED] %s. Yours to wear anytime!" % str(result.label))
+        elif str(result.get("reason","")) == "need_coins":
+            _set_feedback("[NEED %d MORE COINS] Preview is free. Your outfit has not changed." % maxi(0,int(result.cost)-int(customization.coins)))
+        else:
+            _set_feedback("[NOT SAVED] No coins spent. Please try again.")
+    else:
+        var entries := Wardrobe.entries(customization,wardrobe_category,wardrobe_owned_only)
+        for slot in Wardrobe.PAGE_SIZE:
+            var index := wardrobe_page*Wardrobe.PAGE_SIZE+slot
+            if index < entries.size() and Wardrobe.card(slot).has_point(position):
+                wardrobe_item = str(entries[index].id)
+                break
+    queue_redraw()
 
 func _advance_level() -> void:
     if level_number >= FredLevelIntensity.MAX_LEVEL:
@@ -1321,48 +1354,55 @@ func _draw_instruction_card(rect: Rect2, title: String, lines: Array[String], ac
 func _draw_customizer() -> void:
     draw_texture_rect(title_art, Rect2(0,0,1280,720), false, Color(0.45,0.62,0.60,1.0))
     draw_rect(Rect2(0,0,1280,720), Color(0.005,0.025,0.05,0.84), true)
-    _text(Vector2(640,58), "BUILD YOUR FRED", 42, Color("ffe184"), HORIZONTAL_ALIGNMENT_CENTER, 900)
-    _text(Vector2(640,100), "35 HERO LOOKS  •  20 NEW  •  TAP A CARD TO TRY THE NEXT LOOK", 17, Color("d9f4e2"), HORIZONTAL_ALIGNMENT_CENTER, 980)
-    _text(Vector2(640,145), "COINS  %d" % customization.coins, 26, Color("fff0ae"), HORIZONTAL_ALIGNMENT_CENTER, 400)
-    var headings := {"body":"FROG COLOR", "size":"ATHLETIC BUILD", "tongue":"TONGUE COLOR", "attire":"GEAR + GLASSES"}
-    for category: String in CUSTOM_CARDS:
-        var card := Rect2(CUSTOM_CARDS[category])
-        draw_rect(Rect2(card.position+Vector2(0,7),card.size),Color(0,0,0,0.46),true)
-        draw_rect(card,Color(0.02,0.11,0.15,0.96),true)
-        draw_rect(card,Color("70d6c2"),false,3)
-        _text(Vector2(card.get_center().x,card.position.y+34),str(headings[category]),16,Color("b9f5c7"),HORIZONTAL_ALIGNMENT_CENTER,card.size.x-20)
-        _text(Vector2(card.get_center().x,card.position.y+58),"LOOK %d OF %d" % [customization.selected_position(category), customization.item_count(category)],11,Color("9ec8cf"),HORIZONTAL_ALIGNMENT_CENTER,card.size.x-20)
-        var swatch_center := card.position + Vector2(card.size.x-22 if category == "attire" else 22,52 if category == "attire" else 82)
-        var selected_style: Dictionary = customization.current_style()
-        if category == "body":
-            draw_circle(swatch_center,9,Color(selected_style.body_color))
-            draw_circle(swatch_center,9,Color("fff0ae"),false,2)
-        elif category == "size":
-            draw_circle(swatch_center,8.0*float(selected_style.size_scale),Color("70d6c2"))
-            draw_circle(swatch_center,4.0*float(selected_style.size_scale),Color("d9f4e2"))
-        elif category == "tongue":
-            draw_line(swatch_center-Vector2(8,0),swatch_center+Vector2(8,0),Color(selected_style.tongue_color),6,true)
-            draw_circle(swatch_center+Vector2(8,0),4,Color(selected_style.tongue_color))
-        else:
-            draw_circle(swatch_center-Vector2(6,0),5,Color("ffe184"),false,2)
-            draw_circle(swatch_center+Vector2(6,0),5,Color("ffe184"),false,2)
-            draw_line(swatch_center-Vector2(1,0),swatch_center+Vector2(1,0),Color("ffe184"),2,true)
-        var label_center_x := card.get_center().x if category == "attire" else card.get_center().x+10
-        var label_width := card.size.x-20 if category == "attire" else card.size.x-54
-        _text(Vector2(label_center_x,card.position.y+84),customization.selected_label(category),18,Color.WHITE,HORIZONTAL_ALIGNMENT_CENTER,label_width)
-        var price: int = int(customization.next_cost(category))
-        var next_label: String = customization.next_label(category)
-        _text(Vector2(card.get_center().x,card.position.y+119),"NEXT: %s" % next_label,12,Color("d9f4e2"),HORIZONTAL_ALIGNMENT_CENTER,card.size.x-18)
-        _text(Vector2(card.get_center().x,card.position.y+143),"TAP TO TRY" if price == 0 else "%d COINS TO UNLOCK" % price,12,Color("fff0ae"),HORIZONTAL_ALIGNMENT_CENTER,card.size.x-18)
-    draw_circle(CUSTOM_PREVIEW_ORIGIN,96,Color(0.2,0.75,0.55,0.10))
-    draw_circle(CUSTOM_PREVIEW_ORIGIN,72,Color(0.95,0.84,0.30,0.07))
-    _sync_fred_style()
+    _text(Vector2(52,58), "FRED'S HERO WARDROBE", 36, Color("ffe184"), HORIZONTAL_ALIGNMENT_LEFT, 880)
+    _text(Vector2(52,102), "Preview freely. Buy once. Wear again anytime.", 19, Color("d9f4e2"), HORIZONTAL_ALIGNMENT_LEFT, 680)
+    _text(Vector2(Wardrobe.COINS.get_center().x,53), "%d COINS" % customization.coins, 24, Color("fff0ae"), HORIZONTAL_ALIGNMENT_RIGHT, Wardrobe.COINS.size.x)
+    _button(Wardrobe.FILTER,"OWNED ONLY: " + ("ON" if wardrobe_owned_only else "OFF"))
+    for category: String in Wardrobe.TABS:
+        var tab := Rect2(Wardrobe.TABS[category])
+        draw_rect(tab,Color("206052") if category == wardrobe_category else Color("102b38"))
+        draw_rect(tab,Color("ffe184") if category == wardrobe_category else Color("568b8a"),false,2)
+        _text(Vector2(tab.get_center().x,tab.position.y+32),str(Wardrobe.HEADINGS[category]),15,Color.WHITE,HORIZONTAL_ALIGNMENT_CENTER,tab.size.x-12)
+    var item_id := wardrobe_item if not wardrobe_item.is_empty() else str(customization.selected[wardrobe_category])
+    var entries := Wardrobe.entries(customization,wardrobe_category,wardrobe_owned_only)
+    for slot in Wardrobe.PAGE_SIZE:
+        var index := wardrobe_page*Wardrobe.PAGE_SIZE+slot
+        if index >= entries.size(): break
+        var entry: Dictionary = entries[index]
+        var card := Wardrobe.card(slot)
+        var is_owned: bool = customization.owns(wardrobe_category,str(entry.id))
+        var equipped := str(customization.selected[wardrobe_category]) == str(entry.id)
+        var previewing := item_id == str(entry.id)
+        draw_rect(card,Color("194c45") if previewing else Color("102b38"))
+        draw_rect(card,Color("ffe184") if previewing else Color("467b79"),false,3 if previewing else 1)
+        var swatch_center := card.position+Vector2(26,30)
+        var swatch := Color(str(entry.value)) if wardrobe_category in ["body","tongue"] else Color("77c6a0")
+        draw_circle(swatch_center,10,swatch)
+        draw_circle(swatch_center,10,Color("fff0ae"),false,1.5)
+        _text(card.position+Vector2(47,36),"EQUIPPED" if equipped else ("OWNED" if is_owned else "%d COINS" % int(entry.cost)),14,Color("fff0ae"),HORIZONTAL_ALIGNMENT_LEFT,card.size.x-56)
+        _text(Vector2(card.get_center().x,card.position.y+78),str(entry.label),19,Color.WHITE,HORIZONTAL_ALIGNMENT_CENTER,card.size.x-20)
+        _text(Vector2(card.get_center().x,card.position.y+116),"PREVIEWING" if previewing else "TAP TO PREVIEW",13,Color("b9d7d4"),HORIZONTAL_ALIGNMENT_CENTER,card.size.x-18)
+    _button(Wardrobe.PREVIOUS,"<")
+    _button(Wardrobe.NEXT,">")
+    _text(Vector2(856,562),"PAGE %d / %d   •   %d CHOICES" % [wardrobe_page+1,Wardrobe.pages(entries.size()),entries.size()],16,Color("d9f4e2"),HORIZONTAL_ALIGNMENT_CENTER,490)
+    draw_circle(CUSTOM_PREVIEW_ORIGIN,150,Color(0.2,0.75,0.55,0.10))
+    draw_circle(CUSTOM_PREVIEW_ORIGIN,120,Color(0.95,0.84,0.30,0.07))
+    fred_rig.apply_style(customization.preview_style(wardrobe_category,item_id))
     fred_rig.apply_pose(animation.pose(),0.0)
     draw_set_transform(CUSTOM_PREVIEW_ORIGIN,0.0,Vector2.ONE*CUSTOM_PREVIEW_SCALE)
     fred_rig.render_to(self,Vector2.ZERO)
     draw_set_transform(Vector2.ZERO)
-    _text(Vector2(640,606),"Cosmetics never change collision or difficulty.",14,Color("d9f4e2"),HORIZONTAL_ALIGNMENT_CENTER,700)
-    _button(CUSTOM_HOME_RECT,"SAVE & RETURN HOME")
+    var choice: Dictionary = customization.entry_for(wardrobe_category,item_id)
+    _text(Vector2(258,566),str(choice.get("label","Fred")),24,Color("ffe184"),HORIZONTAL_ALIGNMENT_CENTER,410)
+    _text(Vector2(258,596),"Mix any hero, build, color and outfit.",16,Color("d9f4e2"),HORIZONTAL_ALIGNMENT_CENTER,416)
+    var owned_choice: bool = customization.owns(wardrobe_category,item_id)
+    var wearing := str(customization.selected[wardrobe_category]) == item_id
+    var action := "EQUIPPED" if wearing else ("EQUIP — FREE" if owned_choice else "BUY & EQUIP — %d COINS" % int(choice.get("cost",0)))
+    _button(Wardrobe.APPLY,action)
+    _text(Vector2(856,690),save_feedback if save_feedback_seconds > 0 else "Looks only: no changes to speed, collision or difficulty.",14,Color("d9f4e2"),HORIZONTAL_ALIGNMENT_CENTER,740)
+    _button(CUSTOM_HOME_RECT,"RETURN HOME")
+    # Restore the equipped look so a discarded preview cannot leak into gameplay.
+    _sync_fred_style()
 
 func _draw_title_legacy() -> void:
     var visual := FredVisualState.snapshot(visual_time, reduced_motion)

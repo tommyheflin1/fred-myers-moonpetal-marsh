@@ -23,7 +23,7 @@ func _review() -> void:
 	game.leaderboard = FredLocalLeaderboard.new(BOARD_PATH)
 	game.customization = Customization.new("")
 	game.customization.coins = Customization.MAX_COINS
-	for category: String in Customization.CATEGORIES:
+	for category: String in Customization.BUILD_2_EXPANSION_IDS:
 		var all_ids: Array[String] = []
 		for entry: Dictionary in Customization.CATALOG[category]:
 			all_ids.append(str(entry.id))

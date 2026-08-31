@@ -2,6 +2,7 @@ extends SceneTree
 
 const Main = preload("res://scripts/main.gd")
 const Customization = preload("res://scripts/frog_customization.gd")
+const Rig = preload("res://scripts/fred_rig.gd")
 const AppleScoring = preload("res://scripts/apple_game_scoring.gd")
 const Layout = preload("res://scripts/marsh_route_layout.gd")
 
@@ -47,7 +48,7 @@ func _run() -> void:
 	check(float(style.size_scale) >= 0.88 and float(style.size_scale) <= 1.14, "cosmetic frog sizes stay in a child-readable visual-only range")
 	for attire_entry: Dictionary in Customization.CATALOG.attire:
 		var label := str(attire_entry.label)
-		check("Goggles" in label or "Glasses" in label or "Visor" in label or "Shades" in label, "%s uses an obvious eyewear name" % label)
+		check(label == str(Rig.ATTIRE_LABELS[attire_entry.id]) and Rig.ATTIRE_EYEWEAR.has(attire_entry.id), "%s has matching outfit and fitted eyewear metadata" % label)
 	check(profile.save_profile(), "customization profile persists locally")
 	var restored := Customization.new(PROFILE_PATH)
 	check(restored.to_dictionary() == profile.to_dictionary(), "coins, ownership and equipped cosmetics round-trip exactly")
@@ -137,7 +138,7 @@ func _run() -> void:
 	for banned in ["WASD / arrows", "Space leaps", "Shift boosts", "Q dive", "E surface", "P pause", "[F] MUNCH"]:
 		check(banned not in main_source, "player-facing source omits desktop-specific instruction: %s" % banned)
 	check(main_source.contains("moonpetal-title-fred-v4-sport.png"), "runtime uses the new sporty game-hero title artwork")
-	check(main_source.contains("GEAR + GLASSES") and main_source.contains("NEXT: %s"), "customizer explains gear choices with simple visible labels")
+	check(main_source.contains("TAP TO PREVIEW") and main_source.contains("BUY & EQUIP") and main_source.contains("EQUIP — FREE"), "customizer separates preview, purchase and free equip labels")
 
 	game.menu_music.stop()
 	game.chase_music.stop()

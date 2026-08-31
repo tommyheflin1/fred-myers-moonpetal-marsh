@@ -109,8 +109,10 @@ const ART_REFERENCE_PROFILE := {
 const ATTIRE_IDS := [
 	"marsh_runner", "trail_scout", "moon_champion", "firefly_hero",
 	"pond_pilot", "rain_ranger", "bug_catcher", "star_jumper", "lily_lifeguard",
+	"petal_guardian", "moon_blossom", "reed_sentinel", "storm_striker",
 ]
 const ATTIRE_LABELS := {
+	"petal_guardian":"Petal Guardian", "moon_blossom":"Moon Blossom", "reed_sentinel":"Reed Sentinel", "storm_striker":"Storm Striker",
 	"marsh_runner": "Runner Goggles",
 	"trail_scout": "Explorer Glasses",
 	"moon_champion": "Moon Champion Visor",
@@ -122,6 +124,7 @@ const ATTIRE_LABELS := {
 	"lily_lifeguard": "Lily Lifeguard Goggles",
 }
 const ATTIRE_EYEWEAR := {
+	"petal_guardian":"round_glasses", "moon_blossom":"moon_visor", "reed_sentinel":"hero_goggles", "storm_striker":"star_visor",
 	"marsh_runner": "sport_goggles",
 	"trail_scout": "round_glasses",
 	"moon_champion": "moon_visor",
@@ -133,6 +136,7 @@ const ATTIRE_EYEWEAR := {
 	"lily_lifeguard": "guard_goggles",
 }
 const ATTIRE_MATERIALS := {
+	"petal_guardian":"layered petal silk", "moon_blossom":"iridescent moon satin", "reed_sentinel":"brushed jade armor", "storm_striker":"woven storm carbon",
 	"marsh_runner": "breathable marsh mesh",
 	"trail_scout": "waxed trail canvas",
 	"moon_champion": "moonweave athletic satin",
@@ -144,6 +148,10 @@ const ATTIRE_MATERIALS := {
 	"lily_lifeguard": "flexible rescue neoprene",
 }
 const ATTIRE_FINISHES := {
+	"petal_guardian":{"finish":"pearl-edged petal silk","drape":"soft petal overlap","roughness":0.44,"flex":0.88},
+	"moon_blossom":{"finish":"moonlit butterfly satin","drape":"flowing bow tails","roughness":0.36,"flex":0.86},
+	"reed_sentinel":{"finish":"brushed jade plates","drape":"articulated shield armor","roughness":0.64,"flex":0.60},
+	"storm_striker":{"finish":"cobalt woven carbon","drape":"segmented storm armor","roughness":0.48,"flex":0.74},
 	"marsh_runner": {"finish": "matte breathable knit", "drape": "athletic stretch", "roughness": 0.82, "flex": 0.90},
 	"trail_scout": {"finish": "waxed woven canvas", "drape": "structured utility", "roughness": 0.68, "flex": 0.58},
 	"moon_champion": {"finish": "soft moonlit satin", "drape": "fluid competition", "roughness": 0.42, "flex": 0.84},
@@ -155,6 +163,10 @@ const ATTIRE_FINISHES := {
 	"lily_lifeguard": {"finish": "matte rescue neoprene", "drape": "buoyant support", "roughness": 0.58, "flex": 0.76},
 }
 const ATTIRE_CUTS := {
+	"petal_guardian":{"cut":"petal-edged guardian tunic","sleeve_ratio":0.28,"hem_drop":0.54,"structure":0.26},
+	"moon_blossom":{"cut":"bow-tied acrobat armor","sleeve_ratio":0.32,"hem_drop":0.56,"structure":0.30},
+	"reed_sentinel":{"cut":"shield-plated sentinel suit","sleeve_ratio":0.50,"hem_drop":0.40,"structure":0.70},
+	"storm_striker":{"cut":"lightning-panel strike suit","sleeve_ratio":0.42,"hem_drop":0.36,"structure":0.58},
 	"marsh_runner": {"cut": "sleeveless athletic singlet", "sleeve_ratio": 0.22, "hem_drop": 0.25, "structure": 0.18},
 	"trail_scout": {"cut": "soft field vest", "sleeve_ratio": 0.48, "hem_drop": 0.52, "structure": 0.68},
 	"moon_champion": {"cut": "draped competition jersey", "sleeve_ratio": 0.30, "hem_drop": 0.68, "structure": 0.28},
@@ -227,6 +239,7 @@ var _eye_left: Node2D
 var _eye_right: Node2D
 var _rounded_polygons: Dictionary = {}
 var _style := {
+	"hero_style": "classic_fred",
 	"body_color": Color("4fbd68"),
 	"size_scale": 0.92,
 	"body_build": "quick",
@@ -276,6 +289,8 @@ func apply_style(style: Dictionary) -> bool:
 		return false
 	if attire not in ATTIRE_IDS:
 		return false
+	if str(style.get("hero_style","classic_fred")) not in HeroArt.HERO_STYLES:
+		return false
 	_style = style.duplicate(true)
 	return true
 
@@ -298,7 +313,7 @@ func apply_pose(pose: Dictionary, depth_amount: float = 0.0) -> bool:
 	var cosmetic_scale := float(_style.size_scale)
 	var build_proportions := Vector2(_style.get("body_proportions", Vector2.ONE))
 	_root_joint.scale = Vector2(body_scale.x * facing * build_proportions.x, body_scale.y * build_proportions.y) * cosmetic_scale
-	var hero := HeroArt.build(str(_style.get("body_build","quick")))
+	var hero := _hero_build()
 	_body_joint.scale = Vector2(hero.chest,hero.torso)
 	_body_joint.rotation = extension * 0.018
 	_head_joint.scale = Vector2(hero.head)
@@ -309,6 +324,9 @@ func apply_pose(pose: Dictionary, depth_amount: float = 0.0) -> bool:
 	_hind_right.position = Vector2(18.0 + extension * 4.0, 14.0 + extension * 2.0)
 	_eye_left.scale = Vector2(1.0, maxf(0.18, 1.0 - squint * 0.82))
 	_eye_right.scale = _eye_left.scale
+	var hero_eyes: Vector2 = HeroArt.HERO_STYLES[str(_style.get("hero_style","classic_fred"))].eye
+	_eye_left.scale *= hero_eyes
+	_eye_right.scale *= hero_eyes
 	(get_node("RootJoint/HeadJoint/EyeLeft/Pupil") as Polygon2D).position = Vector2(3.0, squint * 1.5)
 	(get_node("RootJoint/HeadJoint/EyeRight/Pupil") as Polygon2D).position = Vector2(3.0, squint * 1.5)
 
@@ -374,9 +392,12 @@ func render_to(canvas: Node2D, world_position: Vector2, presentation_time_second
 			_draw_sport_gear(canvas, world_position)
 	return true
 
+func _hero_build() -> Dictionary:
+	return HeroArt.build(str(_style.get("body_build","quick")),str(_style.get("hero_style","classic_fred")))
+
 func _draw_body_build_finish(canvas: Node2D, world_position: Vector2) -> void:
 	var build := str(_style.get("body_build", "quick"))
-	var hero := HeroArt.build(build)
+	var hero := _hero_build()
 	var skin := (get_node("RootJoint/BodyJoint/Fill") as Polygon2D).color
 	for side: float in [-1.0,1.0]:
 		var hind := _hind_left if side < 0 else _hind_right
@@ -647,7 +668,7 @@ func _draw_reference_anatomy_finish(canvas: Node2D, world_position: Vector2) -> 
 func _draw_front_limbs(canvas: Node2D, world_position: Vector2) -> void:
 	var fill := (get_node("RootJoint/BodyJoint/Fill") as Polygon2D).color
 	var outline := (get_node("RootJoint/FrontLeft") as Line2D).default_color
-	var hero := HeroArt.build(str(_style.get("body_build","quick")))
+	var hero := _hero_build()
 	for path: String in ["RootJoint/FrontLeft","RootJoint/FrontRight"]:
 		var limb := get_node(path) as Line2D
 		for contour: PackedVector2Array in [HeroArt.upper_arm(limb.points,hero.arm),HeroArt.forearm(limb.points,hero.arm)]:
@@ -726,9 +747,35 @@ func _draw_face_finish(canvas: Node2D, world_position: Vector2, presentation_tim
 		canvas.draw_polyline(_transformed_points(mouth_line,lip,world_position),outline,1.7*width,true)
 		for corner: Vector2 in [mouth_line.points[0],mouth_line.points[-1]]:
 			_draw_transformed_ellipse(canvas,mouth_line,corner,Vector2(0.85,0.6),Color(outline,0.7),world_position)
+	_draw_hero_expression(canvas,world_position,skin)
+
+func _draw_hero_expression(canvas: Node2D, world_position: Vector2, skin: Color) -> void:
+	var hero_style := str(_style.get("hero_style","classic_fred"))
+	if hero_style == "classic_fred": return
+	var gentle := hero_style == "girl_hero"
+	for side: float in [-1.0,1.0]:
+		# Rounded cheek volume and an arched brow versus a broad jaw and brow ridge.
+		var cheek := Vector2(side*19,5)
+		_draw_transformed_ellipse(canvas,_head_joint,cheek,Vector2(6.2,4.3) if gentle else Vector2(7,3),Color(skin.lightened(0.28),0.23),world_position)
+		if gentle:
+			_draw_transformed_ellipse(canvas,_head_joint,cheek+Vector2(0,2),Vector2(3.4,1.8),Color(0.93,0.50,0.47,0.22),world_position)
+		var brow := PackedVector2Array([Vector2(side*5,-28),Vector2(side*12,-30.5 if gentle else -28.5),Vector2(side*20,-28 if gentle else -30)])
+		_hero_line(canvas,_head_joint,HeroArt.organic_curve(brow),skin.darkened(0.37),1.3 if gentle else 2.8,world_position)
+		var jaw := PackedVector2Array([Vector2(side*23,6),Vector2(side*(17 if gentle else 21),13),Vector2(side*10,16)])
+		_hero_line(canvas,_head_joint,HeroArt.organic_curve(jaw),Color(skin.darkened(0.40),0.28),0.9 if gentle else 1.7,world_position)
+	if not gentle:
+		_draw_transformed_ellipse(canvas,_head_joint,Vector2(0,16),Vector2(11,3),Color(Color("adbd73"),0.24),world_position)
 
 func _attire_palette(attire: String) -> Dictionary:
 	match attire:
+		"petal_guardian":
+			return {"fabric":Color("9f416a"),"shadow":Color("462b49"),"panel":Color("d57696"),"trim":Color("ffdfb2"),"accent":Color("a8ead5"),"lens":Color(0.96,0.72,0.83,0.18),"eyewear":"round_glasses"}
+		"moon_blossom":
+			return {"fabric":Color("665399"),"shadow":Color("302a51"),"panel":Color("aaa0d8"),"trim":Color("e4faff"),"accent":Color("e79dcd"),"lens":Color(0.77,0.80,1,0.20),"eyewear":"moon_visor"}
+		"reed_sentinel":
+			return {"fabric":Color("304f41"),"shadow":Color("172c28"),"panel":Color("648b64"),"trim":Color("d8b472"),"accent":Color("ba7348"),"lens":Color(0.69,0.89,0.74,0.22),"eyewear":"hero_goggles"}
+		"storm_striker":
+			return {"fabric":Color("243e6c"),"shadow":Color("132139"),"panel":Color("4975ad"),"trim":Color("b5e8ff"),"accent":Color("efb94e"),"lens":Color(0.60,0.84,1,0.22),"eyewear":"star_visor"}
 		"trail_scout":
 			return {"fabric": Color("8b5a32"), "shadow": Color("4a301f"), "panel": Color("b77a43"), "trim": Color("f4d6a4"), "accent": Color("d95f4b"), "lens": Color(0.82, 0.95, 0.88, 0.22), "eyewear": "round_glasses"}
 		"moon_champion":
@@ -753,6 +800,14 @@ func _neckline_local_points(attire: String) -> PackedVector2Array:
 	# corners. Each cut has a distinct silhouette while sharing a generous
 	# five-point jaw exclusion zone.
 	match attire:
+		"petal_guardian":
+			return PackedVector2Array([Vector2(-8.2,0.4),Vector2(-5.2,3.1),Vector2(0,9.5),Vector2(5.2,3.1),Vector2(8.2,0.4)])
+		"moon_blossom":
+			return PackedVector2Array([Vector2(-8.6,0.2),Vector2(-5.4,2.9),Vector2(0,9.7),Vector2(5.4,2.9),Vector2(8.6,0.2)])
+		"reed_sentinel":
+			return PackedVector2Array([Vector2(-9.3,0.6),Vector2(-6.1,3.2),Vector2(0,10),Vector2(6.1,3.2),Vector2(9.3,0.6)])
+		"storm_striker":
+			return PackedVector2Array([Vector2(-8.7,0.5),Vector2(-5.7,3.3),Vector2(0,9.9),Vector2(5.7,3.3),Vector2(8.7,0.5)])
 		"trail_scout":
 			return PackedVector2Array([
 				Vector2(-9.0, -0.5), Vector2(-6.5, 1.5), Vector2(0.0, 9.0),
@@ -869,9 +924,47 @@ func _draw_sport_gear(canvas: Node2D, world_position: Vector2) -> void:
 	canvas.draw_polyline(_closed_points(_transformed_points(_body_joint,emblem,world_position)),Color(trim.lightened(0.3),0.65),0.6*float(_style.size_scale),true)
 	_draw_hero_limb_gear(canvas,world_position,equipment,palette)
 	_draw_eyewear(canvas,world_position,str(palette.eyewear),fabric,trim,palette.lens)
+	_draw_wardrobe_accessories(canvas,world_position,attire,palette)
+
+func _draw_wardrobe_accessories(canvas: Node2D, world_position: Vector2, attire: String, palette: Dictionary) -> void:
+	var trim: Color = palette.trim
+	var accent: Color = palette.accent
+	if str(_style.get("hero_style","classic_fred")) == "girl_hero" and attire not in ["petal_guardian","moon_blossom"]:
+		# A little moonpetal clip makes the gentle hero easy to recognize at phone scale.
+		# It is part of the free hero style; every purchased outfit still fits either hero.
+		for index in 3:
+			var petal := CharacterSurface.ellipse(Vector2(-25,-28)+Vector2.from_angle(-PI*0.85+index*0.85)*3.5,Vector2(3.8,1.9),-PI*0.85+index*0.85)
+			_hero_panel(canvas,_head_joint,petal,Color("edb9d1"),Color("916586"),world_position)
+		_draw_transformed_ellipse(canvas,_head_joint,Vector2(-25,-28),Vector2(1.8,1.8),Color("ffedb3"),world_position)
+	if attire == "petal_guardian":
+		var center := Vector2(-24,-27)
+		for index in 5:
+			var direction := Vector2.from_angle(TAU*index/5.0)
+			var petal := CharacterSurface.ellipse(center+direction*4.2,Vector2(4.2,2.4),direction.angle())
+			_hero_panel(canvas,_head_joint,petal,Color(palette.panel).lightened(0.20),Color(palette.shadow),world_position,0.5)
+		_draw_transformed_ellipse(canvas,_head_joint,center,Vector2(2.3,2.3),trim,world_position)
+		for side: float in [-1.0,1.0]:
+			var petal_hem := CharacterSurface.rounded_contour(PackedVector2Array([Vector2(side*5,25),Vector2(side*18,24),Vector2(side*24,32),Vector2(side*14,36)]))
+			_hero_panel(canvas,_body_joint,petal_hem,Color(palette.panel),trim,world_position)
+	elif attire == "moon_blossom":
+		for side: float in [-1.0,1.0]:
+			var bow := PackedVector2Array([Vector2(-24,-28),Vector2(-24+side*9,-34),Vector2(-24+side*8,-23)])
+			_hero_panel(canvas,_head_joint,bow,accent,trim,world_position)
+		_draw_transformed_ellipse(canvas,_head_joint,Vector2(-24,-28),Vector2(2.4,2.6),trim,world_position)
+	elif attire == "reed_sentinel":
+		for side: float in [-1.0,1.0]:
+			var plate := PackedVector2Array([Vector2(side*13,8),Vector2(side*23,5),Vector2(side*23,14),Vector2(side*16,18)])
+			_hero_panel(canvas,_body_joint,plate,Color(palette.panel).lightened(0.1),trim,world_position,0.7)
+		_hero_line(canvas,_head_joint,PackedVector2Array([Vector2(-19,-31),Vector2(0,-29),Vector2(19,-31)]),trim,2.0,world_position)
+	elif attire == "storm_striker":
+		for side: float in [-1.0,1.0]:
+			var stripe := PackedVector2Array([Vector2(side*15,0),Vector2(side*10,6),Vector2(side*16,6),Vector2(side*10,15)])
+			_hero_line(canvas,_body_joint,stripe,accent,2.3,world_position)
+		var crest := PackedVector2Array([Vector2(-2,-29),Vector2(3,-36),Vector2(1,-30),Vector2(5,-30),Vector2(-1,-25)])
+		_hero_panel(canvas,_head_joint,crest,accent,trim,world_position)
 
 func _draw_hero_limb_gear(canvas: Node2D, world_position: Vector2, equipment: Dictionary, palette: Dictionary) -> void:
-	var hero := HeroArt.build(str(_style.get("body_build","quick")))
+	var hero := _hero_build()
 	var fabric: Color = palette.fabric
 	var shadow: Color = palette.shadow
 	var trim: Color = palette.trim

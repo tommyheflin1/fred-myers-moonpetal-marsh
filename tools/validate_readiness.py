@@ -44,6 +44,8 @@ REQUIRED = [
     "godot/tests/run_character_surface.gd",
     "godot/scripts/marsh_route_layout.gd",
     "godot/scripts/frog_customization.gd",
+    "godot/scripts/wardrobe_layout.gd",
+    "godot/tests/run_wardrobe.gd",
     "godot/scripts/apple_game_scoring.gd",
     "godot/scripts/game_center_adapter.gd",
     "godot/scripts/predator_depth.gd",

@@ -5,7 +5,7 @@ const SCHEMA_VERSION := 1
 const DEFAULT_PATH := "user://fred_profile.json"
 const MAX_PROFILE_BYTES := 32768
 const MAX_COINS := 999999
-const CATEGORIES: Array[String] = ["body", "size", "tongue", "attire"]
+const CATEGORIES: Array[String] = ["hero", "body", "size", "tongue", "attire"]
 const BODY_PROPORTIONS := {
 	"quick": Vector2(0.90, 1.06),
 	"classic": Vector2(1.00, 1.00),
@@ -23,6 +23,11 @@ const BUILD_2_EXPANSION_IDS := {
 	"attire": ["pond_pilot", "rain_ranger", "bug_catcher", "star_jumper", "lily_lifeguard"],
 }
 const CATALOG := {
+	"hero": [
+		{"id":"classic_fred", "label":"Classic Fred", "cost":0, "value":"classic_fred"},
+		{"id":"girl_hero", "label":"Girl Hero", "cost":0, "value":"girl_hero"},
+		{"id":"boy_hero", "label":"Boy Hero", "cost":0, "value":"boy_hero"},
+	],
 	"body": [
 		{"id":"marsh_green", "label":"Marsh Green", "cost":0, "value":"4fbd68"},
 		{"id":"turquoise_dash", "label":"Turquoise Dash", "cost":30, "value":"35b7a5"},
@@ -33,6 +38,8 @@ const CATALOG := {
 		{"id":"berry_bolt", "label":"Berry Bolt", "cost":170, "value":"c84f6f"},
 		{"id":"night_hero", "label":"Night Hero", "cost":210, "value":"38518f"},
 		{"id":"pearl_hopper", "label":"Pearl Hopper", "cost":255, "value":"d6e7cf"},
+		{"id":"rose_dew", "label":"Rose Dew", "cost":275, "value":"ce899f"},
+		{"id":"forest_jade", "label":"Forest Jade", "cost":295, "value":"397963"},
 	],
 	"size": [
 		{"id":"quick", "label":"Quick", "cost":0, "value":1.05},
@@ -65,6 +72,10 @@ const CATALOG := {
 		{"id":"bug_catcher", "label":"Bug Catcher Shades", "cost":305, "value":"bug_catcher"},
 		{"id":"star_jumper", "label":"Star Jumper Visor", "cost":370, "value":"star_jumper"},
 		{"id":"lily_lifeguard", "label":"Lily Lifeguard Goggles", "cost":440, "value":"lily_lifeguard"},
+		{"id":"petal_guardian", "label":"Petal Guardian", "cost":460, "value":"petal_guardian"},
+		{"id":"moon_blossom", "label":"Moon Blossom", "cost":480, "value":"moon_blossom"},
+		{"id":"reed_sentinel", "label":"Reed Sentinel", "cost":500, "value":"reed_sentinel"},
+		{"id":"storm_striker", "label":"Storm Striker", "cost":520, "value":"storm_striker"},
 	],
 }
 
@@ -73,12 +84,14 @@ var temp_path := "user://fred_profile.tmp.json"
 var persistent := true
 var coins := 0
 var owned := {
+	"hero": ["classic_fred", "girl_hero", "boy_hero"],
 	"body": ["marsh_green"],
 	"size": ["quick"],
 	"tongue": ["berry"],
 	"attire": ["marsh_runner"],
 }
 var selected := {
+	"hero": "classic_fred",
 	"body": "marsh_green",
 	"size": "quick",
 	"tongue": "berry",
@@ -110,22 +123,59 @@ func select_next(category: String) -> Dictionary:
 			current_index = index
 			break
 	var next: Dictionary = entries[(current_index + 1) % entries.size()]
-	var item_id := str(next.id)
-	if item_id not in Array(owned[category]):
-		var cost := int(next.cost)
-		if coins < cost:
-			return {"ok":false, "reason":"need_coins", "cost":cost, "label":str(next.label)}
-		coins -= cost
+	return purchase_and_equip(category, str(next.id))
+
+func entry_for(category: String, item_id: String) -> Dictionary:
+	if category in CATEGORIES:
+		for entry: Dictionary in CATALOG[category]:
+			if str(entry.id) == item_id:
+				return entry.duplicate(true)
+	return {}
+
+func owns(category: String, item_id: String) -> bool:
+	return not entry_for(category, item_id).is_empty() and item_id in Array(owned.get(category, []))
+
+func equip(category: String, item_id: String) -> Dictionary:
+	if not owns(category, item_id):
+		return {"ok":false, "reason":"not_owned"}
+	return _commit_choice(category, entry_for(category, item_id), false)
+
+func purchase_and_equip(category: String, item_id: String) -> Dictionary:
+	var entry := entry_for(category, item_id)
+	if entry.is_empty():
+		return {"ok":false, "reason":"invalid_item"}
+	if owns(category, item_id):
+		return equip(category, item_id)
+	if coins < int(entry.cost):
+		return {"ok":false, "reason":"need_coins", "cost":int(entry.cost), "label":str(entry.label)}
+	return _commit_choice(category, entry, true)
+
+func _commit_choice(category: String, entry: Dictionary, purchase: bool) -> Dictionary:
+	var before := to_dictionary()
+	var item_id := str(entry.id)
+	if purchase:
+		coins -= int(entry.cost)
 		var unlocked: Array = Array(owned[category]).duplicate()
 		unlocked.append(item_id)
 		owned[category] = unlocked
 	selected[category] = item_id
-	save_profile()
-	return {"ok":true, "category":category, "item":item_id, "label":str(next.label), "coins":coins}
+	if not save_profile():
+		restore(before)
+		return {"ok":false, "reason":"save_failed"}
+	return {"ok":true, "category":category, "item":item_id, "label":str(entry.label), "coins":coins, "purchased":purchase}
+
+func preview_style(category: String, item_id: String) -> Dictionary:
+	# A temporary in-memory profile never buys, equips or writes player data.
+	var preview := get_script().new("") as RefCounted
+	preview.restore(to_dictionary())
+	if not entry_for(category, item_id).is_empty():
+		preview.selected[category] = item_id
+	return preview.current_style()
 
 func current_style() -> Dictionary:
 	var body_build := str(_selected_entry("size").id)
 	return {
+		"hero_style": str(_selected_entry("hero").value),
 		"body_color": Color(str(_selected_entry("body").value)),
 		"size_scale": float(_selected_entry("size").value),
 		"body_build": body_build,
@@ -190,9 +240,12 @@ func restore(data: Dictionary) -> bool:
 		for entry: Dictionary in CATALOG[category]:
 			valid_ids.append(str(entry.id))
 		var starter := str(CATALOG[category][0].id)
-		var restored_owned: Array[String] = [starter]
+		var restored_owned: Array[String] = []
+		for entry: Dictionary in CATALOG[category]:
+			if int(entry.cost) == 0:
+				restored_owned.append(str(entry.id))
 		if incoming_owned.get(category, []) is Array:
-			for value: Variant in incoming_owned[category]:
+			for value: Variant in incoming_owned.get(category, []):
 				var item_id := str(value)
 				if item_id in valid_ids and item_id not in restored_owned:
 					restored_owned.append(item_id)

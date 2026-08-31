@@ -177,7 +177,7 @@ func _run() -> void:
 		for side: float in [-1.0,1.0]:
 			_geometry(Hero.chest_panel(side,outfit.chest))
 			_geometry(Hero.shoulder_panel(Vector2(side*26,-8),side,outfit.shoulder,outfit.chest))
-	check(signatures.size() == 9 and emblems.size() == 9,"nine outfits have distinct hero equipment and insignias")
+	check(signatures.size() == rig.ATTIRE_IDS.size() and emblems.size() == rig.ATTIRE_IDS.size(),"every outfit has distinct hero equipment and insignia")
 	for hem: float in [24.0,25.0,26.0,27.0,28.0,29.0]: _geometry(Hero.suit(hem),false)
 	check(Hero.segment(Vector2.ZERO,Vector2.ZERO,1,1,1).is_empty(),"degenerate limb fails closed")
 	check(Hero.segment(Vector2(NAN,0),Vector2.ONE,1,1,1).is_empty(),"nonfinite limb fails closed")

@@ -2,6 +2,11 @@ class_name FredHeroFrogArt
 extends RefCounted
 
 const Surface = preload("res://scripts/character_surface.gd")
+const HERO_STYLES := {
+	"classic_fred": {"chest":1.0,"head":Vector2.ONE,"arm":1.0,"thigh":1.0,"eye":Vector2.ONE},
+	"girl_hero": {"chest":0.94,"head":Vector2(1.02,1.10),"arm":0.91,"thigh":0.96,"eye":Vector2(1.08,1.12)},
+	"boy_hero": {"chest":1.12,"head":Vector2(1.04,0.98),"arm":1.15,"thigh":1.10,"eye":Vector2(1.02,0.94)},
+}
 
 # Original marsh-superhero geometry. All measurements are cosmetic: the existing
 # pose controller, contact markers, catalog IDs and collision rules stay authoritative.
@@ -25,6 +30,10 @@ const OUTFITS := {
 	"bug_catcher": {"signature":"field-scout bandolier","shoulder":0.58,"bracer":0.95,"belt":"pouches","chest":"beetle"},
 	"star_jumper": {"signature":"star acrobat light armor","shoulder":0.90,"bracer":1.08,"belt":"sash","chest":"star"},
 	"lily_lifeguard": {"signature":"buoyant marsh rescue suit","shoulder":0.86,"bracer":1.04,"belt":"rescue","chest":"rescue"},
+	"petal_guardian": {"signature":"rose-petal layered guardian armor","shoulder":0.62,"bracer":0.82,"belt":"sash","chest":"petal"},
+	"moon_blossom": {"signature":"butterfly moon-silk bow armor","shoulder":0.74,"bracer":0.88,"belt":"sash","chest":"butterfly"},
+	"reed_sentinel": {"signature":"jade shield and plated trail armor","shoulder":1.24,"bracer":1.25,"belt":"utility","chest":"shield"},
+	"storm_striker": {"signature":"cobalt lightning-strike gauntlets","shoulder":1.10,"bracer":1.30,"belt":"wrap","chest":"bolt"},
 }
 
 # Fixed art marks, not random state: markings stay attached through every pose.
@@ -74,8 +83,12 @@ static func badge_colors(points: PackedVector2Array, base: Color) -> PackedColor
 		colors.append(color)
 	return colors
 
-static func build(id: String) -> Dictionary:
-	return Dictionary(BUILDS.get(id,BUILDS.quick)).duplicate(true)
+static func build(id: String, hero_style: String = "classic_fred") -> Dictionary:
+	var result := Dictionary(BUILDS.get(id,BUILDS.quick)).duplicate(true)
+	var style: Dictionary = HERO_STYLES.get(hero_style,HERO_STYLES.classic_fred)
+	for key: String in ["chest","head","arm","thigh"]:
+		result[key] *= style[key]
+	return result
 
 static func outfit(id: String) -> Dictionary:
 	return Dictionary(OUTFITS.get(id,OUTFITS.marsh_runner)).duplicate(true)
@@ -141,6 +154,10 @@ static func shoulder_panel(center: Vector2, side: float, strength: float, kind: 
 
 static func emblem(kind: String) -> PackedVector2Array:
 	match kind:
+		"petal": return PackedVector2Array([Vector2(0,0),Vector2(3,4),Vector2(7,3),Vector2(6,8),Vector2(3,12),Vector2(0,14),Vector2(-3,12),Vector2(-6,8),Vector2(-7,3),Vector2(-3,4)])
+		"butterfly": return PackedVector2Array([Vector2(0,5),Vector2(6,0),Vector2(8,3),Vector2(5,8),Vector2(7,12),Vector2(4,14),Vector2(0,10),Vector2(-4,14),Vector2(-7,12),Vector2(-5,8),Vector2(-8,3),Vector2(-6,0)])
+		"shield": return PackedVector2Array([Vector2(-7,1),Vector2(0,-1),Vector2(7,1),Vector2(6,9),Vector2(0,15),Vector2(-6,9)])
+		"bolt": return PackedVector2Array([Vector2(1,-1),Vector2(7,-1),Vector2(2,5),Vector2(7,5),Vector2(-4,15),Vector2(-1,8),Vector2(-6,8)])
 		"lotus": return PackedVector2Array([Vector2(-7,9),Vector2(-4,3),Vector2(-1,6),Vector2(0,0),Vector2(3,5),Vector2(7,3),Vector2(5,10),Vector2(0,13)])
 		"compass": return PackedVector2Array([Vector2(0,0),Vector2(3,5),Vector2(7,7),Vector2(2,9),Vector2(0,14),Vector2(-2,9),Vector2(-7,7),Vector2(-3,5)])
 		"moon": return PackedVector2Array([Vector2(4,0),Vector2(-2,1),Vector2(-6,6),Vector2(-4,12),Vector2(2,14),Vector2(6,10),Vector2(0,10),Vector2(-2,6),Vector2(0,2)])

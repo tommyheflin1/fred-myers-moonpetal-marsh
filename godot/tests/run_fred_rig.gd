@@ -148,7 +148,7 @@ func _run() -> void:
 			check(bool(attire_motion.presentation_only) and not bool(attire_motion.collision_mutation) and int(attire_motion.save_fields) == 0, "%s cloth deformation cannot mutate gameplay in state %02d" % [attire_id, state_value])
 	check(attire_materials.size() == rig.ATTIRE_IDS.size(), "all nine attire choices use distinct readable garment materials")
 	check(attire_cuts.size() == rig.ATTIRE_IDS.size(), "all nine attire choices use distinct anatomical garment cuts")
-	check(attire_eyewear.size() == rig.ATTIRE_IDS.size(), "all nine attire choices use distinct eyewear silhouettes")
+	check(attire_eyewear.size() >= 9, "expanded wardrobe retains all nine original eyewear families")
 	attire_style.attire = "floating_paper_hat"
 	check(not rig.apply_style(attire_style), "unknown attire cannot bypass the aligned gear catalog")
 	attire_style.attire = "marsh_runner"
