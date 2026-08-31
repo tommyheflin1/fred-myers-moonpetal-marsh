@@ -3,6 +3,14 @@ extends RefCounted
 
 const Surface = preload("res://scripts/character_surface.gd")
 
+static func detail_pose(pose: Dictionary) -> Dictionary:
+	var calm := 0.14 if bool(pose.get("reduced_motion", false)) else 1.0
+	return {
+		"gill_flare": lerpf(0.66, clampf(float(pose.get("gill_open", 0.66)), 0.0, 1.0), calm),
+		"eye_focus": clampf(float(pose.get("eye_focus", 0.0)), -1.5, 1.5),
+		"pelvic_sweep": clampf(float(pose.get("pelvic_sweep", 0.0)), -5.0, 5.0),
+	}
+
 # Species proportions remain within the established presentation footprint.
 # All positions are local (nose faces right); collision/depth are owned by Main.
 static func body_contour(species: String, radii: Vector2) -> PackedVector2Array:
@@ -22,6 +30,7 @@ static func _placed(points: PackedVector2Array, origin: Vector2, facing: float, 
 	return result
 
 static func draw_fish(canvas: Node2D, position: Vector2, species: String, profile: Dictionary, pose: Dictionary, surface: Dictionary) -> void:
+	var details := detail_pose(pose)
 	var body := Color(profile.body)
 	var back := Color(profile.back)
 	var belly := Color(profile.belly)
@@ -75,12 +84,13 @@ static func draw_fish(canvas: Node2D, position: Vector2, species: String, profil
 			canvas.draw_polyline(_placed(stripe,position,facing,pitch),Color(marking,0.60),2.5,true)
 	var gill := Vector2(radii.x*0.39, 0.5)
 	Surface.draw_volume(canvas,_placed(Surface.ellipse(gill,Vector2(radii.x*0.21,radii.y*0.64)),position,facing,pitch),body.lightened(0.06),0.6)
-	var gill_edge := PackedVector2Array([gill+Vector2(-4,-radii.y*0.55),gill+Vector2(-9,0),gill+Vector2(-3,radii.y*0.60)])
+	var gill_edge := PackedVector2Array([gill+Vector2(-4,-radii.y*0.55),gill+Vector2(-8-details.gill_flare*2.5,0),gill+Vector2(-3,radii.y*0.60)])
 	canvas.draw_polyline(_placed(Surface.smooth_line(gill_edge),position,facing,pitch),back.darkened(0.12),1.5,true)
 	# Fins attach behind the operculum and share the existing animation channels.
 	for fin_index in range(2):
 		var root_point := Vector2(radii.x*(0.25 if fin_index==0 else -0.40),radii.y*0.35)
-		var tip := root_point+Vector2(-18,16+float(pose.pectoral_sweep)*0.24)
+		var sweep := float(pose.pectoral_sweep) if fin_index == 0 else float(details.pelvic_sweep)
+		var tip := root_point+Vector2(-18-sweep*0.18,16+sweep*0.32)
 		var fin := PackedVector2Array([root_point,tip,root_point+Vector2(3,7)])
 		Surface.draw_volume(canvas,_placed(fin,position,facing,pitch),Color(belly.darkened(0.24),0.86))
 		for ray in range(3):
@@ -88,7 +98,7 @@ static func draw_fish(canvas: Node2D, position: Vector2, species: String, profil
 	var eye := _placed(PackedVector2Array([Vector2(radii.x*0.69,-radii.y*0.24)]),position,facing,pitch)[0]
 	canvas.draw_circle(eye,4.8,back.darkened(0.35))
 	canvas.draw_circle(eye-Vector2(0,0.3),3.5,Color("d5b75e"))
-	canvas.draw_circle(eye+Vector2(facing*0.7,0),2.3,Color("111e20"))
+	canvas.draw_circle(eye+Vector2(facing*(0.7+float(details.eye_focus)*0.42),0),2.3,Color("111e20"))
 	canvas.draw_circle(eye+Vector2(-0.8,-1.5),0.95,Color("fffbe8"))
 	var jaw_open := float(pose.jaw_open)*0.5
 	var jaw := PackedVector2Array([Vector2(radii.x*0.98,2),Vector2(radii.x*0.74,4+jaw_open),Vector2(radii.x*(0.42 if species=="BASS" else 0.62),radii.y*0.27)])

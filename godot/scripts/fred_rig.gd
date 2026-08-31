@@ -326,11 +326,12 @@ func apply_pose(pose: Dictionary, depth_amount: float = 0.0) -> bool:
 	(get_node("RootJoint/HeadJoint/EyeRight/Outline") as Polygon2D).color = outline
 	return true
 
-func render_to(canvas: Node2D, world_position: Vector2, presentation_time_seconds: float = 0.0, reduced_motion_override: bool = false) -> bool:
+func render_to(canvas: Node2D, world_position: Vector2, presentation_time_seconds: float = 0.0, reduced_motion_override: bool = false, draw_shadow: bool = true) -> bool:
 	if not contract_valid:
 		_draw_safe_fallback(canvas, world_position)
 		return false
-	_draw_ground_shadow(canvas, world_position)
+	if draw_shadow:
+		_draw_ground_shadow(canvas, world_position)
 	_draw_attire_back(canvas, world_position)
 	for path in POLYGON_ORDER:
 		var polygon := get_node(str(path)) as Polygon2D
@@ -1060,14 +1061,15 @@ func _draw_limb_attire(canvas: Node2D, world_position: Vector2, attire: String, 
 
 	# Garment-specific leg accents follow the authored hind joints; bare runner legs stay uncluttered.
 	for hind: Node2D in [_hind_left, _hind_right]:
+		var side := -1.0 if hind == _hind_left else 1.0
 		if attire in ["trail_scout", "firefly_hero", "rain_ranger", "bug_catcher", "lily_lifeguard"]:
 			var knee_color := accent if attire in ["firefly_hero", "lily_lifeguard"] else fabric.darkened(0.08)
-			_draw_transformed_ellipse(canvas, hind, Vector2(-15.0,6.0), Vector2(5.8,3.8), Color(shadow.darkened(0.18),0.74), world_position)
-			_draw_transformed_ellipse(canvas, hind, Vector2(-15.5,5.3), Vector2(4.5,2.7), Color(knee_color,0.76), world_position)
-			var knee_band := _transformed_points(hind, PackedVector2Array([Vector2(-20,7),Vector2(-15,8.5),Vector2(-10,7)]), world_position)
+			_draw_transformed_ellipse(canvas, hind, Vector2(side*15.0,6.0), Vector2(5.8,3.8), Color(shadow.darkened(0.18),0.74), world_position)
+			_draw_transformed_ellipse(canvas, hind, Vector2(side*15.5,5.3), Vector2(4.5,2.7), Color(knee_color,0.76), world_position)
+			var knee_band := _transformed_points(hind, PackedVector2Array([Vector2(side*20,7),Vector2(side*15,8.5),Vector2(side*10,7)]), world_position)
 			canvas.draw_polyline(knee_band, Color(trim,0.68), 1.0 * scale_width, true)
 		elif attire in ["moon_champion", "pond_pilot", "star_jumper"]:
-			var ribbon := _transformed_points(hind, PackedVector2Array([Vector2(-19,5),Vector2(-15,7),Vector2(-11,5)]), world_position)
+			var ribbon := _transformed_points(hind, PackedVector2Array([Vector2(side*19,5),Vector2(side*15,7),Vector2(side*11,5)]), world_position)
 			canvas.draw_polyline(ribbon, Color(trim,0.66), 1.05 * scale_width, true)
 
 func _draw_eyewear(canvas: Node2D, world_position: Vector2, eyewear: String, frame: Color, trim: Color, lens: Color) -> void:

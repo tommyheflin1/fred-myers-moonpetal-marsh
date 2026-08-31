@@ -9,6 +9,10 @@ webbed feet, richer attire materials, distinct fish anatomy, a continuous snake
 body, feathered heron wings, and unobscured depth text. It retains the Pause fix.
 See [graphics changes and actual render evidence](docs/NEXT_BUILD_GRAPHICS_UPLIFT.md).
 
+The follow-up adds grounded leap shadows, swimming/landing ripples, underwater
+bubbles, heron foot contact, fish detail motion and mirrored outfit leg trim.
+See [water-contact and motion review](docs/NEXT_BUILD_MOTION_POLISH.md).
+
 The next-build candidate on `codex/fred-next-build-pause-fix` fixes duplicate
 touch/mouse Pause toggles and clears held controls when pausing or resuming.
 See [reproduction, validation, and delivery handoff](docs/NEXT_BUILD_PAUSE_FIX.md).

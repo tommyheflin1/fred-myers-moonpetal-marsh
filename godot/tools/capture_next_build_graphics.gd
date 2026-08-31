@@ -3,11 +3,40 @@ extends SceneTree
 # Review-only rendering of the real rigs; never used by the shipped scenes.
 class CharacterSheet extends "res://scripts/main.gd":
 	var review_page := "builds"
+	var motion_time := 1.2
+
+	func _draw_motion_sheet() -> void:
+		_sync_fred_style()
+		var stages: Array[Dictionary] = [
+			{"label": "SWIM / TRAILING WAKE", "state": AnimationCoordinator.State.SURFACE_SWIM, "depth": 0.0, "height": 0.0},
+			{"label": "LEAP / GROUNDED SHADOW", "state": AnimationCoordinator.State.LEAP_APEX, "depth": 0.0, "height": 52.0},
+			{"label": "LAND / SOFT RIPPLES", "state": AnimationCoordinator.State.LEAP_LANDING, "depth": 0.0, "height": 0.0},
+			{"label": "DIVE / SURFACE CONTACT FADES", "state": AnimationCoordinator.State.DIVING, "depth": 0.35, "height": 0.0},
+			{"label": "DEEP SWIM / BUBBLE TRAIL", "state": AnimationCoordinator.State.UNDERWATER_SWIM, "depth": 1.0, "height": 0.0},
+			{"label": "SURFACE / CONTACT RETURNS", "state": AnimationCoordinator.State.SURFACING, "depth": 0.35, "height": 0.0},
+		]
+		for index in stages.size():
+			var stage: Dictionary = stages[index]
+			var anchor := Vector2(220 + (index % 3) * 420, 254 + (index / 3) * 280)
+			animation.state = int(stage.state)
+			animation.state_ticks = int(motion_time * 60)
+			animation._pose = animation._build_pose()
+			fred_rig.apply_pose(animation.pose(), float(stage.depth))
+			draw_set_transform(anchor, 0, Vector2.ONE * 1.45)
+			var contact := WaterContactArt.frog({"depth": stage.depth, "height": stage.height, "airborne": float(stage.height) > 0, "moving": true, "landing": 0.45 if index == 2 else -1.0}, motion_time)
+			WaterContactArt.draw_contact(self, Vector2.ZERO, contact)
+			fred_rig.render_to(self, Vector2(0, -float(stage.height)), motion_time, false, false)
+			draw_set_transform(Vector2.ZERO)
+			_text(anchor + Vector2(0, 140), str(stage.label), 15, Color("d9f4e2"), HORIZONTAL_ALIGNMENT_CENTER, 400)
 
 	func _draw() -> void:
 		draw_rect(Rect2(0, 0, 1280, 720), Color("081e29"))
 		_text(Vector2(52, 55), "MOONPETAL MARSH / CHARACTER REVIEW", 26, Color("ffe184"), HORIZONTAL_ALIGNMENT_LEFT, 1176)
-		_text(Vector2(52, 86), "Actual game rigs | same pose, lighting and scale | local next-build review", 17, Color("afd3d5"), HORIZONTAL_ALIGNMENT_LEFT, 1176)
+		var description := "Actual game rigs | traversal poses and water contact | local next-build review" if review_page == "water-motion" else "Actual game rigs | same pose, lighting and scale | local next-build review"
+		_text(Vector2(52, 86), description, 17, Color("afd3d5"), HORIZONTAL_ALIGNMENT_LEFT, 1176)
+		if review_page == "water-motion":
+			_draw_motion_sheet()
+			return
 		if review_page == "predators":
 			var species: Array[String] = ["BASS", "PIKE", "MUSKIE", "SNAKE", "HERON"]
 			for index in species.size():
@@ -78,7 +107,7 @@ func _capture() -> void:
 	await process_frame
 	sheet.set_process(false)
 	sheet.simulation_time = 1.2
-	for page: String in ["builds", "attire", "predators"]:
+	for page: String in ["builds", "attire", "predators", "water-motion"]:
 		sheet.review_page = page
 		sheet.customization = FredFrogCustomization.new("")
 		sheet.queue_redraw()
@@ -127,7 +156,7 @@ func _capture() -> void:
 	game.queue_free()
 	await process_frame
 	if not capture_failed:
-		print("NEXT_BUILD_GRAPHICS_CAPTURE_PASS count=6")
+		print("NEXT_BUILD_GRAPHICS_CAPTURE_PASS count=7")
 	quit(1 if capture_failed else 0)
 
 func _resize(size: Vector2i) -> void:

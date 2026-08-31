@@ -9,6 +9,7 @@ const AnimationCoordinator = preload("res://scripts/fred_animation_coordinator.g
 const FredRigScene = preload("res://scenes/fred_rig.tscn")
 const CharacterSurface = preload("res://scripts/character_surface.gd")
 const PredatorFishArt = preload("res://scripts/predator_fish_art.gd")
+const WaterContactArt = preload("res://scripts/water_contact_art.gd")
 const MarshRouteLayout = preload("res://scripts/marsh_route_layout.gd")
 const FrogCustomization = preload("res://scripts/frog_customization.gd")
 const AppleGameScoring = preload("res://scripts/apple_game_scoring.gd")
@@ -1470,9 +1471,8 @@ func _draw_level() -> void:
     fred_rig.apply_pose(animation_pose, float(depth.depth))
     var animation_origin := fred_draw_position + Vector2(animation_pose.body_offset)
     var tongue_origin: Vector2 = fred_draw_position + Vector2(fred_rig.tongue_anchor())
-    if leap.state != LeapTraversal.State.GROUNDED:
-        draw_circle(fred + Vector2(0,10), 20.0 + leap.visual_height * 0.10, Color(0.01,0.05,0.08,0.28))
-    fred_rig.render_to(self, fred_draw_position, simulation_time, reduced_motion)
+    _draw_fred_water_contact()
+    fred_rig.render_to(self, fred_draw_position, simulation_time, reduced_motion, false)
     if tongue.is_ready() and leap.state == LeapTraversal.State.GROUNDED and depth.state == DepthTraversal.State.SURFACE:
         _draw_tongue_aim(tongue_origin)
     if tongue.is_busy():
@@ -1517,6 +1517,21 @@ func _ellipse_points(center: Vector2, radii: Vector2, rotation: float, close: bo
         var angle := float(step % 32) * TAU / 32.0
         points.append(center + Vector2(cos(angle) * radii.x, sin(angle) * radii.y).rotated(rotation))
     return points
+
+func _draw_fred_water_contact() -> void:
+    var pose: Dictionary = animation.pose()
+    var contact := WaterContactArt.frog({
+        "height": leap.visual_height,
+        "airborne": leap.is_airborne(),
+        "depth": depth.depth,
+        "perched": _is_valid_landing(fred),
+        "landing": leap.elapsed / LeapTraversal.LANDING_SECONDS if leap.state == LeapTraversal.State.LANDING else -1.0,
+        "size": float(fred_rig.style_snapshot().size_scale),
+        "moving": str(pose.state_name) in ["SURFACE_SWIM", "UNDERWATER_SWIM", "BOOST_BURST", "BOOST_SUSTAIN"],
+        "boosting": boost.is_active(),
+        "direction": last_aim_direction,
+    }, simulation_time, reduced_motion)
+    WaterContactArt.draw_contact(self, fred, contact)
 
 func _draw_volume_ellipse(center: Vector2, radii: Vector2, rotation: float, base: Color, surface: Dictionary, strength: float = 1.0) -> void:
     var key := clampf(float(surface.get("key_light",0.25))*strength,0.0,0.55)
@@ -1765,8 +1780,8 @@ func _draw_predator(position: Vector2, species: String, predator_snapshot: Dicti
     var actor_index := maxi(0, PREDATOR_SPECIES.find(species))
     var rig_pose: Dictionary = WildlifeAnimationRig.pose(species, actor_index, simulation_time, reduced_motion)
     var rig_surface: Dictionary = WildlifeAnimationRig.surface_profile(species, actor_index, simulation_time, reduced_motion)
-    draw_colored_polygon(_ellipse_points(drawn_position + Vector2(8,13), Vector2(55,22), 0.0), Color(0.005,0.025,0.035,0.48))
-    draw_polyline(CharacterSurface.ellipse(drawn_position + Vector2(0,15),Vector2(53,12)),Color(0.60,0.90,0.94,0.16),1.2,true)
+    var contact := WaterContactArt.predator(species, predator_depth, rig_pose, simulation_time, reduced_motion)
+    WaterContactArt.draw_contact(self, position, contact)
     if species == "HERON":
         _draw_heron(drawn_position, _predator_identity_profile(species), rig_pose, rig_surface)
     elif species == "SNAKE":
@@ -1779,13 +1794,7 @@ func _draw_predator_depth_cues(position: Vector2, predator_snapshot: Dictionary)
     var predator_depth := clampf(float(predator_snapshot.get("depth", 0.0)), 0.0, 1.0)
     var state := int(predator_snapshot.get("state", PredatorDepth.State.ABOVE_WATER))
     if state == PredatorDepth.State.ABOVE_WATER:
-        draw_line(position + Vector2(-32,34), position + Vector2(32,34), Color(0.76,0.94,1.0,0.38), 2)
         return
-    var ripple_alpha := 0.68 if state in [PredatorDepth.State.DIVING, PredatorDepth.State.SURFACING] else 0.34
-    # Flattened water-contact ripples preserve the depth cue without a circular
-    # cage across the animal's face, fins and markings.
-    var ripple := CharacterSurface.ellipse(position + Vector2(0,22), Vector2(37 + predator_depth * 6, 8 + predator_depth * 3))
-    draw_polyline(ripple, Color(0.56,0.92,1.0,ripple_alpha), 1.6, true)
     if predator_depth > 0.05:
         CharacterSurface.draw_volume(self,CharacterSurface.ellipse(position,Vector2(48,24)),Color(0.01,0.18,0.31,0.12 + predator_depth * 0.28),0.0,true)
         for bubble_index in range(3):
@@ -2057,10 +2066,12 @@ func _draw_heron(position: Vector2, profile: Dictionary, rig_pose: Dictionary, r
     draw_circle(head+Vector2(5,-4),3.6,Color("fff3c2"))
     draw_circle(head+Vector2(6+float(rig_pose.eye_focus),-4),2.1,Color("172026"))
     draw_circle(head+Vector2(5.4,-4.8),0.7,Color(1.0,1.0,0.94,0.94))
-    for leg_x in [-9.0,9.0]:
+    var foot_contacts := WaterContactArt.heron_feet(rig_pose)
+    for foot_index in 2:
+        var leg_x := -9.0 if foot_index == 0 else 9.0
         var leg_motion := float(rig_pose.leg_lift) if leg_x < 0.0 else -float(rig_pose.leg_lift) * 0.42
         var knee := position+Vector2(leg_x,42-leg_motion)
-        var ankle := position+Vector2(leg_x+3.0,61-leg_motion*0.58)
+        var ankle := position + foot_contacts[foot_index]
         draw_line(position+Vector2(leg_x,19),knee,Color("d7b253"),3.2)
         draw_line(knee,ankle,Color("d7b253"),2.6)
         draw_circle(knee,2.8,Color("a97d32"))
