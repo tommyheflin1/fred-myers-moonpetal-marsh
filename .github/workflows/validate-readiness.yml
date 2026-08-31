@@ -79,6 +79,8 @@ jobs:
         run: ./Godot_v4.7.1-stable_linux.x86_64 --headless --path godot --script res://tests/run_touch_first_controls.gd
       - name: Run App Build 2 phone fixes tests
         run: ./Godot_v4.7.1-stable_linux.x86_64 --headless --path godot --script res://tests/run_app_build_2_phone_fixes.gd
+      - name: Run native touch Pause and Resume regressions
+        run: ./Godot_v4.7.1-stable_linux.x86_64 --headless --path godot --script res://tests/run_pause_input_regression.gd
       - name: Run Fred hero story and instructions tests
         run: ./Godot_v4.7.1-stable_linux.x86_64 --headless --path godot --script res://tests/run_story_instructions.gd
       - name: Run Fred Game Center authentication and score-delivery tests

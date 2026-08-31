@@ -2,6 +2,14 @@
 
 Fred Myers is a story-driven frog adventure currently playable as a five-level browser prototype. This repository is the independent Fred product repository within **The Flins App Vault**. Fred consumes shared platform capabilities from `mobile-game-core`; Fred-specific movement, predators, environments, story, levels, tuning, and assets stay here.
 
+## Next build: Pause fix (2026-08-30)
+
+The next-build candidate on `codex/fred-next-build-pause-fix` fixes duplicate
+touch/mouse Pause toggles and clears held controls when pausing or resuming.
+See [reproduction, validation, and delivery handoff](docs/NEXT_BUILD_PAUSE_FIX.md).
+This is a local source update, not a new Apple binary. The submitted Build 4
+checkout and existing desktop owner-test shortcut remain unchanged.
+
 ## Current milestone
 
 Milestone M1 is accepted on `main`; the current local M2 owner candidate adds

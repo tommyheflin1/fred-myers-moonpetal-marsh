@@ -759,6 +759,12 @@ func _try_golden_egg_predator_event() -> bool:
     return true
 
 func _unhandled_input(event: InputEvent) -> void:
+    # Native touch and the desktop pointer already share one Fred input path.
+    # Godot compatibility events would otherwise execute the same tap twice
+    # (Pause immediately unpauses). Keep this guard even if an export overrides
+    # the project's disabled mouse/touch emulation settings.
+    if event.device == InputEvent.DEVICE_ID_EMULATION and (event is InputEventMouse or event is InputEventScreenTouch or event is InputEventScreenDrag):
+        return
     if event is InputEventScreenTouch:
         _handle_touch(event.index, event.position, event.pressed)
         return
@@ -778,8 +784,7 @@ func _unhandled_input(event: InputEvent) -> void:
     if event is InputEventKey:
         return
     if device_intent_adapter_enabled and event.is_action_pressed("pause") and screen == Screen.PLAYING:
-        session.paused = not session.paused
-        _set_feedback("[PAUSED] Your last checkpoint is safe." if session.paused else "[PLAYING] Adventure resumed.")
+        _set_gameplay_paused(not session.paused)
     if device_intent_adapter_enabled and event.is_action_pressed("dive") and screen == Screen.PLAYING:
         _request_dive()
     if device_intent_adapter_enabled and event.is_action_pressed("surface") and screen == Screen.PLAYING:
@@ -793,6 +798,16 @@ func _unhandled_input(event: InputEvent) -> void:
         if screen == Screen.TITLE: _open_story()
         elif screen == Screen.STORY: _open_instructions()
         elif screen == Screen.INSTRUCTIONS: _start()
+
+func _set_gameplay_paused(paused: bool) -> void:
+    session.paused = paused
+    # Resuming must never revive a direction or Boost held before the overlay.
+    touch_contacts.clear()
+    touch_positions.clear()
+    pointer_touch_active = false
+    _refresh_touch_holds()
+    _fixed_accumulator = 0.0
+    _set_feedback("[PAUSED] Your last checkpoint is safe." if paused else "[PLAYING] Adventure resumed.")
 
 func _handle_touch(index: int, position: Vector2, pressed: bool) -> void:
     touch_controls_visible = true
@@ -824,8 +839,7 @@ func _handle_touch(index: int, position: Vector2, pressed: bool) -> void:
             else:
                 _request_surface()
         "pause":
-            session.paused = not session.paused
-            _set_feedback("[PAUSED] Your last checkpoint is safe." if session.paused else "[PLAYING] Adventure resumed.")
+            _set_gameplay_paused(not session.paused)
         "home":
             _go_home()
 
@@ -879,12 +893,11 @@ func _handle_click(position: Vector2) -> void:
                 queue_redraw()
                 return
     elif screen == Screen.PLAYING and MarshRouteLayout.PAUSE_RECT.has_point(position):
-        session.paused = not session.paused
-        _set_feedback("[PAUSED] Your last checkpoint is safe." if session.paused else "[PLAYING] Adventure resumed.")
+        _set_gameplay_paused(not session.paused)
     elif screen == Screen.PLAYING and MarshRouteLayout.HOME_RECT.has_point(position):
         _go_home()
     elif screen == Screen.PLAYING and session.paused and MarshRouteLayout.PAUSED_RESUME_RECT.has_point(position):
-        session.paused = false; _set_feedback("[PLAYING] Adventure resumed.")
+        _set_gameplay_paused(false)
     elif screen == Screen.PLAYING:
         _request_leap(position - fred)
     elif screen == Screen.FAILED and Rect2(365,500,250,64).has_point(position): _retry()

@@ -54,6 +54,7 @@ REQUIRED = [
     "godot/tests/run_game_center_adapter.gd",
     "godot/tests/run_touch_first_controls.gd",
     "godot/tests/run_app_build_2_phone_fixes.gd",
+    "godot/tests/run_pause_input_regression.gd",
     "godot/tests/run_story_instructions.gd",
     "godot/tests/run_predator_depth.gd",
     "godot/tests/run_water_current_visual.gd",
