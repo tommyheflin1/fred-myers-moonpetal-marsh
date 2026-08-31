@@ -5,6 +5,26 @@ class CharacterSheet extends "res://scripts/main.gd":
 	var review_page := "builds"
 	var motion_time := 1.2
 
+	func _draw_collectible_sheet() -> void:
+		var previous_time := simulation_time
+		var previous_calm := reduced_motion
+		for column in 3:
+			simulation_time = [0.2, 0.3, 1.2][column]
+			reduced_motion = column == 2
+			var visual := FredVisualState.snapshot(simulation_time, reduced_motion)
+			var center := Vector2(220 + column * 420, 238)
+			draw_set_transform(center, 0, Vector2.ONE * 3.0)
+			_draw_bug(Vector2.ZERO, column, visual.wildlife_flutter)
+			draw_set_transform(Vector2.ZERO)
+			_text(center + Vector2(0, 151), ["WING / FLIGHT SAMPLE A", "WING / FLIGHT SAMPLE B", "REDUCED-MOTION WINGS"][column], 15, Color("d9f4e2"), HORIZONTAL_ALIGNMENT_CENTER, 395)
+			center.y = 530
+			draw_set_transform(center, 0, Vector2.ONE * 2.5)
+			_draw_fairy(Vector2.ZERO)
+			draw_set_transform(Vector2.ZERO)
+			_text(center + Vector2(0, 165), ["MOONLIT FAIRY / SAMPLE A", "PETAL TUNIC / SAMPLE B", "REDUCED MOTION / STEADY GLOW"][column], 15, Color("d9f4e2"), HORIZONTAL_ALIGNMENT_CENTER, 395)
+		simulation_time = previous_time
+		reduced_motion = previous_calm
+
 	func _draw_botanical_sheet() -> void:
 		for index in 3:
 			var center := Vector2(220 + index * 420, 242)
@@ -52,11 +72,17 @@ class CharacterSheet extends "res://scripts/main.gd":
 
 	func _draw() -> void:
 		draw_rect(Rect2(0, 0, 1280, 720), Color("081e29"))
-		_text(Vector2(52, 55), "MOONPETAL MARSH / " + ("BOTANICAL REVIEW" if review_page == "botanical" else "CHARACTER REVIEW"), 26, Color("ffe184"), HORIZONTAL_ALIGNMENT_LEFT, 1176)
+		var title := "BOTANICAL REVIEW" if review_page == "botanical" else ("COLLECTIBLE REVIEW" if review_page == "collectibles" else "CHARACTER REVIEW")
+		_text(Vector2(52, 55), "MOONPETAL MARSH / " + title, 26, Color("ffe184"), HORIZONTAL_ALIGNMENT_LEFT, 1176)
 		var description := "Actual game rigs | traversal poses and water contact | local next-build review" if review_page == "water-motion" else "Actual game rigs | same pose, lighting and scale | local next-build review"
 		if review_page == "botanical":
 			description = "Actual game drawing | original placement and gameplay bounds | local next-build review"
+		elif review_page == "collectibles":
+			description = "Actual game drawing | existing flight poses and reward behavior | local next-build review"
 		_text(Vector2(52, 86), description, 17, Color("afd3d5"), HORIZONTAL_ALIGNMENT_LEFT, 1176)
+		if review_page == "collectibles":
+			_draw_collectible_sheet()
+			return
 		if review_page == "botanical":
 			_draw_botanical_sheet()
 			return
@@ -93,6 +119,18 @@ class MeasuredGame extends "res://scripts/main.gd":
 	var draw_times: Array[int] = []
 	var predator_draw_us := 0
 	var measured_predator_draws := 0
+	var collectible_draw_us := 0
+	var measured_collectible_draws := 0
+	func _draw_bug(at: Vector2, index: int, flutter: float) -> void:
+		var started := Time.get_ticks_usec()
+		super._draw_bug(at, index, flutter)
+		collectible_draw_us += Time.get_ticks_usec() - started
+		measured_collectible_draws += 1
+	func _draw_fairy(at: Vector2) -> void:
+		var started := Time.get_ticks_usec()
+		super._draw_fairy(at)
+		collectible_draw_us += Time.get_ticks_usec() - started
+		measured_collectible_draws += 1
 	func _draw_predator(at: Vector2, species: String, snapshot: Dictionary = {}) -> void:
 		var started := Time.get_ticks_usec()
 		super._draw_predator(at, species, snapshot)
@@ -133,7 +171,7 @@ func _capture() -> void:
 	await process_frame
 	sheet.set_process(false)
 	sheet.simulation_time = 1.2
-	for page: String in ["builds", "attire", "predators", "water-motion", "botanical"]:
+	for page: String in ["builds", "attire", "predators", "water-motion", "botanical", "collectibles"]:
 		sheet.review_page = page
 		sheet.customization = FredFrogCustomization.new("")
 		sheet.queue_redraw()
@@ -171,6 +209,8 @@ func _capture() -> void:
 	game.draw_times.clear()
 	game.predator_draw_us = 0
 	game.measured_predator_draws = 0
+	game.collectible_draw_us = 0
+	game.measured_collectible_draws = 0
 	var save_before := JSON.stringify(game.session.to_save())
 	var gameplay_before := [game.fred,game.predator,game.secondary_predators.duplicate(),game.level_number,game.collected.duplicate(),game.simulation_time]
 	var memory_before := int(Performance.get_monitor(Performance.MEMORY_STATIC))
@@ -182,6 +222,7 @@ func _capture() -> void:
 	game.draw_times.sort()
 	print("MEASURE gameplay_draws=%d cpu_p95_us=%d memory_growth_bytes=%d node_growth=%d" % [game.draw_times.size(), game.draw_times[int(game.draw_times.size()*0.95)], int(Performance.get_monitor(Performance.MEMORY_STATIC))-memory_before, int(Performance.get_monitor(Performance.OBJECT_NODE_COUNT))-nodes_before])
 	print("MEASURE predator_draws=%d cpu_average_us=%d" % [game.measured_predator_draws, game.predator_draw_us / maxi(1,game.measured_predator_draws)])
+	print("MEASURE collectible_draws=%d cpu_average_us=%d" % [game.measured_collectible_draws, game.collectible_draw_us / maxi(1,game.measured_collectible_draws)])
 	if JSON.stringify(game.session.to_save()) != save_before or gameplay_before != [game.fred,game.predator,game.secondary_predators,game.level_number,game.collected,game.simulation_time]:
 		push_error("Drawing mutated the game session")
 		quit(1)
@@ -189,7 +230,7 @@ func _capture() -> void:
 	game.queue_free()
 	await process_frame
 	if not capture_failed:
-		print("NEXT_BUILD_GRAPHICS_CAPTURE_PASS count=9")
+		print("NEXT_BUILD_GRAPHICS_CAPTURE_PASS count=10")
 	quit(1 if capture_failed else 0)
 
 func _resize(size: Vector2i) -> void:

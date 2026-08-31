@@ -73,6 +73,8 @@ jobs:
         run: ./Godot_v4.7.1-stable_linux.x86_64 --headless --path godot --script res://tests/run_water_contact_art.gd
       - name: Run next-build botanical geometry and label-clearance regressions
         run: ./Godot_v4.7.1-stable_linux.x86_64 --headless --path godot --script res://tests/run_botanical_art.gd
+      - name: Run next-build collectible wildlife art regressions
+        run: ./Godot_v4.7.1-stable_linux.x86_64 --headless --path godot --script res://tests/run_collectible_wildlife_art.gd
       - name: Run M2 marsh visual, tongue assist, life stacking and touch tests
         run: ./Godot_v4.7.1-stable_linux.x86_64 --headless --path godot --script res://tests/run_marsh_visual_uplift.gd
       - name: Run Android lifecycle and touch readiness tests

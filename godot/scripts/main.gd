@@ -9,6 +9,7 @@ const AnimationCoordinator = preload("res://scripts/fred_animation_coordinator.g
 const FredRigScene = preload("res://scenes/fred_rig.tscn")
 const CharacterSurface = preload("res://scripts/character_surface.gd")
 const BotanicalArt = preload("res://scripts/botanical_art.gd")
+const CollectibleWildlifeArt = preload("res://scripts/collectible_wildlife_art.gd")
 const PredatorFishArt = preload("res://scripts/predator_fish_art.gd")
 const WaterContactArt = preload("res://scripts/water_contact_art.gd")
 const MarshRouteLayout = preload("res://scripts/marsh_route_layout.gd")
@@ -2058,89 +2059,17 @@ func _draw_bug(position: Vector2, index: int, flutter: float) -> void:
     var rig_pose: Dictionary = WildlifeAnimationRig.pose("BUG", index, simulation_time, reduced_motion)
     var rig_surface: Dictionary = WildlifeAnimationRig.surface_profile("BUG", index, simulation_time, reduced_motion)
     position += Vector2(0.0,float(rig_pose.hover_lift))
-    var wing := 8.0 + float(rig_pose.wing_primary) + absf(flutter) * 0.12
-    var rear_wing := 7.0 + float(rig_pose.wing_secondary)
-    draw_colored_polygon(_ellipse_points(position + Vector2(7,20), Vector2(20,7), 0.0), Color(0.005,0.02,0.025,0.42))
-    draw_circle(position, 27, Color(0.98,0.82,0.28,0.055))
-    var wing_pairs: Array[PackedVector2Array] = [
-        PackedVector2Array([position+Vector2(-3,-5),position+Vector2(-23,-wing-8),position+Vector2(-31,-wing+2),position+Vector2(-8,3)]),
-        PackedVector2Array([position+Vector2(3,-5),position+Vector2(23,-wing-8),position+Vector2(31,-wing+2),position+Vector2(8,3)]),
-        PackedVector2Array([position+Vector2(-5,1),position+Vector2(-24,rear_wing+2),position+Vector2(-17,rear_wing+13),position+Vector2(-5,7)]),
-        PackedVector2Array([position+Vector2(5,1),position+Vector2(24,rear_wing+2),position+Vector2(17,rear_wing+13),position+Vector2(5,7)]),
-    ]
-    for wing_shape in wing_pairs:
-        draw_colored_polygon(wing_shape,Color(0.79,0.95,1.0,0.58))
-        draw_polyline(PackedVector2Array([wing_shape[0],wing_shape[1],wing_shape[2],wing_shape[3],wing_shape[0]]),Color(0.95,1.0,1.0,0.82),1.4,true)
-        draw_line(wing_shape[0],wing_shape[2],Color(0.48,0.73,0.79,0.54),0.9,true)
-        draw_line(wing_shape[1],wing_shape[3],Color(0.48,0.73,0.79,0.42),0.8,true)
-    for wing_base_x in [-5.0,5.0]:
-        draw_circle(position+Vector2(wing_base_x,-2),3.0,Color("5e4424"))
-        draw_circle(position+Vector2(wing_base_x-0.7,-2.8),1.5,Color("d5a64a"))
-    _draw_volume_ellipse(position+Vector2(0,8+float(rig_pose.abdomen_flex)),Vector2(8,13),float(rig_pose.body_pitch),Color("eab23d"),rig_surface,0.72)
-    _draw_volume_ellipse(position+Vector2(0,-1),Vector2(9,8),0.0,Color("7d5523"),rig_surface,0.72)
-    _draw_volume_ellipse(position+Vector2(0,-11),Vector2(7,7),0.0,Color("59401d"),rig_surface,0.68)
-    draw_circle(position+Vector2(-3,-12),2.6,Color("8fc6a2"))
-    draw_circle(position+Vector2(3,-12),2.6,Color("8fc6a2"))
-    for eye_x in [-3.0,3.0]:
-        draw_circle(position+Vector2(eye_x-0.5+float(rig_pose.eye_focus),-13.0),0.7,Color(1.0,1.0,0.86,0.88))
-    draw_line(position+Vector2(-3,-16),position+Vector2(-10,-23),Color("59401d"),1.7,true)
-    draw_line(position+Vector2(3,-16),position+Vector2(10,-23),Color("59401d"),1.7,true)
-    draw_circle(position+Vector2(-10,-23),1.4,Color("d4a94b"))
-    draw_circle(position+Vector2(10,-23),1.4,Color("d4a94b"))
-    for side in [-1.0,1.0]:
-        for leg_index in range(3):
-            var leg_root := position+Vector2(5.0*side,-2.0+float(leg_index)*6.0)
-            var knee := leg_root+Vector2((8.0+float(leg_index))*side,2.0+float(leg_index)*2.0+float(rig_pose.leg_lift)*side)
-            var foot := knee+Vector2(5.0*side,4.0)
-            draw_polyline(PackedVector2Array([leg_root,knee,foot]),Color("493218"),1.4,true)
-            draw_circle(knee,1.6,Color("a87931"))
-    for stripe_y in [-1.0, 5.0, 10.0]:
-        draw_line(position + Vector2(-7,stripe_y), position + Vector2(7,stripe_y), Color("59401d"), 2)
-    draw_arc(position+Vector2(0,7),6.2,3.3,6.0,9,Color(1.0,0.91,0.45,0.42),1.0,true)
-    _text(position+Vector2(0,30), "BUG %d" % (index + 1), 11, Color("fff7cb"), HORIZONTAL_ALIGNMENT_CENTER, 70)
+    CollectibleWildlifeArt.draw_bug(self, position, rig_pose, rig_surface, flutter)
+    _text(position+Vector2(1,CollectibleWildlifeArt.BUG_LABEL_Y+1), "BUG %d" % (index + 1), 11, Color(0.01,0.04,0.05,0.85), HORIZONTAL_ALIGNMENT_CENTER, 70)
+    _text(position+Vector2(0,CollectibleWildlifeArt.BUG_LABEL_Y), "BUG %d" % (index + 1), 11, Color("fff7cb"), HORIZONTAL_ALIGNMENT_CENTER, 70)
 
 func _draw_fairy(position: Vector2) -> void:
     var rig_pose: Dictionary = WildlifeAnimationRig.pose("FAIRY", 0, simulation_time, reduced_motion)
     var rig_surface: Dictionary = WildlifeAnimationRig.surface_profile("FAIRY", 0, simulation_time, reduced_motion)
     position += Vector2(0.0,float(rig_pose.hover_lift))
-    var flutter := float(rig_pose.wing_primary)
-    var rear_flutter := float(rig_pose.wing_secondary)
-    draw_colored_polygon(_ellipse_points(position + Vector2(5,26), Vector2(25,8), 0.0), Color(0.01,0.02,0.05,0.36))
-    draw_circle(position, 44, Color(0.92,0.84,1.0,0.07*float(rig_pose.glow)))
-    draw_circle(position, 31, Color(0.92,0.84,1.0,0.12*float(rig_pose.glow)))
-    var fairy_wings: Array[Dictionary] = [
-        {"center":Vector2(-17,-8-flutter),"radii":Vector2(19,10),"angle":-0.55},
-        {"center":Vector2(17,-8+flutter),"radii":Vector2(19,10),"angle":0.55},
-        {"center":Vector2(-13,7+rear_flutter),"radii":Vector2(14,8),"angle":0.52},
-        {"center":Vector2(13,7-rear_flutter),"radii":Vector2(14,8),"angle":-0.52},
-    ]
-    for wing_data in fairy_wings:
-        var wing_center := position+Vector2(wing_data.center)
-        var wing_radii := Vector2(wing_data.radii)
-        draw_colored_polygon(_ellipse_points(wing_center,wing_radii,float(wing_data.angle)),Color(0.86,0.95,1.0,0.66))
-        draw_arc(wing_center,wing_radii.x*0.72,2.9,6.0,14,Color(0.96,1.0,1.0,0.68),1.0,true)
-        draw_line(position+Vector2(0,-1),wing_center,Color(0.69,0.83,0.93,0.62),1.0,true)
-    for wing_base_x in [-5.0,5.0]:
-        draw_circle(position+Vector2(wing_base_x,-2),3.0,Color("8a6a47"))
-        draw_circle(position+Vector2(wing_base_x-0.7,-2.8),1.4,Color("fff1a6"))
-    _draw_volume_ellipse(position+Vector2(0,7),Vector2(8,14),float(rig_pose.body_pitch),Color("f8df67"),rig_surface,0.74)
-    _draw_volume_ellipse(position+Vector2(0,-1),Vector2(9,8),0.0,Color("c89b3a"),rig_surface,0.72)
-    draw_colored_polygon(_ellipse_points(position+Vector2(-2,4),Vector2(3,9),-0.18),Color(1.0,0.96,0.64,0.50))
-    _draw_volume_ellipse(position+Vector2(0,-12),Vector2(7,7),0.0,Color("fff4d5"),rig_surface,0.66)
-    draw_circle(position+Vector2(-2,-13),2,Color("987b42"))
-    draw_circle(position+Vector2(-2.5,-13.5),0.7,Color("fffdf2"))
-    draw_line(position+Vector2(-3,-18),position+Vector2(-8,-24),Color("a77b3b"),1.4,true)
-    draw_line(position+Vector2(3,-18),position+Vector2(8,-24),Color("a77b3b"),1.4,true)
-    draw_circle(position+Vector2(-8,-24),1.8,Color("f7d85a"))
-    draw_circle(position+Vector2(8,-24),1.8,Color("f7d85a"))
-    var crown_tilt := float(rig_pose.crown_tilt) * 22.0
-    draw_polyline(PackedVector2Array([position+Vector2(-7,-18+crown_tilt),position+Vector2(0,-24-crown_tilt),position+Vector2(7,-18+crown_tilt)]),Color("f6c44d"),2.0,true)
-    for side in [-1.0,1.0]:
-        draw_polyline(PackedVector2Array([position+Vector2(5.0*side,1),position+Vector2((10.0+float(rig_pose.arm_sweep))*side,8),position+Vector2((15.0+float(rig_pose.arm_sweep))*side,5)]),Color("f8df67"),2.0,true)
-        draw_polyline(PackedVector2Array([position+Vector2(4.0*side,15),position+Vector2(7.0*side,23-float(rig_pose.leg_lift)*side),position+Vector2(11.0*side,25-float(rig_pose.leg_lift)*side)]),Color("f8df67"),2.0,true)
-        draw_circle(position+Vector2((10.0+float(rig_pose.arm_sweep))*side,8),1.9,Color("fff0a0"))
-        draw_circle(position+Vector2(7.0*side,23-float(rig_pose.leg_lift)*side),1.9,Color("fff0a0"))
-    _text(position+Vector2(0,50), "FAIRY  +1 STACKING LIFE", 11, Color("fff0ae"), HORIZONTAL_ALIGNMENT_CENTER, 190)
+    CollectibleWildlifeArt.draw_fairy(self, position, rig_pose, rig_surface)
+    _text(position+Vector2(1,CollectibleWildlifeArt.FAIRY_LABEL_Y+1), CollectibleWildlifeArt.FAIRY_LABEL, 11, Color(0.01,0.04,0.05,0.85), HORIZONTAL_ALIGNMENT_CENTER, 100)
+    _text(position+Vector2(0,CollectibleWildlifeArt.FAIRY_LABEL_Y), CollectibleWildlifeArt.FAIRY_LABEL, 11, Color("fff0ae"), HORIZONTAL_ALIGNMENT_CENTER, 100)
 
 func _draw_eating_effect(origin: Vector2, target: Vector2) -> void:
     var progress: float = 1.0 if reduced_motion else tongue.extension_ratio()

@@ -18,6 +18,10 @@ mossy safe perches and curved reeds. Status feedback now sits below the water
 so it cannot cover the safe-perch label; control positions stay unchanged.
 See [marsh graphics and footer-clearance review](docs/NEXT_BUILD_MARSH_POLISH.md).
 
+The collectible-wildlife pass adds curved translucent bug wings, richer shell
+detail, a moonlit fairy with petal clothing and crown, and clearer reward labels.
+See [collectible graphics and regression evidence](docs/NEXT_BUILD_COLLECTIBLE_POLISH.md).
+
 The next-build candidate on `codex/fred-next-build-pause-fix` fixes duplicate
 touch/mouse Pause toggles and clears held controls when pausing or resuming.
 See [reproduction, validation, and delivery handoff](docs/NEXT_BUILD_PAUSE_FIX.md).
