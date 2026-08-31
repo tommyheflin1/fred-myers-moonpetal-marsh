@@ -92,6 +92,19 @@ class CharacterSheet extends "res://scripts/main.gd":
 		elif review_page == "whirlpools":
 			description = "Actual game drawing | same hazard footprint | normal and reduced-motion samples"
 		_text(Vector2(52, 86), description, 17, Color("afd3d5"), HORIZONTAL_ALIGNMENT_LEFT, 1176)
+		if review_page == "hero-detail":
+			var choices := [["quick","marsh_runner","FRED / MARSH SENTINEL"],["strong","firefly_hero","STRONG / FIREFLY HERO"],["swift","moon_champion","SWIFT / MOON CHAMPION"]]
+			for index in choices.size():
+				customization.selected.size = choices[index][0]
+				customization.selected.attire = choices[index][1]
+				_sync_fred_style()
+				fred_rig.apply_pose(animation.pose(),0.0)
+				var center := Vector2(220+index*420,390)
+				draw_set_transform(center,0,Vector2.ONE*2.4)
+				fred_rig.render_to(self,Vector2.ZERO,1.2,true)
+				draw_set_transform(Vector2.ZERO)
+				_text(center+Vector2(0,245),choices[index][2],17,Color("d9f4e2"),HORIZONTAL_ALIGNMENT_CENTER,400)
+			return
 		if review_page == "whirlpools":
 			_draw_whirlpool_sheet()
 			return
@@ -114,6 +127,8 @@ class CharacterSheet extends "res://scripts/main.gd":
 				# Keep the review caption below the heron's long legs and feet.
 				_text(center + Vector2(0, 156), species[index], 18, Color("d9f4e2"), HORIZONTAL_ALIGNMENT_CENTER, 320)
 			return
+		if review_page.begins_with("hero-fit-"):
+			customization.selected.size = review_page.trim_prefix("hero-fit-")
 		var category := "size" if review_page == "builds" else "attire"
 		var entries: Array = FredFrogCustomization.CATALOG[category]
 		var columns := 4 if review_page == "builds" else 3
@@ -125,7 +140,8 @@ class CharacterSheet extends "res://scripts/main.gd":
 			var center := Vector2(160 + (index % columns) * 316, 200 + (index / columns) * row_height)
 			if columns == 3:
 				center.x = 210 + (index % columns) * 420
-			draw_set_transform(center, 0.0, Vector2.ONE * (1.7 if columns == 4 else 1.3))
+			var review_scale := 1.7 if columns == 4 else (1.05 if review_page.begins_with("hero-fit-") else 1.3)
+			draw_set_transform(center, 0.0, Vector2.ONE * review_scale)
 			fred_rig.render_to(self, Vector2.ZERO, 1.2, true)
 			draw_set_transform(Vector2.ZERO)
 			_text(center + Vector2(0, 111 if columns == 4 else 100), str(entries[index].label), 18, Color("d9f4e2"), HORIZONTAL_ALIGNMENT_CENTER, 300)
@@ -205,6 +221,14 @@ func _capture() -> void:
 		sheet.customization = FredFrogCustomization.new("")
 		sheet.queue_redraw()
 		await _save(page)
+	for build: Dictionary in FredFrogCustomization.CATALOG["size"]:
+		sheet.review_page = "hero-fit-"+str(build.id)
+		sheet.customization = FredFrogCustomization.new("")
+		sheet.queue_redraw()
+		await _save(sheet.review_page)
+	sheet.review_page = "hero-detail"
+	sheet.queue_redraw()
+	await _save("hero-detail")
 	sheet.queue_free()
 	await process_frame
 	var game := MeasuredGame.new()
@@ -269,10 +293,20 @@ func _capture() -> void:
 	game.save_feedback = "[SAFE START] The old save was damaged, so we started safely."
 	game.queue_redraw()
 	await _save("long-feedback-tablet-1366x1024")
+	# Exercise the actual customization screen as well as the isolated rig sheets.
+	game.screen = game.Screen.CUSTOMIZE
+	game.animation.reset()
+	for build: String in ["quick","strong"]:
+		game.customization.selected.size = build
+		game.customization.selected.attire = "firefly_hero" if build == "strong" else "marsh_runner"
+		for size: Vector2i in [Vector2i(1792,828),Vector2i(1366,1024)]:
+			_resize(size)
+			game.queue_redraw()
+			await _save("customize-%s-%dx%d"%[build,size.x,size.y])
 	game.queue_free()
 	await process_frame
 	if not capture_failed:
-		print("NEXT_BUILD_GRAPHICS_CAPTURE_PASS count=17")
+		print("NEXT_BUILD_GRAPHICS_CAPTURE_PASS count=30")
 	quit(1 if capture_failed else 0)
 
 func _measure(game: MeasuredGame, label: String) -> void:

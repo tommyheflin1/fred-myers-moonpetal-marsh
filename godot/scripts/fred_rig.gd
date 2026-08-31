@@ -2,6 +2,7 @@ class_name FredRig
 extends Node2D
 
 const CharacterSurface = preload("res://scripts/character_surface.gd")
+const HeroArt = preload("res://scripts/hero_frog_art.gd")
 
 const REQUIRED_POSE_KEYS := [
 	"state",
@@ -292,8 +293,11 @@ func apply_pose(pose: Dictionary, depth_amount: float = 0.0) -> bool:
 	var cosmetic_scale := float(_style.size_scale)
 	var build_proportions := Vector2(_style.get("body_proportions", Vector2.ONE))
 	_root_joint.scale = Vector2(body_scale.x * facing * build_proportions.x, body_scale.y * build_proportions.y) * cosmetic_scale
+	var hero := HeroArt.build(str(_style.get("body_build","quick")))
+	_body_joint.scale = Vector2(hero.chest,hero.torso)
 	_body_joint.rotation = extension * 0.018
-	_head_joint.position = Vector2(0.0, -17.0 - maxf(0.0, extension) * 1.5)
+	_head_joint.scale = Vector2(hero.head)
+	_head_joint.position = Vector2(0.0, -28.0 - maxf(0.0, extension) * 1.5)
 	_hind_left.rotation = -0.12 - extension * 0.28
 	_hind_right.rotation = 0.12 + extension * 0.28
 	_hind_left.position = Vector2(-18.0 - extension * 4.0, 14.0 + extension * 2.0)
@@ -364,6 +368,13 @@ func render_to(canvas: Node2D, world_position: Vector2, presentation_time_second
 
 func _draw_body_build_finish(canvas: Node2D, world_position: Vector2) -> void:
 	var build := str(_style.get("body_build", "quick"))
+	var hero := HeroArt.build(build)
+	var skin := (get_node("RootJoint/BodyJoint/Fill") as Polygon2D).color
+	for side: float in [-1.0,1.0]:
+		var hind := _hind_left if side < 0 else _hind_right
+		_draw_transformed_ellipse(canvas,hind,Vector2(side*18,5),Vector2(11,7.5)*float(hero.thigh),skin,world_position)
+		var tendon := PackedVector2Array([Vector2(side*9,1),Vector2(side*19,2),Vector2(side*27,10)])
+		_hero_line(canvas,hind,tendon,Color(skin.lightened(0.45),0.35),1.2,world_position)
 	var body_color := Color(_style.body_color)
 	var highlight := body_color.lightened(0.32)
 	var shadow := body_color.darkened(0.38)
@@ -534,26 +545,21 @@ func _draw_attire_back(canvas: Node2D, world_position: Vector2) -> void:
 	if str(_style.attire) != "firefly_hero":
 		return
 	var motion := attire_motion_snapshot()
-	var sway := float(motion.fold_bias) * 12.0 * float(motion.secondary_scale)
-	var drop := float(motion.stretch) * 3.0 * float(motion.secondary_scale)
-	var cape := _transformed_points(_body_joint, PackedVector2Array([
-		Vector2(-16.0, -3.0), Vector2(-24.0, 1.0), Vector2(-28.0+sway, 9.0),
-		Vector2(-27.0+sway, 16.0+drop), Vector2(-23.0+sway*0.8, 21.0+drop),
-		Vector2(-18.0+sway*0.55, 18.0+drop), Vector2(-13.0+sway*0.3, 21.0+drop),
-		Vector2(-9.0, 13.0), Vector2(-7.0, -1.0),
-	]), world_position)
-	canvas.draw_colored_polygon(cape, Color("742f48"))
-	var cape_inner := _transformed_points(_body_joint, PackedVector2Array([
-		Vector2(-15.0, -1.5), Vector2(-22.0, 2.5), Vector2(-25.0+sway*0.8, 9.5),
-		Vector2(-24.0+sway*0.8, 15.0+drop), Vector2(-20.5+sway*0.6, 18.0+drop),
-		Vector2(-17.0+sway*0.35, 15.0+drop), Vector2(-12.0, 17.0), Vector2(-9.0, 0.5),
-	]), world_position)
-	canvas.draw_colored_polygon(cape_inner, Color("d85265"))
-	canvas.draw_polyline(_closed_points(cape), Color("ffd36a"), 1.25 * float(_style.size_scale), true)
-	var cape_seam := _transformed_points(_body_joint, PackedVector2Array([
-		Vector2(-15.0, -0.5), Vector2(-19.0, 4.0), Vector2(-20.0+sway*0.45, 11.0), Vector2(-18.0+sway*0.35, 17.0+drop),
-	]), world_position)
-	canvas.draw_polyline(cape_seam, Color(1.0, 0.82, 0.40, 0.56), 0.85 * float(_style.size_scale), true)
+	var sway := float(motion.fold_bias)*8.0*float(motion.secondary_scale)
+	var drop := float(motion.stretch)*2.0*float(motion.secondary_scale)
+	var cape := PackedVector2Array([
+		Vector2(-18,-8),Vector2(-28,-6),Vector2(-45+sway,12),Vector2(-44+sway,28+drop),
+		Vector2(-35+sway,34+drop),Vector2(-25,29),Vector2(-12,33),Vector2(0,27),
+		Vector2(12,33),Vector2(25,29),Vector2(35+sway,34+drop),Vector2(44+sway,28+drop),
+		Vector2(45+sway,12),Vector2(28,-6),Vector2(18,-8),
+	])
+	var points := _transformed_points(_body_joint,CharacterSurface.rounded_contour(cape),world_position)
+	canvas.draw_colored_polygon(points,Color("822f48"))
+	canvas.draw_polyline(_closed_points(points),Color("e59b58"),1.0*float(_style.size_scale),true)
+	for side: float in [-1.0,1.0]:
+		var fold := PackedVector2Array([Vector2(side*24,-3),Vector2(side*37+sway,12),Vector2(side*34+sway,28+drop)])
+		_hero_line(canvas,_body_joint,fold,Color("b9475c"),5.0,world_position)
+		_hero_line(canvas,_body_joint,fold,Color(1.0,0.52,0.42,0.35),1.2,world_position)
 
 func _draw_skin_dimension(canvas: Node2D, world_position: Vector2, presentation_time_seconds: float, reduced_motion_override: bool) -> void:
 	var body_color := (get_node("RootJoint/BodyJoint/Fill") as Polygon2D).color
@@ -641,28 +647,32 @@ func _draw_reference_anatomy_finish(canvas: Node2D, world_position: Vector2) -> 
 func _draw_front_limbs(canvas: Node2D, world_position: Vector2) -> void:
 	var fill := (get_node("RootJoint/BodyJoint/Fill") as Polygon2D).color
 	var outline := (get_node("RootJoint/FrontLeft") as Line2D).default_color
-	for path in ["RootJoint/FrontLeft", "RootJoint/FrontRight"]:
+	var hero := HeroArt.build(str(_style.get("body_build","quick")))
+	for path: String in ["RootJoint/FrontLeft","RootJoint/FrontRight"]:
 		var limb := get_node(path) as Line2D
-		var points := _transformed_points(limb, limb.points, world_position)
-		var width_scale := float(_style.size_scale)
-		canvas.draw_polyline(points, outline, 9.0 * width_scale, true)
-		canvas.draw_polyline(points, fill.lightened(0.05), 5.2 * width_scale, true)
-		var elbow := points[1]
-		canvas.draw_circle(elbow, 5.0 * width_scale, outline)
-		canvas.draw_circle(elbow - Vector2(1.2,1.2), 3.0 * width_scale, fill.lightened(0.16))
-		canvas.draw_arc(elbow-Vector2(0.8,0.9),3.6*width_scale,3.35,6.0,10,Color(fill.lightened(0.42),0.64),1.2*width_scale,true)
-		var hand := points[points.size() - 1]
-		canvas.draw_colored_polygon(_ellipse_points(hand, Vector2(6.0, 4.0) * width_scale, 14), fill.lightened(0.10))
-		canvas.draw_polyline(_closed_points(_ellipse_points(hand, Vector2(6.0, 4.0) * width_scale, 14)), outline, 1.5 * width_scale, true)
-		var forward := (hand - points[points.size() - 2]).normalized()
-		var sideways := Vector2(-forward.y, forward.x)
-		var finger_tips := PackedVector2Array()
-		for spread: float in [-1.0, 0.0, 1.0]:
-			var tip: Vector2 = hand + forward * (7.0 + (1.0 - absf(spread)) * 2.0) * width_scale + sideways * spread * 5.0 * width_scale
-			finger_tips.append(tip)
-			canvas.draw_line(hand, tip, fill.lightened(0.18), 2.8 * width_scale, true)
-			canvas.draw_circle(tip, 2.0 * width_scale, Color("b9e67d"))
-		canvas.draw_colored_polygon(PackedVector2Array([hand,finger_tips[0],finger_tips[1],finger_tips[2]]), Color(fill.lightened(0.22),0.28))
+		for contour: PackedVector2Array in [HeroArt.upper_arm(limb.points,hero.arm),HeroArt.forearm(limb.points,hero.arm)]:
+			var shaped := _transformed_points(limb,contour,world_position)
+			CharacterSurface.draw_volume(canvas,shaped,fill,0.6)
+			canvas.draw_polyline(_closed_points(shaped),Color(outline,0.8),1.1,true)
+		var elbow := limb.points[1]
+		_draw_transformed_ellipse(canvas,limb,elbow,Vector2(5.4,5.2)*float(hero.arm),fill,world_position)
+		var hand := limb.points[2]
+		var forward := (hand-elbow).normalized()
+		var sideways := Vector2(-forward.y,forward.x)
+		var palm := _transformed_points(limb,CharacterSurface.ellipse(hand,Vector2(5.6,6.0)),world_position)
+		CharacterSurface.draw_volume(canvas,palm,fill.lightened(0.05),0.55)
+		var tips := PackedVector2Array()
+		for spread: float in [-1.0,0.0,1.0]:
+			var tip := hand+forward*(8.5-absf(spread)*1.8)+sideways*spread*5.5
+			tips.append(tip)
+		var web := _transformed_points(limb,HeroArt.hand_web(hand,forward),world_position)
+		canvas.draw_colored_polygon(web,fill.lightened(0.09))
+		for tip in tips:
+			var finger := _transformed_points(limb,PackedVector2Array([hand,hand.lerp(tip,0.6),tip]),world_position)
+			canvas.draw_polyline(finger,fill.lightened(0.24),2.6*float(_style.size_scale),true)
+			_draw_transformed_ellipse(canvas,limb,tip,Vector2(2.1,1.7),fill.lightened(0.34),world_position)
+		var tendon := _transformed_points(limb,PackedVector2Array([elbow.lerp(hand,0.25)+sideways*1.5,hand-forward*2]),world_position)
+		canvas.draw_polyline(tendon,Color(fill.lightened(0.40),0.45),1.2,true)
 
 func _draw_face_finish(canvas: Node2D, world_position: Vector2, presentation_time_seconds: float, reduced_motion_override: bool) -> void:
 	var head_color := (get_node("RootJoint/HeadJoint/Fill") as Polygon2D).color
@@ -671,17 +681,14 @@ func _draw_face_finish(canvas: Node2D, world_position: Vector2, presentation_tim
 	_draw_transformed_ellipse(canvas,_head_joint,Vector2(-14.0,-17.0),Vector2(9.0,4.2),Color(head_color.lightened(0.30),0.28),world_position)
 	_draw_transformed_ellipse(canvas,_head_joint,Vector2(14.0,-17.0),Vector2(9.0,4.2),Color(head_color.darkened(0.18),0.18),world_position)
 	for eye in [_eye_left, _eye_right]:
-		var iris_center := world_position + _node_point(eye, Vector2(2.0, 0.0))
-		canvas.draw_circle(iris_center, 5.2 * float(_style.size_scale), Color("a6c95e"))
-		canvas.draw_arc(iris_center, 4.8 * float(_style.size_scale), 0.0, TAU, 18, Color("456d35"), 1.5 * float(_style.size_scale), true)
-		canvas.draw_line(iris_center + Vector2(-3.6,0), iris_center + Vector2(3.6,0), Color("13241d"), 2.2 * float(_style.size_scale), true)
-		canvas.draw_arc(iris_center + Vector2(0,1.2), 5.8 * float(_style.size_scale), 0.18, PI - 0.18, 14, Color(0.78,0.94,0.74,0.42), 1.0 * float(_style.size_scale), true)
-		var glint := world_position + _node_point(eye, Vector2(-1.0, -3.0))
-		canvas.draw_circle(glint, 1.8 * float(_style.size_scale), Color(1.0, 1.0, 0.92, 0.92))
+		_draw_transformed_ellipse(canvas,eye,Vector2(1.0,0.0),Vector2(5.3,4.8),Color("53692e"),world_position)
+		_draw_transformed_ellipse(canvas,eye,Vector2(0.7,-0.2),Vector2(4.1,3.6),Color("b2b65b"),world_position)
+		_draw_transformed_ellipse(canvas,eye,Vector2(1.0,0.2),Vector2(3.8,1.25),Color("0b211b"),world_position)
+		_draw_transformed_ellipse(canvas,eye,Vector2(-1.0,-2.0),Vector2(1.2,0.9),Color("fff6ce"),world_position)
 		var blink := float(micro_motion_snapshot(presentation_time_seconds,reduced_motion_override).blink)
 		if blink > 0.02:
-			var eyelid_center := world_position + _node_point(eye,Vector2(0.0,-1.0+blink*3.2))
-			canvas.draw_line(eyelid_center+Vector2(-6.0,0.0),eyelid_center+Vector2(6.0,0.0),Color(head_color.darkened(0.18),0.86),1.4+blink*2.2,true)
+			var eyelid := _transformed_points(eye,PackedVector2Array([Vector2(-6,-1+blink*3),Vector2(0,blink*3),Vector2(6,-1+blink*3)]),world_position)
+			canvas.draw_polyline(eyelid,Color(head_color.darkened(0.18),0.86),1.4+blink*2.2,true)
 	for nostril_x in [-5.0,5.0]:
 		var nostril := world_position + _node_point(_head_joint, Vector2(nostril_x,-0.5))
 		canvas.draw_circle(nostril,1.5 * float(_style.size_scale),Color(outline,0.72))
@@ -695,7 +702,7 @@ func _draw_face_finish(canvas: Node2D, world_position: Vector2, presentation_tim
 		Vector2(-20.0, 11.0), Vector2(-11.0, 16.5), Vector2(0.0, 19.5),
 		Vector2(11.0, 16.5), Vector2(20.0, 11.0),
 	]), world_position)
-	canvas.draw_polyline(jaw_plane, Color(head_color.lightened(0.34), 0.66), 2.2 * float(_style.size_scale), true)
+	canvas.draw_polyline(CharacterSurface.smooth_line(jaw_plane), Color(head_color.lightened(0.30), 0.38), 1.6 * float(_style.size_scale), true)
 	var throat_crease := _transformed_points(_head_joint, PackedVector2Array([
 		Vector2(-13.0, 18.0), Vector2(0.0, 20.5), Vector2(13.0, 18.0),
 	]), world_position)
@@ -708,7 +715,7 @@ func _draw_face_finish(canvas: Node2D, world_position: Vector2, presentation_tim
 	else:
 		var mouth_line := get_node("RootJoint/HeadJoint/MouthLine") as Line2D
 		var line_points := _transformed_points(mouth_line, mouth_line.points, world_position)
-		canvas.draw_polyline(line_points, outline, 2.7 * float(_style.size_scale), true)
+		canvas.draw_polyline(CharacterSurface.smooth_line(line_points), outline, 2.2 * float(_style.size_scale), true)
 	var left_corner := world_position + _node_point(_head_joint, Vector2(-11.0, 5.0))
 	var right_corner := world_position + _node_point(_head_joint, Vector2(11.0, 5.0))
 	canvas.draw_circle(left_corner, 1.6 * float(_style.size_scale), outline)
@@ -786,6 +793,14 @@ func _neckline_local_points(attire: String) -> PackedVector2Array:
 				Vector2(5.0, 2.0), Vector2(8.0, -1.0),
 			])
 
+func _hero_panel(canvas: Node2D, node: Node2D, contour: PackedVector2Array, color: Color, edge: Color, world_position: Vector2, gloss: float = 0.35) -> void:
+	var points := _transformed_points(node,contour,world_position)
+	CharacterSurface.draw_volume(canvas,points,color,gloss)
+	canvas.draw_polyline(_closed_points(points),edge,1.0*float(_style.size_scale),true)
+
+func _hero_line(canvas: Node2D, node: Node2D, contour: PackedVector2Array, color: Color, width: float, world_position: Vector2) -> void:
+	canvas.draw_polyline(_transformed_points(node,CharacterSurface.smooth_line(contour),world_position),color,width*float(_style.size_scale),true)
+
 func _draw_sport_gear(canvas: Node2D, world_position: Vector2) -> void:
 	var attire := str(_style.attire)
 	var palette := _attire_palette(attire)
@@ -794,283 +809,92 @@ func _draw_sport_gear(canvas: Node2D, world_position: Vector2) -> void:
 	var panel: Color = palette.panel
 	var trim: Color = palette.trim
 	var accent: Color = palette.accent
-	var lens: Color = palette.lens
-	var eyewear := str(palette.eyewear)
-	var scale_width := float(_style.size_scale)
+	var equipment := HeroArt.outfit(attire)
+	var kind := str(equipment.chest)
 	var motion := attire_motion_snapshot()
-	var stretch := float(motion.stretch)
-	var compression := float(motion.compression)
-	var fold_bias := float(motion.fold_bias)
-	var cut: Dictionary = ATTIRE_CUTS.get(attire, {})
-	var hem_drop := float(cut.get("hem_drop", 0.0))
-	var structure := float(cut.get("structure", 0.0))
-	var edge_width := 1.0 + structure * 0.8
-	var hem_y := 21.0 + hem_drop * 2.0 + stretch * 4.0 - compression * 2.0
-	var neckline := _neckline_local_points(attire)
-
-	# The garment starts below the jaw exclusion zone. A recessed silhouette,
-	# seven fitted layers and raised edge light create cloth volume instead of a
-	# flat paper cutout while remaining inexpensive vector drawing for phones.
-	var under_panel := _transformed_points(_body_joint, PackedVector2Array([
-		Vector2(-18.5,1.0),Vector2(-17.2,-1.0),Vector2(-13.5,-2.5),Vector2(-8,-2.0),Vector2(0,6.5),Vector2(8,-2.0),
-		Vector2(13.5,-2.5),Vector2(17.2,-1.0),Vector2(18.5,1.0),Vector2(18.2,6),Vector2(16.2,15.5),
-		Vector2(10.5,hem_y),Vector2(5.5,hem_y+1.4),Vector2(0,hem_y+1.8),Vector2(-5.5,hem_y+1.4),Vector2(-10.5,hem_y),Vector2(-16.2,15.5),Vector2(-18.2,6),
-	]), world_position)
-	var garment_depth := PackedVector2Array()
-	for point: Vector2 in under_panel:
-		garment_depth.append(point + Vector2(1.4, 2.0) * scale_width)
-	canvas.draw_colored_polygon(garment_depth, Color(shadow.darkened(0.45), 0.50))
-	CharacterSurface.draw_volume(canvas, under_panel, fabric, 1.0 - float(ATTIRE_FINISHES[attire].roughness))
-	canvas.draw_polyline(_closed_points(under_panel), Color(shadow.darkened(0.30),0.78), edge_width * scale_width, true)
-	var center_panel := _transformed_points(_body_joint, PackedVector2Array([
-		Vector2(-7,0.0),Vector2(0,7.0),Vector2(7,0.0),Vector2(8.5,7),Vector2(9.5,17),Vector2(5,hem_y),Vector2(0,hem_y+1.2),Vector2(-5,hem_y),Vector2(-9.5,17),Vector2(-8.5,7),
-	]), world_position)
-	var left_panel := _transformed_points(_body_joint, PackedVector2Array([
-		Vector2(-18.5,1.0),Vector2(-16.5,-1.0),Vector2(-13,-2.5),Vector2(-8,-2.0),Vector2(-7,0.0),Vector2(-8.5,7),Vector2(-9.5,17),Vector2(-15.5,15),Vector2(-17.5,8),
-	]), world_position)
-	var right_panel := _transformed_points(_body_joint, PackedVector2Array([
-		Vector2(18.5,1.0),Vector2(16.5,-1.0),Vector2(13,-2.5),Vector2(8,-2.0),Vector2(7,0.0),Vector2(8.5,7),Vector2(9.5,17),Vector2(15.5,15),Vector2(17.5,8),
-	]), world_position)
-	CharacterSurface.draw_volume(canvas, left_panel, Color(fabric.lightened(0.10),0.82), 0.3)
-	CharacterSurface.draw_volume(canvas, right_panel, Color(panel,0.54 + structure * 0.24), 0.3)
-	CharacterSurface.draw_volume(canvas, center_panel, Color(fabric.lightened(0.03),0.86), 1.0 - float(ATTIRE_FINISHES[attire].roughness))
-	var torso_highlight := _transformed_points(_body_joint, PackedVector2Array([
-		Vector2(-12,-1.5),Vector2(-8,-1.5),Vector2(-5,1.0),Vector2(-4,14),Vector2(-7,18),Vector2(-11,14),
-	]), world_position)
-	var torso_shadow := _transformed_points(_body_joint, PackedVector2Array([
-		Vector2(7,0.5),Vector2(13,-2.0),Vector2(17,0.5),Vector2(16,13),Vector2(11,18),Vector2(8,13),
-	]), world_position)
-	canvas.draw_colored_polygon(torso_highlight, Color(panel.lightened(0.38), 0.18))
-	canvas.draw_colored_polygon(torso_shadow, Color(shadow, 0.20 + structure * 0.08))
-	canvas.draw_polyline(_closed_points(left_panel), Color(trim, 0.28 + structure * 0.18), 0.65 * scale_width, true)
-	canvas.draw_polyline(_closed_points(right_panel), Color(trim, 0.28 + structure * 0.18), 0.65 * scale_width, true)
-	canvas.draw_polyline(_closed_points(center_panel), Color(shadow, 0.42 + structure * 0.14), 0.7 * scale_width, true)
-
-	# Outfit-specific collar points are shared with the measurable fit contract.
-	var transformed_neckline := _transformed_points(_body_joint, neckline, world_position)
-	canvas.draw_polyline(transformed_neckline, shadow.darkened(0.24), 3.15 * scale_width, true)
-	canvas.draw_polyline(transformed_neckline, Color(trim,0.88), 1.45 * scale_width, true)
-	var collar_glint := PackedVector2Array()
-	for point: Vector2 in transformed_neckline:
-		collar_glint.append(point - Vector2(0.0, 0.75) * scale_width)
-	canvas.draw_polyline(collar_glint, Color(trim.lightened(0.34), 0.36), 0.7 * scale_width, true)
-	for side: float in [-1.0, 1.0]:
-		var shoulder := _transformed_points(_body_joint, PackedVector2Array([
-			Vector2(side * 8.0,-2.0),Vector2(side * 14.0,-2.0),Vector2(side * 19.0,1.0),Vector2(side * 17.0,3.5),
-		]), world_position)
-		canvas.draw_polyline(shoulder, shadow.darkened(0.20), 2.75 * scale_width, true)
-		canvas.draw_polyline(shoulder, Color(trim,0.82), 1.2 * scale_width, true)
-		var side_seam := _transformed_points(_body_joint, PackedVector2Array([
-			Vector2(side * 16.8,1.0),Vector2(side * 17.0,8.0),Vector2(side * 14.0,16.0),
-		]), world_position)
-		canvas.draw_polyline(side_seam, Color(trim, 0.48), 0.9 * scale_width, true)
-	var hem_shadow := _transformed_points(_body_joint, PackedVector2Array([
-		Vector2(-16,14.8),Vector2(-11,hem_y-0.2),Vector2(-5.5,hem_y+1.0),Vector2(0,hem_y+1.35),Vector2(5.5,hem_y+1.0),Vector2(11,hem_y-0.2),Vector2(16,14.8),
-	]), world_position)
-	var hem_binding := _transformed_points(_body_joint, PackedVector2Array([
-		Vector2(-15.5,14.1),Vector2(-10.5,hem_y-1.0),Vector2(-5.2,hem_y),Vector2(0,hem_y+0.35),Vector2(5.2,hem_y),Vector2(10.5,hem_y-1.0),Vector2(15.5,14.1),
-	]), world_position)
-	canvas.draw_polyline(hem_shadow, shadow.darkened(0.22), 2.7 * scale_width, true)
-	canvas.draw_polyline(hem_binding, Color(trim,0.84), 1.25 * scale_width, true)
-
-	# Deterministic fabric grain and top-stitching add material depth without texture assets.
-	for local_x: float in [-11.0, -5.5, 5.5, 11.0]:
-		var grain := _transformed_points(_body_joint, PackedVector2Array([
-			Vector2(local_x,2.0),Vector2(local_x * 0.94,7.0),Vector2(local_x * 0.84,13.0),
-		]), world_position)
-		canvas.draw_polyline(grain, Color(panel.lightened(0.34), 0.22), 0.85 * scale_width, true)
-	for weave_y: float in [5.0, 9.0, 13.0, 17.0]:
-		var weave := _transformed_points(_body_joint, PackedVector2Array([
-			Vector2(-12.5, weave_y), Vector2(0.0, weave_y + fold_bias * 1.5), Vector2(12.5, weave_y),
-		]), world_position)
-		canvas.draw_polyline(weave, Color(trim.lightened(0.18), 0.10), 0.65 * scale_width, true)
-	var center_stitch := _transformed_points(_body_joint, PackedVector2Array([Vector2(0,4),Vector2(0,17)]), world_position)
-	canvas.draw_polyline(center_stitch, Color(trim, 0.58), 1.0 * scale_width, true)
-	for stitch_y: float in [6.0, 10.0, 14.0]:
-		_draw_transformed_ellipse(canvas, _body_joint, Vector2(0.0, stitch_y), Vector2(0.8, 0.8), Color(trim, 0.78), world_position)
-	var fold_strength := (0.6 + absf(stretch) * 1.6 + compression * 1.2) * float(motion.secondary_scale)
-	for fold_index in range(3):
-		var side := -1.0 if fold_index % 2 == 0 else 1.0
-		var fold_y := 5.0 + float(fold_index) * 4.8
-		var fold := _transformed_points(_body_joint, PackedVector2Array([
-			Vector2(side * (4.0 + fold_bias * 8.0), fold_y),
-			Vector2(side * (8.0 + fold_bias * 5.0), fold_y + 1.0 + stretch),
-			Vector2(side * 11.5, fold_y + 0.4 + compression * 2.0),
-		]), world_position)
-		canvas.draw_polyline(fold, Color(shadow, 0.24 + fold_strength * 0.13), maxf(0.65, fold_strength) * scale_width, true)
-		canvas.draw_polyline(PackedVector2Array([fold[0] - Vector2(0,0.8),fold[1] - Vector2(0,0.6)]), Color(panel.lightened(0.42),0.20), 0.7 * scale_width, true)
-
-	var chest_center := world_position + to_local(_body_joint.to_global(Vector2(0,7)))
-	match attire:
-		"trail_scout":
-			var left_pocket := _transformed_points(_body_joint, PackedVector2Array([Vector2(-13,8),Vector2(-6,8.5),Vector2(-6.5,14),Vector2(-12.5,13.5)]), world_position)
-			var right_pocket := _transformed_points(_body_joint, PackedVector2Array([Vector2(6,8.5),Vector2(13,8),Vector2(12.5,13.5),Vector2(6.5,14)]), world_position)
-			for pocket in [left_pocket, right_pocket]:
-				canvas.draw_colored_polygon(pocket, shadow)
-				canvas.draw_polyline(_closed_points(pocket), trim.darkened(0.18), 1.1 * scale_width, true)
-			var zipper := _transformed_points(_body_joint, PackedVector2Array([Vector2(0,3),Vector2(0,18)]), world_position)
-			canvas.draw_polyline(zipper, trim.lightened(0.12), 1.5 * scale_width, true)
-			_draw_transformed_ellipse(canvas, _body_joint, Vector2(0,10), Vector2(1.8,2.4), accent, world_position)
-			var scarf_band := _transformed_points(_body_joint, PackedVector2Array([Vector2(-7,1),Vector2(0,6),Vector2(7,1)]), world_position)
-			canvas.draw_polyline(scarf_band, Color(shadow.darkened(0.12),0.82), 3.4 * scale_width, true)
-			canvas.draw_polyline(scarf_band, Color(accent,0.90), 1.9 * scale_width, true)
-			_draw_transformed_ellipse(canvas, _body_joint, Vector2(0,6.5), Vector2(2.1,1.8), accent.lightened(0.18), world_position)
-			var scarf_tail := _transformed_points(_body_joint, PackedVector2Array([Vector2(-1.4,8),Vector2(1.9,8),Vector2(3.0,13.5),Vector2(0.5,12),Vector2(-1.6,14)]), world_position)
-			canvas.draw_colored_polygon(scarf_tail, accent.darkened(0.08))
-			canvas.draw_polyline(_closed_points(scarf_tail), shadow, 1.0 * scale_width, true)
-		"moon_champion":
-			var sash := _transformed_points(_body_joint, PackedVector2Array([Vector2(-13,-2),Vector2(-8,3),Vector2(9,17),Vector2(12,14)]), world_position)
-			canvas.draw_polyline(sash, Color(trim,0.68), 2.1 * scale_width, true)
-			_draw_transformed_ellipse(canvas, _body_joint, Vector2(0,7), Vector2(4.9,4.9), trim.darkened(0.18), world_position)
-			_draw_transformed_ellipse(canvas, _body_joint, Vector2(0,7), Vector2(3.5,3.5), trim, world_position)
-			_draw_transformed_ellipse(canvas, _body_joint, Vector2(0.9,6.1), Vector2(2.1,2.1), fabric, world_position)
-			var crescent := _transformed_points(_body_joint, PackedVector2Array([Vector2(-1,2.8),Vector2(-3.5,6),Vector2(-2.5,10),Vector2(1,11.5)]), world_position)
-			canvas.draw_polyline(crescent, Color("fff3bd"), 2.0 * scale_width, true)
-			var ribbon_left := _transformed_points(_body_joint, PackedVector2Array([Vector2(-3,11),Vector2(-5,17),Vector2(-0.8,15)]), world_position)
-			var ribbon_right := _transformed_points(_body_joint, PackedVector2Array([Vector2(3,11),Vector2(5,17),Vector2(0.8,15)]), world_position)
-			canvas.draw_colored_polygon(ribbon_left, accent)
-			canvas.draw_colored_polygon(ribbon_right, trim)
-		"firefly_hero":
-			_draw_transformed_ellipse(canvas, _body_joint, Vector2(0,7), Vector2(4.8,4.8), Color(shadow,0.88), world_position)
-			_draw_transformed_ellipse(canvas, _body_joint, Vector2(0,7), Vector2(3.0,3.0), trim, world_position)
-			for ray_index in range(6):
-				var angle := TAU * float(ray_index) / 6.0
-				canvas.draw_line(chest_center + Vector2.from_angle(angle) * 4.8 * scale_width, chest_center + Vector2.from_angle(angle) * 7.4 * scale_width, Color(trim,0.82), 1.0 * scale_width, true)
-			for clasp_x: float in [-12.0, 12.0]:
-				_draw_transformed_ellipse(canvas, _body_joint, Vector2(clasp_x,0.0), Vector2(2.4,2.4), accent, world_position)
-		"pond_pilot":
-			var pilot_wings := _transformed_points(_body_joint, PackedVector2Array([
-				Vector2(-11,7),Vector2(-4,5),Vector2(0,8),Vector2(4,5),Vector2(11,7),
-			]), world_position)
-			canvas.draw_polyline(pilot_wings, Color(trim,0.88), 2.0 * scale_width, true)
-			_draw_transformed_ellipse(canvas, _body_joint, Vector2(0,8), Vector2(3.4,3.4), accent, world_position)
-			for button_y: float in [13.0,17.0]:
-				_draw_transformed_ellipse(canvas, _body_joint, Vector2(0,button_y), Vector2(1.0,1.0), trim.lightened(0.24), world_position)
-		"rain_ranger":
-			var rain_drop := _transformed_points(_body_joint, PackedVector2Array([
-				Vector2(0,2),Vector2(5,9),Vector2(4,13),Vector2(0,16),Vector2(-4,13),Vector2(-5,9),
-			]), world_position)
-			canvas.draw_colored_polygon(rain_drop, Color(accent,0.92))
-			canvas.draw_polyline(_closed_points(rain_drop), trim.darkened(0.18), 1.2 * scale_width, true)
-			var rain_glint := _transformed_points(_body_joint, PackedVector2Array([Vector2(-1,6),Vector2(-2.5,9),Vector2(-2,11)]), world_position)
-			canvas.draw_polyline(rain_glint, Color(1,1,1,0.72), 1.0 * scale_width, true)
-		"bug_catcher":
-			_draw_transformed_ellipse(canvas, _body_joint, Vector2(0,10), Vector2(4.2,5.4), Color(accent,0.90), world_position)
-			_draw_transformed_ellipse(canvas, _body_joint, Vector2(0,5.8), Vector2(2.6,2.8), trim.darkened(0.10), world_position)
-			for bug_side: float in [-1.0,1.0]:
-				var antenna := _transformed_points(_body_joint, PackedVector2Array([Vector2(bug_side*1.4,4),Vector2(bug_side*4.0,1.5)]), world_position)
-				canvas.draw_polyline(antenna, trim, 1.0 * scale_width, true)
-				var bug_wing := _transformed_points(_body_joint, PackedVector2Array([Vector2(bug_side*2,8),Vector2(bug_side*7,7),Vector2(bug_side*5,12),Vector2(bug_side*2,11)]), world_position)
-				canvas.draw_colored_polygon(bug_wing, Color(trim,0.48))
-		"star_jumper":
-			var star := _transformed_points(_body_joint, PackedVector2Array([
-				Vector2(0,2),Vector2(2,7),Vector2(7,7),Vector2(3,10),Vector2(5,16),
-				Vector2(0,12.5),Vector2(-5,16),Vector2(-3,10),Vector2(-7,7),Vector2(-2,7),
-			]), world_position)
-			canvas.draw_colored_polygon(star, Color(accent,0.96))
-			canvas.draw_polyline(_closed_points(star), trim, 1.15 * scale_width, true)
-		"lily_lifeguard":
-			_draw_transformed_ellipse(canvas, _body_joint, Vector2(0,9), Vector2(7.5,7.5), Color(trim,0.94), world_position)
-			var rescue_cross_h := _transformed_points(_body_joint, PackedVector2Array([Vector2(-5,9),Vector2(5,9)]), world_position)
-			var rescue_cross_v := _transformed_points(_body_joint, PackedVector2Array([Vector2(0,4),Vector2(0,14)]), world_position)
-			canvas.draw_polyline(rescue_cross_h, fabric, 2.8 * scale_width, true)
-			canvas.draw_polyline(rescue_cross_v, fabric, 2.8 * scale_width, true)
-			_draw_transformed_ellipse(canvas, _body_joint, Vector2(11,2), Vector2(2.0,2.0), accent, world_position)
-		_:
-			_draw_transformed_ellipse(canvas, _body_joint, Vector2(0,7), Vector2(4.7,4.7), Color(trim.darkened(0.18),0.84), world_position)
-			_draw_transformed_ellipse(canvas, _body_joint, Vector2(0,7), Vector2(3.2,3.2), trim, world_position)
-			var runner_mark := _transformed_points(_body_joint, PackedVector2Array([Vector2(-1,4),Vector2(1,4),Vector2(1,10),Vector2(3,10)]), world_position)
-			canvas.draw_polyline(runner_mark, Color(shadow,0.82), 1.35 * scale_width, true)
-
-	_draw_limb_attire(canvas, world_position, attire, fabric, panel, shadow, trim, accent)
-	_draw_attire_dimension_finish(canvas, world_position, fabric, panel, shadow, trim)
-	_draw_eyewear(canvas, world_position, eyewear, fabric, trim, lens)
-
-func _draw_attire_dimension_finish(canvas: Node2D, world_position: Vector2, fabric: Color, panel: Color, shadow: Color, trim: Color) -> void:
-	# A raised inner collar, shoulder piping and bound hem make the outfit read
-	# as fitted equipment. All points stay on the torso below the measured jaw
-	# exclusion zone, so no customization can cover Fred's mouth.
-	var scale_width := float(_style.size_scale)
-	var inner_collar := _transformed_points(_body_joint, PackedVector2Array([
-		Vector2(-7.5,0.0),Vector2(-4.5,2.6),Vector2(0.0,7.2),Vector2(4.5,2.6),Vector2(7.5,0.0),
-	]), world_position)
-	canvas.draw_polyline(inner_collar, Color(shadow.darkened(0.28),0.82), 2.7 * scale_width, true)
-	canvas.draw_polyline(inner_collar, Color(trim.lightened(0.18),0.72), 1.0 * scale_width, true)
+	var hem := 27.0+float(motion.stretch)*3.0-float(motion.compression)*2.0
+	# Flexible undersuit: shoulder yoke, narrow waist and a divided hip guard.
+	var suit := HeroArt.suit(hem)
+	# Concave neckline is triangulated by Godot rather than a radial volume fan.
+	var suit_points := _transformed_points(_body_joint,suit,world_position)
+	canvas.draw_colored_polygon(suit_points,shadow)
+	canvas.draw_polyline(_closed_points(suit_points),Color(fabric.darkened(0.45),0.95),1.6*float(_style.size_scale),true)
 	for side: float in [-1.0,1.0]:
-		var shoulder_panel := _transformed_points(_body_joint, PackedVector2Array([
-			Vector2(side*8.0,-1.2),Vector2(side*13.0,-2.2),Vector2(side*17.0,0.5),Vector2(side*15.5,5.5),
-		]), world_position)
-		canvas.draw_polyline(shoulder_panel, Color(panel.lightened(0.28) if side < 0.0 else shadow,0.44), 1.35 * scale_width, true)
-	var raised_hem := _transformed_points(_body_joint, PackedVector2Array([
-		Vector2(-14.5,15.0),Vector2(-9.0,20.0),Vector2(0.0,22.0),Vector2(9.0,20.0),Vector2(14.5,15.0),
-	]), world_position)
-	canvas.draw_polyline(raised_hem, Color(shadow.darkened(0.24),0.70), 2.5 * scale_width, true)
-	canvas.draw_polyline(PackedVector2Array([raised_hem[0]-Vector2(0,1),raised_hem[1]-Vector2(0,1),raised_hem[2]-Vector2(0,1)]), Color(fabric.lightened(0.46),0.28), 0.8 * scale_width, true)
+		_hero_panel(canvas,_body_joint,HeroArt.chest_panel(side,kind),panel if side < 0 else fabric,shadow.darkened(0.3),world_position,0.55)
+		var rib := PackedVector2Array([Vector2(side*20,12),Vector2(side*16,17),Vector2(side*15,23)])
+		_hero_line(canvas,_body_joint,rib,Color(trim,0.55),1.2,world_position)
+		for thread_x: float in [11.0,14.0,17.0]:
+			_hero_line(canvas,_body_joint,PackedVector2Array([Vector2(side*thread_x,3),Vector2(side*(thread_x-1),7),Vector2(side*(thread_x-2),10)]),Color(trim,0.10),0.55,world_position)
+		var collar := PackedVector2Array([Vector2(side*9,0),Vector2(side*14,-5),Vector2(side*23,-5)])
+		_hero_line(canvas,_body_joint,collar,Color(trim,0.85),1.8,world_position)
+		for seam_y: float in [15.0,19.0,23.0]:
+			_hero_line(canvas,_body_joint,PackedVector2Array([Vector2(side*4,seam_y),Vector2(side*11,seam_y+0.7)]),Color(panel.lightened(0.45),0.5),0.9,world_position)
+		var hip := CharacterSurface.rounded_contour(PackedVector2Array([Vector2(side*2,hem-1),Vector2(side*17,hem-3),Vector2(side*17,hem+2),Vector2(side*9,hem+4),Vector2(side*3,hem+2)]))
+		_hero_panel(canvas,_body_joint,hip,fabric,Color(trim,0.32),world_position)
+	# Anatomical collar remains shared with the existing fit contract.
+	_hero_line(canvas,_body_joint,_neckline_local_points(attire),shadow.darkened(0.35),3.0,world_position)
+	_hero_line(canvas,_body_joint,_neckline_local_points(attire),trim,1.2,world_position)
+	# Equipment differs in silhouette as well as color.
+	if str(equipment.belt) in ["pouches","utility"]:
+		for side: float in [-1.0,1.0]:
+			var pouch := CharacterSurface.rounded_contour(PackedVector2Array([Vector2(side*12,19),Vector2(side*20,18),Vector2(side*21,27),Vector2(side*12,27)]))
+			_hero_panel(canvas,_body_joint,pouch,fabric.lightened(0.1),shadow.darkened(0.3),world_position)
+			_hero_line(canvas,_body_joint,PackedVector2Array([Vector2(side*12,21),Vector2(side*20,20)]),trim,1.1,world_position)
+			_draw_transformed_ellipse(canvas,_body_joint,Vector2(side*16,22),Vector2(1.0,1.3),trim,world_position)
+	if kind in ["compass","beetle","wings"]:
+		var strap := HeroArt.segment(Vector2(-19,-4),Vector2(16,22),2.4,2.2,2.0)
+		_hero_panel(canvas,_body_joint,strap,accent.darkened(0.2),shadow,world_position)
+		_hero_line(canvas,_body_joint,PackedVector2Array([Vector2(-18,-4),Vector2(0,10),Vector2(16,22)]),Color(trim,0.7),0.8,world_position)
+	var belt_y := 24.0
+	_hero_line(canvas,_body_joint,PackedVector2Array([Vector2(-17,belt_y-1),Vector2(0,belt_y+1),Vector2(17,belt_y-1)]),shadow.darkened(0.3),5.0,world_position)
+	_hero_line(canvas,_body_joint,PackedVector2Array([Vector2(-17,belt_y-1),Vector2(0,belt_y+1),Vector2(17,belt_y-1)]),accent if str(equipment.belt) == "sash" else fabric.lightened(0.12),3.0,world_position)
+	var buckle := CharacterSurface.rounded_contour(PackedVector2Array([Vector2(-3,22),Vector2(3,22),Vector2(3,27),Vector2(-3,27)]))
+	_hero_panel(canvas,_body_joint,buckle,trim,shadow,world_position,0.7)
+	if str(equipment.belt) == "sash":
+		var tail := _transformed_points(_body_joint,PackedVector2Array([Vector2(9,25),Vector2(15,24),Vector2(23,34),Vector2(15,31),Vector2(13,34)]),world_position)
+		canvas.draw_colored_polygon(tail,accent)
+	# Raised insignias are original marsh motifs, not franchise logos.
+	var emblem := HeroArt.emblem(kind)
+	var emblem_shadow := PackedVector2Array()
+	for point in emblem:
+		emblem_shadow.append(point+Vector2(0.8,1.0))
+	canvas.draw_colored_polygon(_transformed_points(_body_joint,emblem_shadow,world_position),shadow.darkened(0.5))
+	canvas.draw_colored_polygon(_transformed_points(_body_joint,emblem,world_position),accent if kind in ["drop","star","beetle"] else trim)
+	canvas.draw_polyline(_closed_points(_transformed_points(_body_joint,emblem,world_position)),Color(trim.lightened(0.3),0.75),0.7*float(_style.size_scale),true)
+	_draw_hero_limb_gear(canvas,world_position,equipment,palette)
+	_draw_eyewear(canvas,world_position,str(palette.eyewear),fabric,trim,palette.lens)
 
-func _draw_limb_attire(canvas: Node2D, world_position: Vector2, attire: String, fabric: Color, panel: Color, shadow: Color, trim: Color, accent: Color) -> void:
-	var scale_width := float(_style.size_scale)
-	var cut: Dictionary = ATTIRE_CUTS.get(attire, {})
-	var sleeve_ratio := float(cut.get("sleeve_ratio", 0.3))
-	for path: String in ["RootJoint/FrontLeft", "RootJoint/FrontRight"]:
+func _draw_hero_limb_gear(canvas: Node2D, world_position: Vector2, equipment: Dictionary, palette: Dictionary) -> void:
+	var hero := HeroArt.build(str(_style.get("body_build","quick")))
+	var fabric: Color = palette.fabric
+	var shadow: Color = palette.shadow
+	var trim: Color = palette.trim
+	var accent: Color = palette.accent
+	for path: String in ["RootJoint/FrontLeft","RootJoint/FrontRight"]:
 		var limb := get_node(path) as Line2D
-		var points := _transformed_points(limb, limb.points, world_position)
-		if points.size() < 3:
-			continue
-		var shoulder := points[0]
-		var elbow := points[1]
-		var hand := points[points.size() - 1]
-		var upper_direction := (elbow - shoulder).normalized()
-		var upper_normal := Vector2(-upper_direction.y, upper_direction.x)
-		var sleeve_end := shoulder.lerp(elbow, sleeve_ratio)
-		var shoulder_radius := 4.5 * scale_width
-		var cuff_radius := lerpf(2.6, 3.5, sleeve_ratio) * scale_width
-		var sleeve_shadow := PackedVector2Array([
-			shoulder + upper_normal * (shoulder_radius + 0.9),
-			shoulder - upper_normal * (shoulder_radius + 0.9),
-			sleeve_end - upper_normal * (cuff_radius + 0.7),
-			sleeve_end + upper_normal * (cuff_radius + 0.7),
-		])
-		var sleeve := PackedVector2Array([
-			shoulder + upper_normal * shoulder_radius,
-			shoulder - upper_normal * shoulder_radius,
-			sleeve_end - upper_normal * cuff_radius,
-			sleeve_end + upper_normal * cuff_radius,
-		])
-		canvas.draw_colored_polygon(sleeve_shadow, Color(shadow.darkened(0.24),0.86))
-		canvas.draw_colored_polygon(sleeve, fabric if path.ends_with("Left") else panel)
-		canvas.draw_polyline(_closed_points(sleeve), Color(trim,0.46), 0.8 * scale_width, true)
-		canvas.draw_line(sleeve_end - upper_normal * cuff_radius, sleeve_end + upper_normal * cuff_radius, Color(trim,0.86), 1.35 * scale_width, true)
-		canvas.draw_line(shoulder - upper_normal * shoulder_radius * 0.68, sleeve_end - upper_normal * cuff_radius * 0.68, Color(panel.lightened(0.38),0.24), 0.9 * scale_width, true)
-		if attire in ["firefly_hero", "moon_champion", "pond_pilot", "star_jumper", "lily_lifeguard"]:
-			var bracer_center := elbow.lerp(hand, 0.56)
-			var lower_direction := (hand - elbow).normalized()
-			var lower_normal := Vector2(-lower_direction.y, lower_direction.x)
-			canvas.draw_line(bracer_center - lower_direction * 3.7 * scale_width, bracer_center + lower_direction * 3.7 * scale_width, Color(shadow,0.82), 5.6 * scale_width, true)
-			canvas.draw_line(bracer_center - lower_direction * 3.3 * scale_width, bracer_center + lower_direction * 3.3 * scale_width, accent if attire in ["firefly_hero", "star_jumper", "lily_lifeguard"] else fabric.lightened(0.16), 3.5 * scale_width, true)
-			canvas.draw_line(bracer_center - lower_normal * 2.8 * scale_width, bracer_center + lower_normal * 2.8 * scale_width, Color(trim,0.82), 1.0 * scale_width, true)
-		elif attire in ["trail_scout", "rain_ranger", "bug_catcher"]:
-			var cuff_center := elbow.lerp(hand, 0.24)
-			var cuff_direction := (hand - elbow).normalized()
-			var cuff_normal := Vector2(-cuff_direction.y, cuff_direction.x)
-			canvas.draw_line(cuff_center - cuff_normal * 3.1 * scale_width, cuff_center + cuff_normal * 3.1 * scale_width, accent.darkened(0.12), 1.8 * scale_width, true)
-		else:
-			var sweatband_center := elbow.lerp(hand, 0.40)
-			var forearm_direction := (hand - elbow).normalized()
-			var forearm_normal := Vector2(-forearm_direction.y, forearm_direction.x)
-			canvas.draw_line(sweatband_center - forearm_normal * 2.7 * scale_width, sweatband_center + forearm_normal * 2.7 * scale_width, Color(trim,0.72), 1.45 * scale_width, true)
-
-	# Garment-specific leg accents follow the authored hind joints; bare runner legs stay uncluttered.
-	for hind: Node2D in [_hind_left, _hind_right]:
+		var side := -1.0 if path.ends_with("Left") else 1.0
+		var shoulder := limb.points[0]
+		var elbow := limb.points[1]
+		var wrist := limb.points[2]
+		var cap := HeroArt.shoulder_panel(shoulder,side,equipment.shoulder,equipment.chest)
+		_hero_panel(canvas,limb,cap,fabric if side > 0 else Color(palette.panel),shadow.darkened(0.2),world_position)
+		_hero_line(canvas,limb,PackedVector2Array([shoulder+Vector2(-3*side,-5),shoulder+Vector2(4*side,-6),shoulder+Vector2(9*side,-2)]),Color(trim,0.82),1.2,world_position)
+		var cuff_start := elbow.lerp(wrist,0.35)
+		var cuff_end := elbow.lerp(wrist,0.90)
+		var bracer := HeroArt.segment(cuff_start,cuff_end,5.6*float(hero.arm),5.9*float(hero.arm),4.7*float(hero.arm))
+		_hero_panel(canvas,limb,bracer,accent if equipment.chest in ["firefly","star","rescue"] else fabric,shadow.darkened(0.25),world_position,0.5)
+		var direction := (wrist-elbow).normalized()
+		var normal := Vector2(-direction.y,direction.x)
+		for step in range(2 if float(equipment.bracer) < 1.0 else 3):
+			var center := cuff_start.lerp(cuff_end,float(step)/3.0+0.15)
+			_hero_line(canvas,limb,PackedVector2Array([center-normal*4.2*float(hero.arm),center+normal*4.2*float(hero.arm)]),Color(trim,0.72),1.0,world_position)
+	for hind: Node2D in [_hind_left,_hind_right]:
 		var side := -1.0 if hind == _hind_left else 1.0
-		if attire in ["trail_scout", "firefly_hero", "rain_ranger", "bug_catcher", "lily_lifeguard"]:
-			var knee_color := accent if attire in ["firefly_hero", "lily_lifeguard"] else fabric.darkened(0.08)
-			_draw_transformed_ellipse(canvas, hind, Vector2(side*15.0,6.0), Vector2(5.8,3.8), Color(shadow.darkened(0.18),0.74), world_position)
-			_draw_transformed_ellipse(canvas, hind, Vector2(side*15.5,5.3), Vector2(4.5,2.7), Color(knee_color,0.76), world_position)
-			var knee_band := _transformed_points(hind, PackedVector2Array([Vector2(side*20,7),Vector2(side*15,8.5),Vector2(side*10,7)]), world_position)
-			canvas.draw_polyline(knee_band, Color(trim,0.68), 1.0 * scale_width, true)
-		elif attire in ["moon_champion", "pond_pilot", "star_jumper"]:
-			var ribbon := _transformed_points(hind, PackedVector2Array([Vector2(side*19,5),Vector2(side*15,7),Vector2(side*11,5)]), world_position)
-			canvas.draw_polyline(ribbon, Color(trim,0.66), 1.05 * scale_width, true)
+		var kneepad := CharacterSurface.ellipse(Vector2(side*19,7),Vector2(7.0,5.6),side*0.3)
+		_hero_panel(canvas,hind,kneepad,accent if equipment.chest == "firefly" else fabric,shadow,world_position)
+		_hero_line(canvas,hind,PackedVector2Array([Vector2(side*14,6),Vector2(side*19,4),Vector2(side*24,7)]),Color(trim,0.8),1.2,world_position)
+		for band_y: float in [18.0,21.0]:
+			_hero_line(canvas,hind,PackedVector2Array([Vector2(side*26,band_y-1),Vector2(side*30,band_y),Vector2(side*34,band_y+2)]),fabric.darkened(0.05),2.0,world_position)
 
 func _draw_eyewear(canvas: Node2D, world_position: Vector2, eyewear: String, frame: Color, trim: Color, lens: Color) -> void:
 	var left_center := Vector2(-12.0, -21.0)
@@ -1270,6 +1094,8 @@ func _neutralize() -> void:
 	_root_joint.rotation = 0.0
 	_root_joint.scale = Vector2.ONE
 	_body_joint.rotation = 0.0
+	_body_joint.scale = Vector2.ONE
+	_head_joint.scale = Vector2.ONE
 	_head_joint.position = Vector2(0.0, -17.0)
 	_hind_left.position = Vector2(-18.0, 14.0)
 	_hind_right.position = Vector2(18.0, 14.0)

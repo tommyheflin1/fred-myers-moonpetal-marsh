@@ -27,6 +27,8 @@ REQUIRED = [
     "godot/scripts/fred_animation_coordinator.gd",
     "godot/scripts/fred_rig.gd",
     "godot/scripts/character_surface.gd",
+    "godot/scripts/hero_frog_art.gd",
+    "godot/tests/run_hero_frog_art.gd",
     "godot/scripts/water_contact_art.gd",
     "godot/scripts/botanical_art.gd",
     "godot/tests/run_botanical_art.gd",

@@ -32,6 +32,12 @@ stable nearby label positions during movement, and wraps long footer messages
 inside the existing box. Gameplay objects and touch controls do not move.
 See [caption and footer review](docs/NEXT_BUILD_LABEL_READABILITY.md).
 
+The superhero Fred pass reshapes all eight body types with broader chests,
+muscular limbs, smaller heads and webbed hands. All nine outfits now have
+distinct armor, insignias and equipment; Firefly Hero has a wider cape.
+The actual customization preview also clears its cards, caption and return button.
+See [hero anatomy, attire and actual menu review](docs/NEXT_BUILD_HERO_FRED_UPGRADE.md).
+
 The next-build candidate on `codex/fred-next-build-pause-fix` fixes duplicate
 touch/mouse Pause toggles and clears held controls when pausing or resuming.
 See [reproduction, validation, and delivery handoff](docs/NEXT_BUILD_PAUSE_FIX.md).
