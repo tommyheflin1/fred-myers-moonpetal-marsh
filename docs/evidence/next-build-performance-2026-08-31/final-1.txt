@@ -1,0 +1,14 @@
+Godot Engine v4.7.1.stable.official.a13da4feb - https://godotengine.org
+OpenGL API 3.3.0 NVIDIA 596.51 - Compatibility - Using Device: NVIDIA - NVIDIA T1000 8GB
+
+MEASURE level10 gameplay_draws=120 cpu_p95_us=14589 memory_growth_bytes=-11867068 node_growth=0
+MEASURE level10 predator_draws=240 cpu_average_us=878
+MEASURE level10 collectible_draws=480 cpu_average_us=546
+MEASURE level10 whirlpool_passes=120 hazards_per_pass=0 cpu_average_us=1
+MEASURE level10 label_passes=120 cpu_average_us=137
+MEASURE level71 gameplay_draws=120 cpu_p95_us=17588 memory_growth_bytes=-11187132 node_growth=0
+MEASURE level71 predator_draws=600 cpu_average_us=814
+MEASURE level71 collectible_draws=360 cpu_average_us=490
+MEASURE level71 whirlpool_passes=120 hazards_per_pass=3 cpu_average_us=1164
+MEASURE level71 label_passes=120 cpu_average_us=133
+NEXT_BUILD_GRAPHICS_CAPTURE_PASS count=30

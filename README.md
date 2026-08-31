@@ -43,6 +43,11 @@ nostrils and a curved lip, adds subtle skin mottling, puts eyes behind the
 transparent lenses, and refines webbed digits and all nine costume insignias.
 See [Fred facial detail and actual renderer review](docs/NEXT_BUILD_FRED_FACE_POLISH.md).
 
+The rendering-performance pass reduces repeated lighting and coordinate work
+without changing the artwork: all 30 comparison captures are byte-identical.
+Measured desktop scene CPU drawing time is about 6% lower; device profiling
+remains open. See [performance measurements and verification](docs/NEXT_BUILD_RENDER_PERFORMANCE.md).
+
 The next-build candidate on `codex/fred-next-build-pause-fix` fixes duplicate
 touch/mouse Pause toggles and clears held controls when pausing or resuming.
 See [reproduction, validation, and delivery handoff](docs/NEXT_BUILD_PAUSE_FIX.md).

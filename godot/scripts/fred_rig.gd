@@ -1113,9 +1113,13 @@ func _neutralize() -> void:
 	(get_node("RootJoint/HeadJoint/EyeRight/Pupil") as Polygon2D).position = Vector2(3.0,0.0)
 
 func _transformed_points(node: Node2D, source: PackedVector2Array, world_position: Vector2) -> PackedVector2Array:
-	var points := PackedVector2Array()
-	for point in source:
-		points.append(world_position + to_local(node.to_global(point)))
+	# The joint cannot change within this call. Resolve transforms once per
+	# contour, not twice per vertex; retain both multiplies to avoid rounding
+	# differences from pre-composing matrices. Let the engine transform the packed
+	# arrays in bulk. Never retain transforms or position data over frames.
+	var points: PackedVector2Array = global_transform.affine_inverse() * (node.global_transform * source)
+	for index in points.size():
+		points[index] = world_position + points[index]
 	return points
 
 func _node_point(node: Node2D, local_point: Vector2) -> Vector2:

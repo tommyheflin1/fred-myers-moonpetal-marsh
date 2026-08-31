@@ -1,0 +1,297 @@
+{
+  "baseline_commit": "c44301b53f2c71ba7192e34b6bfe7a5b0794ddbb",
+  "baseline_tree": "55a83def5e2bc327b2b5fea50988e74d52e10b31",
+  "method": "Same existing capture harness, sequential baseline/final runs; 120 frozen-state redraws per scene. CPU drawing preparation only, not device FPS.",
+  "runs": [
+    {
+      "stage": "baseline",
+      "run": 1,
+      "capture_count": 30,
+      "stderr_bytes": 0,
+      "samples": [
+        {
+          "level": "level10",
+          "draws": 120,
+          "cpu_p95_us": 15585,
+          "node_growth": 0
+        },
+        {
+          "level": "level71",
+          "draws": 120,
+          "cpu_p95_us": 18474,
+          "node_growth": 0
+        }
+      ]
+    },
+    {
+      "stage": "baseline",
+      "run": 2,
+      "capture_count": 30,
+      "stderr_bytes": 0,
+      "samples": [
+        {
+          "level": "level10",
+          "draws": 120,
+          "cpu_p95_us": 15864,
+          "node_growth": 0
+        },
+        {
+          "level": "level71",
+          "draws": 120,
+          "cpu_p95_us": 18634,
+          "node_growth": 0
+        }
+      ]
+    },
+    {
+      "stage": "baseline",
+      "run": 3,
+      "capture_count": 30,
+      "stderr_bytes": 0,
+      "samples": [
+        {
+          "level": "level10",
+          "draws": 120,
+          "cpu_p95_us": 16852,
+          "node_growth": 0
+        },
+        {
+          "level": "level71",
+          "draws": 120,
+          "cpu_p95_us": 20038,
+          "node_growth": 0
+        }
+      ]
+    },
+    {
+      "stage": "final",
+      "run": 1,
+      "capture_count": 30,
+      "stderr_bytes": 0,
+      "samples": [
+        {
+          "level": "level10",
+          "draws": 120,
+          "cpu_p95_us": 14589,
+          "node_growth": 0
+        },
+        {
+          "level": "level71",
+          "draws": 120,
+          "cpu_p95_us": 17588,
+          "node_growth": 0
+        }
+      ]
+    },
+    {
+      "stage": "final",
+      "run": 2,
+      "capture_count": 30,
+      "stderr_bytes": 0,
+      "samples": [
+        {
+          "level": "level10",
+          "draws": 120,
+          "cpu_p95_us": 15025,
+          "node_growth": 0
+        },
+        {
+          "level": "level71",
+          "draws": 120,
+          "cpu_p95_us": 17715,
+          "node_growth": 0
+        }
+      ]
+    },
+    {
+      "stage": "final",
+      "run": 3,
+      "capture_count": 30,
+      "stderr_bytes": 0,
+      "samples": [
+        {
+          "level": "level10",
+          "draws": 120,
+          "cpu_p95_us": 14906,
+          "node_growth": 0
+        },
+        {
+          "level": "level71",
+          "draws": 120,
+          "cpu_p95_us": 17565,
+          "node_growth": 0
+        }
+      ]
+    }
+  ],
+  "image_checks": [
+    {
+      "image": "attire.png",
+      "sha256": "848BAB16B2AC94649E88B2768E8CEF19A22BD4FF56C4D5F05F830C3E5E7E70C3",
+      "matching_runs": 6
+    },
+    {
+      "image": "botanical.png",
+      "sha256": "0120E0EA4CADA90EA6638FB16ECC624DD0B0DFB4FCF60294B644C515E29601C5",
+      "matching_runs": 6
+    },
+    {
+      "image": "builds.png",
+      "sha256": "4CDE7E97F277F813EADF452DC7F44818A5CCD0F46DB3027452F46C289A31974B",
+      "matching_runs": 6
+    },
+    {
+      "image": "collectibles.png",
+      "sha256": "6029AE165940B930907A16303DD002465D287929A662E67B4075E382659AFA26",
+      "matching_runs": 6
+    },
+    {
+      "image": "customize-quick-1366x1024.png",
+      "sha256": "861CBAF898650CDF42B035D079AFFE78EF01DDD3EF916EA0D7001FB1AB6FB5BE",
+      "matching_runs": 6
+    },
+    {
+      "image": "customize-quick-1792x828.png",
+      "sha256": "87E75E47AE1D17BBFAFF214F17ADE2FC66CD389B00DF778317FF4B2837A84C8E",
+      "matching_runs": 6
+    },
+    {
+      "image": "customize-strong-1366x1024.png",
+      "sha256": "F95BE652B889DC64C24A5BF661350B77DF9AD15BDC8FFFA7F499F06A6FB0B500",
+      "matching_runs": 6
+    },
+    {
+      "image": "customize-strong-1792x828.png",
+      "sha256": "E0037363C464243953F3F56956D9F900A44B3955C0E8BFAE2EFDA19C212A1E69",
+      "matching_runs": 6
+    },
+    {
+      "image": "gameplay-1280x720.png",
+      "sha256": "D812B1EB259229CAB81CBB2860228EAB5B629CE9C680B6C0004F56CBDE99FB1C",
+      "matching_runs": 6
+    },
+    {
+      "image": "gameplay-tablet-1366x1024.png",
+      "sha256": "FB175105F2A252D8E159F8B7D6FE51F9BD7A9EF80EF46609DEC3BD7A2B2AAD87",
+      "matching_runs": 6
+    },
+    {
+      "image": "hero-detail.png",
+      "sha256": "26C2F7AF2DC6CB85D86AD63950F7FCE2ADDB9150DA6111C8E35301291C919365",
+      "matching_runs": 6
+    },
+    {
+      "image": "hero-fit-classic.png",
+      "sha256": "3BA3C4AC269CAEAE2961424A6E24A176F5BE7DEDEF84A695FC73FDDE1DE5C0E3",
+      "matching_runs": 6
+    },
+    {
+      "image": "hero-fit-pocket_hopper.png",
+      "sha256": "23EF5F472B070D997912F3F66818AC4A426AFEAFDD29742E414AD1FE74DC3A0D",
+      "matching_runs": 6
+    },
+    {
+      "image": "hero-fit-power.png",
+      "sha256": "BA9E90810F2FB8371B707273E743C0B90FF3907F40F3BF8C8DD82FDE77B3004E",
+      "matching_runs": 6
+    },
+    {
+      "image": "hero-fit-quick.png",
+      "sha256": "81A4B82680C252D6BE0BD9960A4A4B9932C5042A07958229894CCEECEAEFCA3B",
+      "matching_runs": 6
+    },
+    {
+      "image": "hero-fit-springy.png",
+      "sha256": "7748F47899C890B303BB2F160CAC7DEC50B4C370B01735A2666220C8D35F5C9C",
+      "matching_runs": 6
+    },
+    {
+      "image": "hero-fit-strong.png",
+      "sha256": "F317B41AF26841ECF12313CEBC0602EF5CE549D364A42B379AC7A4AD7CB0520D",
+      "matching_runs": 6
+    },
+    {
+      "image": "hero-fit-swift.png",
+      "sha256": "78A347A30A7063488551EDB30E713D13180D7462BA26E2A36E4632B58BD057A1",
+      "matching_runs": 6
+    },
+    {
+      "image": "hero-fit-trail_fit.png",
+      "sha256": "E7F53958BE217D48945EB1CB456A94DFA1F28BE6DEB5FF231F329842F4B381A1",
+      "matching_runs": 6
+    },
+    {
+      "image": "level10-reverse-phone-1792x828.png",
+      "sha256": "60A5B9645FB385BFB4265863D49D6F5862B679CC1367BF31BCF68EB9BC4F0EFA",
+      "matching_runs": 6
+    },
+    {
+      "image": "level17-phone-1792x828.png",
+      "sha256": "0161194DC54C61B1B851C11C2ED07E7DFB73562C18A8AF55A633CCFF1D5C158A",
+      "matching_runs": 6
+    },
+    {
+      "image": "level71-late-motion-phone-1792x828.png",
+      "sha256": "BC74428B91118C1907C1186A8A331A1A9740A26C58C4E6AFDFDCB374D05541E7",
+      "matching_runs": 6
+    },
+    {
+      "image": "level71-paused-phone-1792x828.png",
+      "sha256": "7863C3B48BF51D5B57E239ED3953CDD1BC11725F241EED56A272BE224CDDB01F",
+      "matching_runs": 6
+    },
+    {
+      "image": "level71-tablet-1366x1024.png",
+      "sha256": "526CCDB61B25B3AC869A14067D54DF7550E0AC3B51EA6E20FDD9A1DE8AC6160D",
+      "matching_runs": 6
+    },
+    {
+      "image": "level72-reverse-phone-1792x828.png",
+      "sha256": "137CD29CFC1A0C835C2458BE8DF0FDE6F126301487F3987E26C9C48BFBDC8BC9",
+      "matching_runs": 6
+    },
+    {
+      "image": "long-feedback-tablet-1366x1024.png",
+      "sha256": "ED9BC11E42A919398BC1AD7A94030CEC7C03CEBBE0DFCCE1325EF105200E9954",
+      "matching_runs": 6
+    },
+    {
+      "image": "predators.png",
+      "sha256": "EB25D5C98842F08DE070C6A73FDE1A805FB11D8C42834C3846D3A35876D720F3",
+      "matching_runs": 6
+    },
+    {
+      "image": "underwater-phone-1792x828.png",
+      "sha256": "B623816F43B5DFD1D90C13287A97D22FF2977EADD045AC768F011B373F83A138",
+      "matching_runs": 6
+    },
+    {
+      "image": "water-motion.png",
+      "sha256": "3AC7FE1EF3A4F424FCE4832D470D04CE0B4833DF8FE22260DED788A3D06EB273",
+      "matching_runs": 6
+    },
+    {
+      "image": "whirlpools.png",
+      "sha256": "993FEB9CEA597F76FCBC94B1F72A9A8B715C3CE7442F9659B1C7232CE61EFE5E",
+      "matching_runs": 6
+    }
+  ],
+  "godot_suites": 36,
+  "godot_passed": 97062,
+  "godot_failed": 0,
+  "suites_with_exit_diagnostics": 11,
+  "tested_file_hashes": [
+    {
+      "path": "godot/scripts/character_surface.gd",
+      "sha256": "3F05BFDC5B923FCCD57CEC435BDFF3771E957251088D532E391EF12EAA6B91BC"
+    },
+    {
+      "path": "godot/scripts/fred_rig.gd",
+      "sha256": "0115DE037ACA2DBC0028E905343A22BC82BC87D55A7A0EAD21656BF78E586F9C"
+    },
+    {
+      "path": "godot/tests/run_character_surface.gd",
+      "sha256": "374D46C4B75EEE60631B6C961D305183BE49BB2A10DC341EE8398D49A1FD6BFC"
+    }
+  ]
+}
