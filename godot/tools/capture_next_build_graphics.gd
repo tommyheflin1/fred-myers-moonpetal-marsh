@@ -138,19 +138,26 @@ class MeasuredGame extends "res://scripts/main.gd":
 	var measured_collectible_draws := 0
 	var whirlpool_draw_us := 0
 	var measured_whirlpool_passes := 0
+	var label_draw_us := 0
+	var measured_label_passes := 0
+	func _draw_world_labels() -> void:
+		var started := Time.get_ticks_usec()
+		super._draw_world_labels()
+		label_draw_us += Time.get_ticks_usec() - started
+		measured_label_passes += 1
 	func _draw_whirlpools() -> void:
 		var started := Time.get_ticks_usec()
 		super._draw_whirlpools()
 		whirlpool_draw_us += Time.get_ticks_usec() - started
 		measured_whirlpool_passes += 1
-	func _draw_bug(at: Vector2, index: int, flutter: float) -> void:
+	func _draw_bug(at: Vector2, index: int, flutter: float, show_label: bool = true) -> void:
 		var started := Time.get_ticks_usec()
-		super._draw_bug(at, index, flutter)
+		super._draw_bug(at, index, flutter, show_label)
 		collectible_draw_us += Time.get_ticks_usec() - started
 		measured_collectible_draws += 1
-	func _draw_fairy(at: Vector2) -> void:
+	func _draw_fairy(at: Vector2, show_label: bool = true) -> void:
 		var started := Time.get_ticks_usec()
-		super._draw_fairy(at)
+		super._draw_fairy(at, show_label)
 		collectible_draw_us += Time.get_ticks_usec() - started
 		measured_collectible_draws += 1
 	func _draw_predator(at: Vector2, species: String, snapshot: Dictionary = {}) -> void:
@@ -248,10 +255,24 @@ func _capture() -> void:
 	game._set_gameplay_paused(true)
 	game.queue_redraw()
 	await _save("level71-paused-phone-1792x828")
+	game._set_gameplay_paused(false)
+	game.simulation_time = 40.0
+	game.visual_time = 40.0
+	game.queue_redraw()
+	await _save("level71-late-motion-phone-1792x828")
+	game._advance_level()
+	game.simulation_time = 40.0
+	game.fred = game._level_start_position()
+	game.queue_redraw()
+	await _save("level72-reverse-phone-1792x828")
+	_resize(Vector2i(1366, 1024))
+	game.save_feedback = "[SAFE START] The old save was damaged, so we started safely."
+	game.queue_redraw()
+	await _save("long-feedback-tablet-1366x1024")
 	game.queue_free()
 	await process_frame
 	if not capture_failed:
-		print("NEXT_BUILD_GRAPHICS_CAPTURE_PASS count=14")
+		print("NEXT_BUILD_GRAPHICS_CAPTURE_PASS count=17")
 	quit(1 if capture_failed else 0)
 
 func _measure(game: MeasuredGame, label: String) -> void:
@@ -262,6 +283,8 @@ func _measure(game: MeasuredGame, label: String) -> void:
 	game.measured_collectible_draws = 0
 	game.whirlpool_draw_us = 0
 	game.measured_whirlpool_passes = 0
+	game.label_draw_us = 0
+	game.measured_label_passes = 0
 	var save_before := JSON.stringify(game.session.to_save())
 	var gameplay_before := [game.fred,game.predator,game.secondary_predators.duplicate(),game.level_number,game.collected.duplicate(),game.simulation_time]
 	var memory_before := int(Performance.get_monitor(Performance.MEMORY_STATIC))
@@ -275,6 +298,7 @@ func _measure(game: MeasuredGame, label: String) -> void:
 	print("MEASURE %s predator_draws=%d cpu_average_us=%d" % [label, game.measured_predator_draws, game.predator_draw_us / maxi(1,game.measured_predator_draws)])
 	print("MEASURE %s collectible_draws=%d cpu_average_us=%d" % [label, game.measured_collectible_draws, game.collectible_draw_us / maxi(1,game.measured_collectible_draws)])
 	print("MEASURE %s whirlpool_passes=%d hazards_per_pass=%d cpu_average_us=%d" % [label, game.measured_whirlpool_passes, int(game.level_profile.whirlpool_count), game.whirlpool_draw_us / maxi(1,game.measured_whirlpool_passes)])
+	print("MEASURE %s label_passes=%d cpu_average_us=%d" % [label, game.measured_label_passes, game.label_draw_us / maxi(1,game.measured_label_passes)])
 	if JSON.stringify(game.session.to_save()) != save_before or gameplay_before != [game.fred,game.predator,game.secondary_predators,game.level_number,game.collected,game.simulation_time]:
 		push_error("Drawing mutated the game session")
 		capture_failed = true

@@ -27,6 +27,11 @@ currents and curved foam. Their artwork freezes during Pause/background return;
 the original danger radius and chapter rules remain intact.
 See [whirlpool artwork and late-game review](docs/NEXT_BUILD_WHIRLPOOL_POLISH.md).
 
+The readability pass separates crowded world captions from scenery, preserves
+stable nearby label positions during movement, and wraps long footer messages
+inside the existing box. Gameplay objects and touch controls do not move.
+See [caption and footer review](docs/NEXT_BUILD_LABEL_READABILITY.md).
+
 The next-build candidate on `codex/fred-next-build-pause-fix` fixes duplicate
 touch/mouse Pause toggles and clears held controls when pausing or resuming.
 See [reproduction, validation, and delivery handoff](docs/NEXT_BUILD_PAUSE_FIX.md).

@@ -11,6 +11,7 @@ const CharacterSurface = preload("res://scripts/character_surface.gd")
 const BotanicalArt = preload("res://scripts/botanical_art.gd")
 const CollectibleWildlifeArt = preload("res://scripts/collectible_wildlife_art.gd")
 const WhirlpoolArt = preload("res://scripts/whirlpool_art.gd")
+const MarshLabelLayout = preload("res://scripts/marsh_label_layout.gd")
 const PredatorFishArt = preload("res://scripts/predator_fish_art.gd")
 const WaterContactArt = preload("res://scripts/water_contact_art.gd")
 const MarshRouteLayout = preload("res://scripts/marsh_route_layout.gd")
@@ -120,6 +121,8 @@ var golden_client: RefCounted = GoldenEggClient.new()
 var golden_reveal_seconds := 0.0
 var golden_discovery_status := "pending"
 var golden_privacy := "anonymous"
+var _world_labels_key := ""
+var _cached_world_labels: Array[Dictionary] = []
 var golden_chime: AudioStreamPlayer
 
 func _notification(what: int) -> void:
@@ -1452,12 +1455,12 @@ func _draw_level() -> void:
         var drawn_pad: Vector2 = pad + Vector2(0,pad_bob)
         _draw_lily_pad(drawn_pad, index)
     var safe_radius := float(level_profile.safe_radius)
-    _draw_safe_island(_level_safe_position(), safe_radius)
+    _draw_safe_island(_level_safe_position(), safe_radius, false)
     for index in BUGS.size():
         if index not in collected:
-            _draw_bug(_bug_position(index), index, float(visual.wildlife_flutter))
+            _draw_bug(_bug_position(index), index, float(visual.wildlife_flutter), false)
     if _fairy_available():
-        _draw_fairy(_fairy_position())
+        _draw_fairy(_fairy_position(), false)
     var assisted_target := _nearest_assisted_target()
     if not assisted_target.is_empty() and tongue.is_ready():
         var assisted_position := Vector2(assisted_target.position)
@@ -1467,7 +1470,7 @@ func _draw_level() -> void:
     for index in active_positions.size():
         _draw_predator(active_positions[index], PREDATOR_SPECIES[index], _predator_depth_snapshot(index))
     var exit_radius := 45.0 * float(visual.exit_pulse)
-    _draw_moonpetal_exit(_level_exit_position(), exit_radius)
+    _draw_moonpetal_exit(_level_exit_position(), exit_radius, false)
     var fred_draw_position := fred - Vector2(0,leap.visual_height)
     var animation_pose: Dictionary = animation.pose()
     _sync_fred_style()
@@ -1476,6 +1479,7 @@ func _draw_level() -> void:
     var tongue_origin: Vector2 = fred_draw_position + Vector2(fred_rig.tongue_anchor())
     _draw_fred_water_contact()
     fred_rig.render_to(self, fred_draw_position, simulation_time, reduced_motion, false)
+    _draw_world_labels()
     if tongue.is_ready() and leap.state == LeapTraversal.State.GROUNDED and depth.state == DepthTraversal.State.SURFACE:
         _draw_tongue_aim(tongue_origin)
     if tongue.is_busy():
@@ -1559,13 +1563,123 @@ func _draw_lily_pad(position: Vector2, index: int) -> void:
     var rotation := sin(float(level_number * 7 + index * 19)) * 0.28
     BotanicalArt.draw_lily(self, position, index, rotation)
 
-func _draw_safe_island(position: Vector2, radius: float) -> void:
+func _draw_safe_island(position: Vector2, radius: float, show_label: bool = true) -> void:
     BotanicalArt.draw_perch(self, position, radius)
-    _text(position + Vector2(0,8), "SAFE PERCH", 13, Color("e7ffd8"), HORIZONTAL_ALIGNMENT_CENTER, 120)
+    if show_label:
+        _text(position + Vector2(0,8), "SAFE PERCH", 13, Color("e7ffd8"), HORIZONTAL_ALIGNMENT_CENTER, 120)
 
-func _draw_moonpetal_exit(position: Vector2, radius: float) -> void:
+func _draw_moonpetal_exit(position: Vector2, radius: float, show_label: bool = true) -> void:
     BotanicalArt.draw_flower(self, position, radius)
-    _text(position + Vector2(0,radius + 30), "MOONPETAL EXIT", 12, Color("f7e7ff"), HORIZONTAL_ALIGNMENT_CENTER, 150)
+    if show_label:
+        _text(position + Vector2(0,radius + 30), "MOONPETAL EXIT", 12, Color("f7e7ff"), HORIZONTAL_ALIGNMENT_CENTER, 150)
+
+func _label_request(id: String, text: String, size: int, center: Vector2, travel: Vector2, offset: Vector2, color: Color, fixed: bool = false) -> Dictionary:
+    var font := ThemeDB.fallback_font
+    return {"id":id,"text":text,"font_size":size,"center":center,"travel":travel,"offset":offset,"color":color,"fixed":fixed,
+        "size":Vector2(ceilf(font.get_string_size(text,HORIZONTAL_ALIGNMENT_LEFT,-1,size).x),ceilf(font.get_height(size))),"ascent":font.get_ascent(size),
+        "options":PackedVector2Array([Vector2(0,-66),Vector2(0,80),Vector2(-100,5),Vector2(100,5),Vector2(-75,-51),Vector2(75,-51),Vector2(-75,64),Vector2(75,64),Vector2(0,100),Vector2(0,-90)])}
+
+func _bug_label_region(index: int) -> Rect2:
+    # Conservative envelope of the existing position formula, including hover.
+    # Regression compares it with real positions; this does not drive movement.
+    var base := MarshRouteLayout.bug_point(BUGS[index],index,level_number)
+    var phase := float(level_number * 23 + index * 41)
+    var sign := -1.0 if MarshRouteLayout.is_reversed(level_number) else 1.0
+    var middle := base + Vector2(sin(phase*0.17)*38.0*sign,cos(phase*0.11)*25.0)
+    var extent := Vector2(1,0.72) * float(level_profile.bug_flight_radius)
+    var low := (middle-extent).clamp(Vector2(80,145),Vector2(1200,585)) - Vector2(0,3)
+    var high := (middle+extent).clamp(Vector2(80,145),Vector2(1200,585)) + Vector2(0,3)
+    return Rect2(low,high-low)
+
+func _world_label_inputs() -> Dictionary:
+    var requests: Array[Dictionary] = []
+    var scenery: Array[Dictionary] = []
+    var reserved: Array[Rect2] = []
+    var margin := CameraFollow.MAX_OFFSET.x + 5.0
+    var allowed := MarshRouteLayout.PLAYFIELD_RECT.grow(-margin)
+    if touch_controls_visible:
+        reserved.append(MarshRouteLayout.TOUCH_ACTION_WHEEL_RECT.grow(margin))
+        # Include the MOVE heading, which sits above the physical touch pad.
+        reserved.append(MarshRouteLayout.TOUCH_CONTROL_PAD_RECT.grow_individual(margin,margin+34,margin,margin))
+    reserved.append(MarshRouteLayout.DEPTH_STATUS_RECT.grow(margin))
+    var safe := _level_safe_position()
+    var safe_extent := Vector2(float(level_profile.safe_radius)+4,float(level_profile.safe_radius)*0.64+10)
+    scenery.append({"id":"safe","rect":Rect2(safe-safe_extent,safe_extent*2)})
+    requests.append(_label_request("safe","SAFE PERCH",13,safe,Vector2.ZERO,Vector2(0,8),Color("e7ffd8"),true))
+    var exit_at := _level_exit_position()
+    scenery.append({"id":"exit","rect":Rect2(exit_at-Vector2(49,49),Vector2(98,98))})
+    requests.append(_label_request("exit","MOONPETAL EXIT",12,exit_at,Vector2(0,3),Vector2(0,75),Color("f7e7ff"),true))
+    for index in PADS.size():
+        var base := MarshRouteLayout.pad_point(PADS[index],index,level_number)
+        var phase := float(level_number*17+index*31)
+        var sign := -1.0 if MarshRouteLayout.is_reversed(level_number) else 1.0
+        var middle := base+Vector2(sin(phase*0.19)*minf(34,8+level_number*0.28)*sign,cos(phase*0.13)*minf(26,6+level_number*0.20))
+        var extent := Vector2(1,0.55)*float(level_profile.lily_drift)
+        var low := (middle-extent).clamp(Vector2(90,155),Vector2(1190,590))-Vector2(58,48)
+        var high := (middle+extent).clamp(Vector2(90,155),Vector2(1190,590))+Vector2(58,48)
+        scenery.append({"id":"pad%d"%index,"rect":Rect2(low,high-low)})
+    for index in mini(int(level_profile.whirlpool_count),WHIRLPOOLS.size()):
+        var at := _whirlpool_position(index)
+        var id := "whirlpool%d"%index
+        scenery.append({"id":id,"rect":Rect2(at-Vector2(55,55),Vector2(110,110))})
+        requests.append(_label_request(id,"WHIRLPOOL",11,at,Vector2.ZERO,Vector2(0,72),Color("cdefff")))
+    if level_number % 10 == 0:
+        var at := _fairy_position()
+        scenery.append({"id":"fairy","rect":Rect2(at-Vector2(40,40),Vector2(80,73))})
+        requests.append(_label_request("fairy",CollectibleWildlifeArt.FAIRY_LABEL,11,at,Vector2(0,4),Vector2(0,50),Color("fff0ae")))
+    for index in BUGS.size():
+        var region := _bug_label_region(index)
+        var id := "bug%d"%index
+        scenery.append({"id":id,"rect":region.grow_individual(35,36,35,27)})
+        var request := _label_request(id,"BUG %d"%(index+1),11,region.get_center(),region.size*0.5,Vector2(0,CollectibleWildlifeArt.BUG_LABEL_Y),Color("fff7cb"))
+        request.options = PackedVector2Array([Vector2(0,-39),Vector2(-60,5),Vector2(60,5),Vector2(-45,-35),Vector2(45,-35),Vector2(-50,50),Vector2(50,50),Vector2(0,64)])
+        requests.append(request)
+    return {"requests":requests,"scenery":scenery,"reserved":reserved,"allowed":allowed}
+
+func _world_label_plan() -> Array[Dictionary]:
+    var key := "%d:%s:%d" % [level_number,touch_controls_visible,ThemeDB.fallback_font.get_instance_id()]
+    if key != _world_labels_key:
+        var input := _world_label_inputs()
+        _cached_world_labels = MarshLabelLayout.arrange(input.requests,input.scenery,input.reserved,input.allowed)
+        _world_labels_key = key
+    return _cached_world_labels
+
+func _world_label_snapshot() -> Array[Dictionary]:
+    var result: Array[Dictionary] = []
+    for planned in _world_label_plan():
+        var label := planned.duplicate()
+        var id := str(label.id)
+        var at := Vector2(label.center)
+        if id.begins_with("bug"):
+            var index := int(id.trim_prefix("bug"))
+            if index in collected:
+                continue
+            at = _bug_position(index) + Vector2(0,float(WildlifeAnimationRig.pose("BUG",index,simulation_time,reduced_motion).hover_lift))
+        elif id == "fairy":
+            if not _fairy_available():
+                continue
+            at = _fairy_position() + Vector2(0,float(WildlifeAnimationRig.pose("FAIRY",0,simulation_time,reduced_motion).hover_lift))
+        elif id == "exit":
+            at.y += 45.0*(FredVisualState.pulse(visual_time,0.4,reduced_motion)-1.0)
+        label.origin = at
+        label.anchor = at + Vector2(label.offset)
+        label.rect = MarshLabelLayout.text_rect(label.anchor,label.size,label.ascent)
+        result.append(label)
+    return result
+
+func _draw_world_labels() -> void:
+    # Above scenery and actors, below action cues/HUD/overlays. No label boxes.
+    for label in _world_label_snapshot():
+        var anchor := Vector2(label.anchor)
+        if bool(label.moved):
+            var origin := Vector2(label.origin)
+            var edge := origin.clamp(Vector2(label.rect.position),Vector2(label.rect.end))
+            var direction := (edge-origin).normalized()
+            var radius := 56.0 if str(label.id).begins_with("whirlpool") else 30.0
+            if origin.distance_to(edge) > radius+8:
+                draw_line(origin+direction*radius,edge-direction*3,Color(0.62,0.82,0.81,0.50),0.8,true)
+        _text(anchor+Vector2.ONE,label.text,label.font_size,Color(0.01,0.04,0.05,0.90),HORIZONTAL_ALIGNMENT_CENTER,float(label.size.x))
+        _text(anchor,label.text,label.font_size,label.color,HORIZONTAL_ALIGNMENT_CENTER,float(label.size.x))
 
 func _nearest_assisted_target() -> Dictionary:
     var nearest: Dictionary = {}
@@ -1722,8 +1836,6 @@ func _draw_whirlpools() -> void:
     for index in range(mini(int(level_profile.whirlpool_count), WHIRLPOOLS.size())):
         var center: Vector2 = _whirlpool_position(index)
         WhirlpoolArt.draw_water(self, center, _whirlpool_visual(index))
-        _text(center + Vector2(1,WhirlpoolArt.LABEL_Y+1), "WHIRLPOOL", 11, Color(0.01,0.04,0.05,0.85), HORIZONTAL_ALIGNMENT_CENTER, 110)
-        _text(center + Vector2(0,WhirlpoolArt.LABEL_Y), "WHIRLPOOL", 11, Color("cdefff"), HORIZONTAL_ALIGNMENT_CENTER, 110)
 
 func _whirlpool_visual(index: int) -> Dictionary:
     # The gameplay clock freezes on Pause/background/native overlays; the menu
@@ -2046,21 +2158,23 @@ func _draw_reeds(sway: float) -> void:
         var base := Vector2(x,680)
         BotanicalArt.draw_reed(self, base, 46.0 + (x % 3) * 8, sway, x % 3 == 0)
 
-func _draw_bug(position: Vector2, index: int, flutter: float) -> void:
+func _draw_bug(position: Vector2, index: int, flutter: float, show_label: bool = true) -> void:
     var rig_pose: Dictionary = WildlifeAnimationRig.pose("BUG", index, simulation_time, reduced_motion)
     var rig_surface: Dictionary = WildlifeAnimationRig.surface_profile("BUG", index, simulation_time, reduced_motion)
     position += Vector2(0.0,float(rig_pose.hover_lift))
     CollectibleWildlifeArt.draw_bug(self, position, rig_pose, rig_surface, flutter)
-    _text(position+Vector2(1,CollectibleWildlifeArt.BUG_LABEL_Y+1), "BUG %d" % (index + 1), 11, Color(0.01,0.04,0.05,0.85), HORIZONTAL_ALIGNMENT_CENTER, 70)
-    _text(position+Vector2(0,CollectibleWildlifeArt.BUG_LABEL_Y), "BUG %d" % (index + 1), 11, Color("fff7cb"), HORIZONTAL_ALIGNMENT_CENTER, 70)
+    if show_label:
+        _text(position+Vector2(1,CollectibleWildlifeArt.BUG_LABEL_Y+1), "BUG %d" % (index + 1), 11, Color(0.01,0.04,0.05,0.85), HORIZONTAL_ALIGNMENT_CENTER, 70)
+        _text(position+Vector2(0,CollectibleWildlifeArt.BUG_LABEL_Y), "BUG %d" % (index + 1), 11, Color("fff7cb"), HORIZONTAL_ALIGNMENT_CENTER, 70)
 
-func _draw_fairy(position: Vector2) -> void:
+func _draw_fairy(position: Vector2, show_label: bool = true) -> void:
     var rig_pose: Dictionary = WildlifeAnimationRig.pose("FAIRY", 0, simulation_time, reduced_motion)
     var rig_surface: Dictionary = WildlifeAnimationRig.surface_profile("FAIRY", 0, simulation_time, reduced_motion)
     position += Vector2(0.0,float(rig_pose.hover_lift))
     CollectibleWildlifeArt.draw_fairy(self, position, rig_pose, rig_surface)
-    _text(position+Vector2(1,CollectibleWildlifeArt.FAIRY_LABEL_Y+1), CollectibleWildlifeArt.FAIRY_LABEL, 11, Color(0.01,0.04,0.05,0.85), HORIZONTAL_ALIGNMENT_CENTER, 100)
-    _text(position+Vector2(0,CollectibleWildlifeArt.FAIRY_LABEL_Y), CollectibleWildlifeArt.FAIRY_LABEL, 11, Color("fff0ae"), HORIZONTAL_ALIGNMENT_CENTER, 100)
+    if show_label:
+        _text(position+Vector2(1,CollectibleWildlifeArt.FAIRY_LABEL_Y+1), CollectibleWildlifeArt.FAIRY_LABEL, 11, Color(0.01,0.04,0.05,0.85), HORIZONTAL_ALIGNMENT_CENTER, 100)
+        _text(position+Vector2(0,CollectibleWildlifeArt.FAIRY_LABEL_Y), CollectibleWildlifeArt.FAIRY_LABEL, 11, Color("fff0ae"), HORIZONTAL_ALIGNMENT_CENTER, 100)
 
 func _draw_eating_effect(origin: Vector2, target: Vector2) -> void:
     var progress: float = 1.0 if reduced_motion else tongue.extension_ratio()
@@ -2171,14 +2285,12 @@ func _button(rect: Rect2, label: String) -> void:
 func _status_panel(rect: Rect2, size: int) -> void:
     draw_rect(rect, FredSaveFeedback.PANEL_BACKGROUND, true)
     draw_rect(rect, FredSaveFeedback.PANEL_BORDER, false, 2)
-    _text(
-        rect.position + Vector2(rect.size.x / 2.0, rect.size.y / 2.0 + 6.0),
-        save_feedback,
-        size,
-        FredSaveFeedback.PANEL_TEXT,
-        HORIZONTAL_ALIGNMENT_CENTER,
-        rect.size.x - 16.0
-    )
+    var layout := MarshLabelLayout.footer(save_feedback,ThemeDB.fallback_font,size,rect.size-Vector2(16,6))
+    if not bool(layout.valid):
+        return
+    var top: float = rect.get_center().y - float(layout.line_height)*layout.lines.size()*0.5
+    for index in layout.lines.size():
+        _text(Vector2(rect.get_center().x,top+float(layout.ascent)+index*float(layout.line_height)),layout.lines[index],layout.size,FredSaveFeedback.PANEL_TEXT,HORIZONTAL_ALIGNMENT_CENTER,rect.size.x-16)
 
 func _text(anchor: Vector2, value: String, size: int, color: Color, alignment: HorizontalAlignment, width: float) -> void:
     var font := ThemeDB.fallback_font
