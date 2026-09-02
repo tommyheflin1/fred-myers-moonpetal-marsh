@@ -1,0 +1,59 @@
+{
+  "display_name": "Fred Myers and the Moonpetal Marsh",
+  "game_id": "fred-myers",
+  "bundle_id": "com.flinsvault.fredmyers",
+  "android_package": "com.flinsappvault.fredmyers.dev",
+  "genre": "family-friendly action adventure",
+  "core_gameplay_loop": "Guide Fred through Moonpetal Marsh, leap between lilies, dive and surface, catch bugs, evade predators, complete changing level objectives, earn coins, and unlock reusable frog appearances.",
+  "orientation": "landscape",
+  "marketing_version": "1.0",
+  "build_number": 5,
+  "save_schema": 1,
+  "audience": "family",
+  "platforms": [
+    "ios",
+    "android"
+  ],
+  "capabilities": {
+    "accounts": false,
+    "achievements": false,
+    "cloud_save": false,
+    "cosmetics": true,
+    "game_center": true,
+    "golden_eggs": true,
+    "google_play_games": false,
+    "leaderboards": true,
+    "wallet": true,
+    "audio": true,
+    "haptics": false,
+    "lifecycle": true,
+    "platform_back": true
+  },
+  "content_state": "release-candidate",
+  "integrations": {
+    "golden_eggs": {
+      "origin": "https://theflinsappvaultllc.com",
+      "hunt_path": "/golden-eggs",
+      "egg_id": "moonpetal-golden-egg",
+      "auth_protocol": "platform-secure-hmac-v1"
+    }
+  },
+  "privacy": {
+    "policy_url": "https://theflinsappvaultllc.com/fred-myers/privacy",
+    "policy_version": "fred-myers-2026-08-25",
+    "effective_date": "2026-08-25",
+    "review_status": "approved",
+    "game_center": true,
+    "golden_eggs": true,
+    "paid_download": true,
+    "local_data": [
+      "Campaign progress, settings, earned coins, unlocked frog cosmetics, local scores and ordinary gameplay records stored on the device",
+      "Golden Egg eligibility, pending discovery evidence and privacy choice stored on the device until a secure authenticated service connection is available"
+    ],
+    "excluded_data": [
+      "Advertising, cross-app tracking, developer analytics and marketing attribution",
+      "Precise location, contacts, photos, camera, microphone and health information",
+      "Chat, free-form user content, in-app purchases, subscriptions and paid virtual currency"
+    ]
+  }
+}

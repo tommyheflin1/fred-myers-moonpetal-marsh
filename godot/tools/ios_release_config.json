@@ -1,0 +1,14 @@
+{
+  "app_store_app_id": "6803295872",
+  "bundle_id": "com.flinsvault.fredmyers",
+  "team_id": "W6WBR6N6S8",
+  "api_key_id": "AQX2CFYPVZ",
+  "api_issuer_id": "de911c2a-77f4-4b17-9c05-f25feef339e8",
+  "api_key_path": "~/.appstoreconnect/private_keys/AuthKey_AQX2CFYPVZ.p8",
+  "game_center": {
+    "plugin_commit": "fbdbc317fe2ab422ef9bf5fb07f876eb2e773bcb",
+    "godot_tag": "4.7.1-stable",
+    "patch_id": "gamecenter-uiwindow-scene-v1",
+    "patch_sha256": "bdcc0f6dbdb199c62867c2a7aefc0397cac858113a6f893e047838b188c99ee2"
+  }
+}

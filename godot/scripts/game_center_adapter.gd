@@ -182,10 +182,13 @@ func _handle_event(event: Dictionary) -> void:
 	if event_type == "post_score" and not in_flight_record.is_empty():
 		var event_category := str(event.get("category", ""))
 		var event_score := int(event.get("score", -1))
-		if (
-			event_category != str(in_flight_record.get("category", ""))
-			or event_score != int(in_flight_record.get("score", 0))
-		):
+		# The canonical iOS plug-in serializes score submissions, so a generic
+		# post_score acknowledgement belongs to the single in-flight record.
+		# Enhanced plug-ins may include category/score metadata; when present,
+		# keep rejecting stale or mismatched acknowledgements.
+		if not event_category.is_empty() and event_category != str(in_flight_record.get("category", "")):
+			return
+		if event_score >= 0 and event_score != int(in_flight_record.get("score", 0)):
 			return
 		if str(event.get("result", "")) == "ok":
 			_finish_score_submission(true, "", 0)

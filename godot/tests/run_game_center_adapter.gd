@@ -82,9 +82,9 @@ func _run() -> void:
 
 	var completions: Array[Dictionary] = []
 	adapter.score_submission_completed.connect(func(result: Dictionary) -> void: completions.append(result.duplicate(true)))
-	plugin.events.append({"type": "post_score", "result": "ok", "category": Adapter.SCORE_LEADERBOARD_ID, "score": 12000})
+	plugin.events.append({"type": "post_score", "result": "ok"})
 	adapter.poll()
-	check(plugin.posts.size() == 2, "score acknowledgement advances to the level record")
+	check(plugin.posts.size() == 2, "canonical generic score acknowledgement advances to the level record")
 	check(str(plugin.posts[1].category) == Adapter.LEVEL_LEADERBOARD_ID, "highest level uses the permanent Fred leaderboard ID")
 	check(int(plugin.posts[1].score) == 12, "highest level is preserved")
 	plugin.events.append({"type": "post_score", "result": "ok", "category": Adapter.LEVEL_LEADERBOARD_ID, "score": 12})

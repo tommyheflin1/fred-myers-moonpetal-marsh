@@ -109,7 +109,7 @@ func _run() -> void:
 	var main_source := FileAccess.get_file_as_string("res://scripts/main.gd")
 	check(main_source.contains("not session.paused and countdown_seconds <= 0.0"), "touch controls stay hidden behind countdown and pause overlays")
 	var export_config := FileAccess.get_file_as_string("res://export_presets.cfg")
-	check(export_config.contains('application/version="4"'), "iOS development export declares App Store build number 4")
+	check(export_config.contains('application/version="5"'), "iOS development export declares App Store build number 5")
 	check(export_config.contains("fred-myers-app-build-2-debug.apk"), "Android development export has a distinct Build 2 artifact name")
 
 	game.menu_music.stop()

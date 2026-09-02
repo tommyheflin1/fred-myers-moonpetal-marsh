@@ -1,0 +1,26 @@
+#!/bin/sh
+set -eu
+
+ROOT="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
+MODE="${1:-}"
+COMMIT="${2:-}"
+case "$MODE" in preflight|archive|upload|status) ;; *) echo "usage: tools/release-ios <preflight|archive|upload|status> <exact-commit>" >&2; exit 2;; esac
+case "$COMMIT" in [0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f]) ;; *) echo "release commit must be an exact lowercase 40-character SHA" >&2; exit 2;; esac
+
+if [ "$(uname -s)" = "Darwin" ] && [ "${FLINS_IOS_CAFFEINATED:-0}" != "1" ]; then
+  exec caffeinate -dimsu env FLINS_IOS_CAFFEINATED=1 sh "$0" "$MODE" "$COMMIT"
+fi
+
+python3 "$ROOT/tools/audit_process.py" --root "$ROOT"
+python3 "$ROOT/tools/release_checkpoint.py" check --root "$ROOT" --commit "$COMMIT" --mode "$MODE"
+python3 "$ROOT/tools/validate_ios_release_config.py" --root "$ROOT"
+case "$MODE" in
+  preflight)
+    python3 "$ROOT/tools/privacy_policy.py" verify --root "$ROOT"
+    python3 "$ROOT/.agents/skills/apple-remote-delivery/scripts/apple_receipt_status.py" --root "$ROOT" --authenticate-only
+    bash "$ROOT/.agents/skills/apple-remote-delivery/scripts/apple_delivery.sh" prepare "$ROOT" "$COMMIT"
+    ;;
+  archive) bash "$ROOT/.agents/skills/apple-remote-delivery/scripts/apple_delivery.sh" archive "$ROOT" "$COMMIT" ;;
+  upload) bash "$ROOT/.agents/skills/apple-remote-delivery/scripts/apple_delivery.sh" upload "$ROOT" "$COMMIT" ;;
+  status) python3 "$ROOT/.agents/skills/apple-remote-delivery/scripts/apple_receipt_status.py" --root "$ROOT" ;;
+esac
