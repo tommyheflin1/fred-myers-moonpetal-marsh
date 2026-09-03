@@ -127,6 +127,9 @@ var golden_privacy := "anonymous"
 var _world_labels_key := ""
 var _cached_world_labels: Array[Dictionary] = []
 var golden_chime: AudioStreamPlayer
+var golden_room_open := false
+const GOLDEN_ROOM_EGG := Vector2(640, 360)
+const GOLDEN_ROOM_EGG_RADIUS := 78.0
 
 func _notification(what: int) -> void:
     match what:
@@ -154,6 +157,7 @@ func _handle_application_paused() -> void:
     if is_instance_valid(chase_music):
         chase_music.stream_paused = true
     if screen == Screen.PLAYING:
+        golden_run.note_pause(level_number)
         session.paused = true
         _save("[PAUSED] Fred is safe while the app is in the background.")
 
@@ -325,6 +329,14 @@ func _fixed_tick(delta: float) -> void:
     if device_intent_adapter_enabled:
         direction += FredInputIntent.movement()
     direction = direction.normalized()
+    if golden_room_open:
+        if direction != Vector2.ZERO:
+            last_aim_direction = direction
+        fred = (fred + direction * 170.0 * delta).clamp(Vector2(90,145),Vector2(1190,615))
+        if fred.distance_to(GOLDEN_ROOM_EGG) <= GOLDEN_ROOM_EGG_RADIUS and golden_run.touch_egg():
+            _reveal_golden_egg()
+        _update_animation(direction)
+        return
     if direction != Vector2.ZERO:
         last_aim_direction = direction
     if device_intent_adapter_enabled and FredInputIntent.pressed(FredInputIntent.Intent.LEAP):
@@ -345,7 +357,7 @@ func _fixed_tick(delta: float) -> void:
     if bool(depth_step.completed):
         session.set_underwater(str(depth_step.mode) == "underwater")
         if str(depth_step.mode) == "surface":
-            golden_run.note_surface_complete(level_number)
+            golden_run.note_surface_complete(level_number, fred, last_aim_direction)
         _set_feedback("[DEPTH] Fred reached the %s." % str(depth_step.mode))
     var current := _current_vector()
     if leap.state == LeapTraversal.State.AIRBORNE:
@@ -363,7 +375,13 @@ func _fixed_tick(delta: float) -> void:
             if depth.is_underwater_band():
                 speed *= DepthTraversal.UNDERWATER_BOOST_SCALE
         fred = (fred + (direction * speed + current) * delta).clamp(Vector2(55,105), Vector2(1225,665))
-    golden_run.observe_position(level_number, fred, depth.is_underwater_band())
+    golden_run.observe_position(level_number, fred, last_aim_direction)
+    if level_number == GoldenEggRunState.TARGET_LEVEL and boost.is_active() and fred.y <= 108.0:
+        if golden_run.try_upward_wall_boost(level_number, fred, last_aim_direction):
+            golden_room_open = true
+            fred = Vector2(640,560)
+            boost.cancel(session.boost_energy)
+            _set_feedback("[SECRET DOOR] Ancient reeds part beyond the wall.")
     _update_animation(direction)
     _update_camera(direction, bool(boost_step.active))
     predator.x += predator_direction * 110.0 * float(level_profile.predator_speed_scale) * delta
@@ -509,6 +527,7 @@ func _request_tongue(requested_aim: Vector2) -> Dictionary:
     if not bool(result.get("accepted", false)):
         _set_feedback("[TONGUE RECOVERING] Wait for Fred's tongue to return.")
         return result
+    golden_run.note_tongue_complete(level_number, fred, last_aim_direction)
     eat_target = Vector2(result.get("target_point", fred + last_aim_direction * TongueTargeting.MAX_RANGE))
     match str(result.get("outcome", "miss")):
         "hit":
@@ -531,6 +550,7 @@ func _consume_tongue_target(target_id: String, target_kind: String) -> bool:
         if index < 0 or index >= BUGS.size() or index in collected:
             return false
         collected.append(index)
+        golden_run.note_food_collected(level_number)
         session.collect_bug()
         customization.earn_coins(3)
         _sync_fred_style()
@@ -687,7 +707,7 @@ func _request_leap(requested_direction: Vector2) -> bool:
         return false
     var accepted: bool = leap.request(requested_direction)
     if accepted:
-        golden_run.note_valid_surface_jump(level_number)
+        golden_run.note_valid_surface_jump(level_number, fred, last_aim_direction)
         _set_feedback("[LEAP] Fred sprang over the marsh!")
     return accepted
 
@@ -708,7 +728,7 @@ func _request_dive() -> bool:
     var accepted: bool = depth.request_dive(allowed)
     if accepted:
         boost.cancel(session.boost_energy)
-        golden_run.note_dive_after_surface(level_number)
+        golden_run.note_dive_started(level_number, fred, last_aim_direction)
         _set_feedback("[DIVING] Hold your course while Fred descends.")
     elif depth.state == DepthTraversal.State.SURFACE and not allowed:
         _set_feedback("[DIVE BLOCKED] Move into open water.")
@@ -740,9 +760,7 @@ func _resolve_landing() -> bool:
         _set_feedback("[LANDING] Fred kept moving through the marsh.")
     return true
 
-func _try_golden_egg_predator_event() -> bool:
-    if not golden_run.try_predator_event(level_number):
-        return false
+func _reveal_golden_egg() -> void:
     leap.reset()
     depth.reset("surface")
     tongue.reset()
@@ -768,7 +786,6 @@ func _try_golden_egg_predator_event() -> bool:
         golden_chime.play()
     _set_feedback("[GOLDEN DISCOVERY] Moonpetal magic has awakened!")
     queue_redraw()
-    return true
 
 func _unhandled_input(event: InputEvent) -> void:
     # Native touch and the desktop pointer already share one Fred input path.
@@ -812,6 +829,8 @@ func _unhandled_input(event: InputEvent) -> void:
         elif screen == Screen.INSTRUCTIONS: _start()
 
 func _set_gameplay_paused(paused: bool) -> void:
+    if paused:
+        golden_run.note_pause(level_number)
     session.paused = paused
     # Resuming must never revive a direction or Boost held before the overlay.
     touch_contacts.clear()
@@ -1084,6 +1103,9 @@ func _handle_wardrobe_click(position: Vector2) -> void:
                 break
     queue_redraw()
 
+func _try_golden_egg_predator_event() -> bool:
+    return false
+
 func _advance_level() -> void:
     if level_number >= FredLevelIntensity.MAX_LEVEL:
         _go_home()
@@ -1092,6 +1114,7 @@ func _advance_level() -> void:
     var carried_lives := session.health
     var carried_energy := session.boost_energy
     golden_run.advance_level(level_number, level_number + 1)
+    golden_room_open = false
     level_number = mini(FredLevelIntensity.MAX_LEVEL, level_number + 1)
     level_profile = FredLevelIntensity.profile(level_number)
     session = AdventureSession.new(1337 + level_number)
@@ -1227,17 +1250,7 @@ func _draw_golden_egg_reveal() -> void:
         var distance := 125.0 + float((index * 37) % 150)
         var sparkle := Vector2(640,330) + Vector2.from_angle(angle) * distance
         draw_circle(sparkle, 2.5 + float(index % 4), Color(1.0,0.84,0.34,0.48 + float(index % 3) * 0.12))
-    draw_colored_polygon(_ellipse_points(Vector2(640,350),Vector2(103+pulse*0.35,135+pulse*0.35),0.0),Color("b87512"))
-    draw_colored_polygon(_ellipse_points(Vector2(640,330),Vector2(96+pulse*0.30,128+pulse*0.30),0.0),Color("f8c947"))
-    draw_colored_polygon(_ellipse_points(Vector2(620,300),Vector2(48,83),-0.22),Color(1.0,0.91,0.45,0.62))
-    draw_arc(Vector2(640,330),96.0,0.0,TAU,72,Color("fff3a6"),6.0)
-    draw_arc(Vector2(640,330),70.0,0.1,TAU-0.1,72,Color("a76109"),7.0)
-    draw_arc(Vector2(640,330),55.0,0.0,TAU,72,Color("ffe989"),4.0)
-    for petal_angle in range(0,360,60):
-        var petal_center := Vector2(640,330)+Vector2.from_angle(deg_to_rad(float(petal_angle)))*54.0
-        draw_colored_polygon(_ellipse_points(petal_center,Vector2(12,25),deg_to_rad(float(petal_angle))),Color("fff0a8"))
-    draw_circle(Vector2(640,330),20.0,Color("fff8d4"))
-    draw_circle(Vector2(633,323),6.0,Color(1,1,1,0.78))
+    _draw_canonical_golden_egg(Vector2(640,330),1.0+pulse/350.0)
     _text(Vector2(640,60),"A SECRET OF MOONPETAL MARSH!",36,Color("ffe184"),HORIZONTAL_ALIGNMENT_CENTER,1080)
     _text(Vector2(640,108),"You found one of the hidden Golden Eggs.",25,Color.WHITE,HORIZONTAL_ALIGNMENT_CENTER,920)
     _text(Vector2(640,486),"Your place is confirmed only by the secure App Vault service.",17,Color("d9f4e2"),HORIZONTAL_ALIGNMENT_CENTER,880)
@@ -1485,6 +1498,9 @@ func _draw_level() -> void:
     var water := Color("075c78").lerp(Color("07334f"), float(depth.depth))
     draw_rect(MarshRouteLayout.PLAYFIELD_RECT.grow(7.0), Color("020b12"), true)
     _draw_marsh_background(water)
+    if golden_room_open:
+        _draw_golden_room()
+        return
     _draw_depth_cues()
     for glow in [Vector2(180,170), Vector2(530,270), Vector2(1020,420)]:
         draw_circle(_route_point(glow), 95, Color(0.2,0.85,0.78,0.035))
@@ -1533,6 +1549,24 @@ func _draw_level() -> void:
         _draw_impact_burst()
     draw_set_transform(Vector2.ZERO)
     _draw_depth_status()
+
+func _draw_golden_room() -> void:
+    draw_rect(MarshRouteLayout.PLAYFIELD_RECT, Color("0a3c47"), true)
+    for x in range(90,1240,85):
+        draw_line(Vector2(x,620),Vector2(x+12,150),Color("39745b"),9.0)
+    draw_circle(GOLDEN_ROOM_EGG,118.0,Color(1.0,0.78,0.18,0.10))
+    var pulse := 0.0 if reduced_motion else sin(visual_time*2.0)*0.04
+    _draw_canonical_golden_egg(GOLDEN_ROOM_EGG,0.62+pulse)
+    fred_rig.render_to(self,fred,simulation_time,reduced_motion,false)
+
+func _draw_canonical_golden_egg(center: Vector2, scale: float = 1.0) -> void:
+    draw_colored_polygon(_ellipse_points(center+Vector2(0,18)*scale,Vector2(96,128)*scale,0.0),Color("f8c947"))
+    draw_arc(center,76.0*scale,0.0,TAU,64,Color("fff3a6"),5.0)
+    draw_circle(center+Vector2(-24,-12)*scale,17.0*scale,Color("72c96b"))
+    draw_circle(center+Vector2(24,-12)*scale,17.0*scale,Color("72c96b"))
+    draw_circle(center+Vector2(-24,-15)*scale,5.0*scale,Color("13242a"))
+    draw_circle(center+Vector2(24,-15)*scale,5.0*scale,Color("13242a"))
+    draw_arc(center+Vector2(0,12)*scale,25.0*scale,0.25,PI-0.25,18,Color("7d5609"),4.0)
     _text(Vector2(25,42), "LILY LEAP", 27, Color("f7d36a"), HORIZONTAL_ALIGNMENT_LEFT, 270)
     _text(MarshRouteLayout.CAMPAIGN_TEXT_RECT.position + Vector2(7.0,14.0), "CAMPAIGN 1  •  LEVEL %03d / 100  •  %s" % [level_profile.level, level_profile.label], 13, Color("d9f4e2"), HORIZONTAL_ALIGNMENT_LEFT, MarshRouteLayout.CAMPAIGN_TEXT_RECT.size.x - 14.0)
     var route_summary := "%s  |  %s  |  %.1fx  |  THREATS %d  |  NEW: %s" % [
