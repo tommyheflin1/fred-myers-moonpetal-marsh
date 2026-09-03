@@ -55,7 +55,7 @@ const CUSTOM_PREVIEW_RECT := Wardrobe.PREVIEW_RECT
 const GOLDEN_EGG_PRIVATE_RECT := Rect2(175,555,400,48)
 const GOLDEN_EGG_PUBLIC_RECT := Rect2(705,555,400,48)
 const GOLDEN_EGG_HUNT_RECT := Rect2(265,625,340,50)
-const GOLDEN_EGG_HOME_RECT := Rect2(675,625,340,50)
+const GOLDEN_EGG_RETURN_RECT := Rect2(675,625,340,50)
 const CUSTOM_CARDS := Wardrobe.TABS
 
 var session := AdventureSession.new(1337)
@@ -951,8 +951,8 @@ func _handle_click(position: Vector2) -> void:
         _set_feedback("[SHARE READY] Your chosen marsh name may appear after secure confirmation.")
     elif screen == Screen.GOLDEN_EGG and GOLDEN_EGG_HUNT_RECT.has_point(position):
         _open_golden_egg_hunt()
-    elif screen == Screen.GOLDEN_EGG and GOLDEN_EGG_HOME_RECT.has_point(position):
-        _go_home()
+    elif screen == Screen.GOLDEN_EGG and GOLDEN_EGG_RETURN_RECT.has_point(position):
+        _return_to_level_five()
 
 func _golden_egg_hunt_url() -> String:
     return GoldenEggClient.BASE_URL + GoldenEggClient.HUNT_PATH
@@ -963,6 +963,37 @@ func _open_golden_egg_hunt() -> void:
         _set_feedback("[GOLDEN EGG HUNT] The official App Vault hunt opened in your browser.")
     else:
         _set_feedback("[HUNT LINK] Visit theflinsappvaultllc.com/golden-eggs.")
+
+func _return_to_level_five() -> void:
+    level_number = GoldenEggRunState.TARGET_LEVEL
+    level_profile = FredLevelIntensity.profile(level_number)
+    session = AdventureSession.new(1337 + level_number)
+    fred = _level_start_position()
+    predator = _route_point(PREDATOR_START)
+    predator_direction = -1.0 if MarshRouteLayout.is_reversed(level_number) else 1.0
+    collected.clear()
+    fairy_collected = false
+    golden_room_open = false
+    leap.reset()
+    depth.reset("surface")
+    tongue.reset()
+    boost.reset()
+    animation.reset()
+    session.set_underwater(false)
+    touch_contacts.clear()
+    touch_positions.clear()
+    pointer_touch_active = false
+    _refresh_touch_holds()
+    simulation_time = 0.0
+    danger_cooldown_seconds = 0.0
+    impact_burst_seconds = 0.0
+    countdown_seconds = 5.0 if countdown_enabled else 0.0
+    last_aim_direction = MarshRouteLayout.route_direction(level_number)
+    _reset_camera()
+    screen = Screen.PLAYING
+    _sync_music()
+    _set_feedback("[LEVEL 5] Fred returned to the beginning of the marsh route.")
+    queue_redraw()
 
 func _open_story() -> void:
     screen = Screen.STORY
@@ -1260,7 +1291,7 @@ func _draw_golden_egg_reveal() -> void:
     _button(GOLDEN_EGG_PRIVATE_RECT,"KEEP ME ANONYMOUS" if golden_privacy != "anonymous" else "ANONYMOUS ✓")
     _button(GOLDEN_EGG_PUBLIC_RECT,"SHARE MY MARSH NAME" if golden_privacy != "public" else "PUBLIC NAME ✓")
     _button(GOLDEN_EGG_HUNT_RECT,"OPEN GOLDEN EGG HUNT")
-    _button(GOLDEN_EGG_HOME_RECT,"HOME")
+    _button(GOLDEN_EGG_RETURN_RECT,"RETURN TO LEVEL 5")
     _text(Vector2(640,705),"No rank, time, or secret code is created on this device.",12,Color("9ec8cf"),HORIZONTAL_ALIGNMENT_CENTER,800)
 
 func _draw_title() -> void:

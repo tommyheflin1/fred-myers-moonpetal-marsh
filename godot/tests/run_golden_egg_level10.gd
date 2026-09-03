@@ -37,6 +37,23 @@ func _init() -> void:
 	state = fresh()
 	check(not state.touch_egg() and not state.eligible_for_reveal(), "room and egg are unavailable before door")
 	check(state.snapshot().format == 2 and state.evidence().level == 5, "new guard and evidence identify Level 5 contract")
+	var game = load("res://scripts/main.gd").new()
+	root.add_child(game)
+	await process_frame
+	game.level_number = 5
+	var revealed = armed()
+	revealed.try_upward_wall_boost(5,POS,Vector2.UP)
+	revealed.touch_egg()
+	game.golden_run = revealed
+	game.golden_room_open = true
+	game.screen = game.Screen.GOLDEN_EGG
+	game.golden_privacy = "public"
+	game._return_to_level_five()
+	check(game.screen == game.Screen.PLAYING and game.level_number == 5, "return option resumes ordinary Level 5")
+	check(game.fred == game._level_start_position() and game.collected.is_empty(), "return option starts Level 5 from its clean beginning")
+	check(not game.golden_room_open and game.golden_privacy == "public", "return closes secret room while preserving display choice")
+	check(game.golden_run.phase == RunState.Phase.REVEALED, "return cannot replay the already found secret")
+	game.queue_free()
 	print("RESULT golden_egg_level5_passed=%d golden_egg_level5_failed=%d" % [passed,failed])
 	quit(1 if failed else 0)
 
