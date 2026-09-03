@@ -25,10 +25,10 @@ def check(condition: bool, message: str) -> None:
 
 check(report["schema"] == "fred-ios-preparation-v1", "unexpected schema")
 check(report["status"] == "PASS", str(report["errors"]))
-check(report["development_bundle_id"] == "com.flinsvault.fredmyers.dev", "development bundle changed")
+check(report["development_bundle_id"] == "com.flinsvault.fredmyers", "active bundle changed")
 check(report["production_bundle_id"] == "com.flinsvault.fredmyers", "production bundle changed")
 check(report["marketing_version"] == "1.0", "marketing version changed")
-check(report["build_number"] == "4", "Build 4 number is not prepared")
+check(report["build_number"] == "6", "Build 6 number is not prepared")
 check(report["minimum_ios"] == "15.0", "minimum iOS changed")
 check(report["targeted_device_family"] == "iPhone+iPad", "device family changed")
 check(len(report["game_center_leaderboards"]) == 2, "leaderboard contract changed")

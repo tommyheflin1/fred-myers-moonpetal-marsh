@@ -15,10 +15,10 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 PROJECT = ROOT / "godot"
 EXPECTED_CORE_TREE = "288d87420c5694f80c071f00aa71a0b581f9f60c"
-DEVELOPMENT_BUNDLE_ID = "com.flinsvault.fredmyers.dev"
+DEVELOPMENT_BUNDLE_ID = "com.flinsvault.fredmyers"
 PRODUCTION_BUNDLE_ID = "com.flinsvault.fredmyers"
 MARKETING_VERSION = "1.0"
-BUILD_NUMBER = "4"
+BUILD_NUMBER = "6"
 
 
 def _git(*args: str) -> str:
@@ -59,7 +59,6 @@ def validate(root: Path = ROOT) -> dict[str, object]:
         f'application/bundle_identifier="{DEVELOPMENT_BUNDLE_ID}"': 1,
         f'application/short_version="{MARKETING_VERSION}"': 1,
         f'application/version="{BUILD_NUMBER}"': 1,
-        'application/app_store_team_id=""': 1,
         "application/targeted_device_family=2": 1,
         'application/min_ios_version="15.0"': 1,
         "application/export_project_only=true": 1,
@@ -69,6 +68,8 @@ def validate(root: Path = ROOT) -> dict[str, object]:
     for fragment, expected_count in required_counts.items():
         if preset.count(fragment) != expected_count:
             errors.append(f"expected {expected_count} preset value(s): {fragment}")
+    if not re.fullmatch(r"[A-Z0-9]{10}", _setting(preset, "application/app_store_team_id")):
+        errors.append("App Store team reference must be a 10-character identifier")
 
     prohibited = (
         "DEVELOPMENT_TEAM=",
