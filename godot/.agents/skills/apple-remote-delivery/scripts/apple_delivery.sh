@@ -17,6 +17,7 @@ PY
 )"
 lane="$root/builds/ios/apple-delivery/${version}-${build}"
 checkpoint="$lane/checkpoint.json"
+profile_name="${APPLE_PROVISIONING_PROFILE_SPECIFIER:-Fred Myers App Store Game Center 2026}"
 godot="$(command -v godot 2>/dev/null || true)"
 [[ -n "$godot" ]] || godot=/Applications/Godot.app/Contents/MacOS/Godot
 
@@ -60,7 +61,7 @@ case "$mode" in
     scheme="$(basename "$xcodeproj" .xcodeproj)"
     archive="$lane/${game_id}.xcarchive"
     sed -i '' '/CODE_SIGN_IDENTITY =/d' "$xcodeproj/project.pbxproj"
-    caffeinate -dimsu -- xcodebuild -project "$xcodeproj" -scheme "$scheme" -configuration Release -destination generic/platform=iOS -archivePath "$archive" DEVELOPMENT_TEAM="$APPLE_TEAM_ID" CODE_SIGN_STYLE=Automatic -allowProvisioningUpdates archive | tee "$lane/archive.log"
+    caffeinate -dimsu -- xcodebuild -project "$xcodeproj" -scheme "$scheme" -configuration Release -destination generic/platform=iOS -archivePath "$archive" DEVELOPMENT_TEAM="$APPLE_TEAM_ID" CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY="Apple Distribution" PROVISIONING_PROFILE_SPECIFIER="$profile_name" archive | tee "$lane/archive.log"
     app="$(find "$archive/Products/Applications" -maxdepth 1 -name '*.app' -print -quit)"
     [[ -n "$app" ]] || { echo "APPLE_ARCHIVE_STOP signed app missing"; exit 3; }
     forbidden_symbols="$(find "$app" -name '.symbols' -print -quit)"
@@ -83,7 +84,7 @@ case "$mode" in
     cat > "$lane/ExportOptions.plist" <<EOF
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0"><dict><key>method</key><string>app-store-connect</string><key>destination</key><string>upload</string><key>signingStyle</key><string>automatic</string><key>teamID</key><string>${APPLE_TEAM_ID:?APPLE_TEAM_ID required}</string></dict></plist>
+<plist version="1.0"><dict><key>method</key><string>app-store-connect</string><key>destination</key><string>upload</string><key>signingStyle</key><string>manual</string><key>teamID</key><string>${APPLE_TEAM_ID:?APPLE_TEAM_ID required}</string><key>provisioningProfiles</key><dict><key>${bundle}</key><string>${profile_name}</string></dict></dict></plist>
 EOF
     caffeinate -dimsu -- xcodebuild -exportArchive -archivePath "$archive" -exportPath "$lane/Upload" -exportOptionsPlist "$lane/ExportOptions.plist" -allowProvisioningUpdates | tee "$lane/upload.log"
     write_checkpoint upload-command-succeeded
