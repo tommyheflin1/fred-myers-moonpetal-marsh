@@ -15,7 +15,7 @@
     ".agents/skills/shared-build-process/SKILL.md": "f10bf532696be81f71d4868481630b51cb4ba397f3ae75e20cbf951fa36c479d",
     "docs/SHARED_BUILD_PROCESS.md": "e3798108dc69acda9d1f29ecaa8c3788285104a0ab9c90ebe0367b59b4e7cb20",
     "tools/audit_process.py": "00b5a70ccb8050420983edb0355608e5d0531e50cf473da3db5879ec52cbdbe7",
-    "tools/build_ios_gamecenter_plugin.sh": "17a3ada74964a1e98ae2f058f84a5ab6f1c7c22621e63edb2ab285ac6248b309",
+    "tools/build_ios_gamecenter_plugin.sh": "584e38cffa7423c8756039ff7b1a87e61f3b4f5d7c1771d0fc80d6fce0a16734",
     "tools/patches/gamecenter-signed-identity-v1.patch": "b707125386cc2be1d4c73714c487b58fbb4b6a1497ae3de67da47a5e22d7d201",
     "tools/patches/gamecenter-uiwindow-scene-v1.patch": "bdcc0f6dbdb199c62867c2a7aefc0397cac858113a6f893e047838b188c99ee2",
     "tools/prepare_source_handoff.py": "ad4f12bf260a89135efcb4128308226f0f34057a34f76b639208133c0c923ef6",

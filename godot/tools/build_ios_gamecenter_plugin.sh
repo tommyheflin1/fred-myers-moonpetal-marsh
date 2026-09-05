@@ -17,6 +17,7 @@ git -C "$source_root" apply --check "$identity_patch"; git -C "$source_root" app
 [[ "$(grep -c 'gamecenter_presentation_controller();' "$source_root/plugins/gamecenter/game_center.mm")" == "2" ]] || { echo "patch must cover authentication and leaderboard presentation" >&2; exit 1; }
 git -C "$source_root" submodule update --init godot; git -C "$source_root/godot" fetch --quiet --tags origin "$tag"; git -C "$source_root/godot" checkout --detach "$tag"
 (cd "$source_root/godot" && scons platform=ios target=template_debug -j"${FLINS_IOS_PLUGIN_JOBS:-4}")
+rm -rf -- "$source_root/bin/gamecenter.release_debug.xcframework" "$source_root/bin/gamecenter.release.xcframework"
 (cd "$source_root" && ./scripts/generate_xcframework.sh gamecenter release_debug 4.0 && ./scripts/generate_xcframework.sh gamecenter release 4.0)
 staging="$(mktemp -d "${TMPDIR:-/tmp}/flins-gamecenter.XXXXXX")"; trap 'rm -rf "$staging"' EXIT; mkdir -p "$staging/gamecenter"
 cp "$source_root/plugins/gamecenter/gamecenter.gdip" "$staging/gamecenter/"; cp -R "$source_root/bin/gamecenter.release_debug.xcframework" "$staging/gamecenter/gamecenter.debug.xcframework"; cp -R "$source_root/bin/gamecenter.release.xcframework" "$staging/gamecenter/"; cp "$source_root/LICENCE" "$staging/gamecenter/LICENSE.godot-ios-plugins.txt"
