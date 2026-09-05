@@ -22,7 +22,7 @@
     "tools/privacy_policy.py": "c2cd5282a9e074f093421bc47a15ccc186455231dce213c19c846956a89aa1ce",
     "tools/release-ios": "75e65b303c4a6cc7a10202b8215effe37c0959d9d8a419d687539703c8f00585",
     "tools/release_checkpoint.py": "43047cebcd5e20538c89088a87a38e8f20307f8d89590849243a4d4917ec1b77",
-    "tools/validate_ios_gamecenter_plugin.py": "df81dfa11ec660284e202ef59c2b3cfe18bd22fbc6c44ab8bd3c7a000afeccf7",
+    "tools/validate_ios_gamecenter_plugin.py": "73e185cc88a0d3d1ea28283005486514ccd6ec829d9e727de3e4d2830d29b3fa",
     "tools/validate_ios_release_config.py": "c076aae98636512399967af0c245ffdac846f39a5417cfb765ac6b2c6d044b76"
   }
 }

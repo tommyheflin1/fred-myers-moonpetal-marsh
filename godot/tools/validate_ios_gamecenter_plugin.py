@@ -3,7 +3,7 @@ from __future__ import annotations
 import argparse, hashlib, json, re
 from pathlib import Path
 
-COMMIT="fbdbc317fe2ab422ef9bf5fb07f876eb2e773bcb"; TAG="4.7.1-stable"; PATCH_ID="gamecenter-uiwindow-scene-v1"; PATCH_SHA="bdcc0f6dbdb199c62867c2a7aefc0397cac858113a6f893e047838b188c99ee2"; IDENTITY_PATCH_ID="gamecenter-signed-identity-v1"; IDENTITY_PATCH_SHA="64de6a5dba83f854dcbce981ab1ca8de81c44793e10e76195fbba1a38a899b66"
+COMMIT="fbdbc317fe2ab422ef9bf5fb07f876eb2e773bcb"; TAG="4.7.1-stable"; PATCH_ID="gamecenter-uiwindow-scene-v1"; PATCH_SHA="bdcc0f6dbdb199c62867c2a7aefc0397cac858113a6f893e047838b188c99ee2"; IDENTITY_PATCH_ID="gamecenter-signed-identity-v1"; IDENTITY_PATCH_SHA="b707125386cc2be1d4c73714c487b58fbb4b6a1497ae3de67da47a5e22d7d201"
 
 def validate(root: Path) -> list[str]:
     errors=[]; plugin=root/"ios/plugins/gamecenter"; patch=root/"tools/patches/gamecenter-uiwindow-scene-v1.patch"; identity_patch=root/"tools/patches/gamecenter-signed-identity-v1.patch"
