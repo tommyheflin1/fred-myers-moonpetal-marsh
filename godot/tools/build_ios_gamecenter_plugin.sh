@@ -12,8 +12,8 @@ for tool in git python3 scons xcodebuild shasum; do command -v "$tool" >/dev/nul
 if [[ -d "$destination" ]]; then python3 "$root/tools/validate_ios_gamecenter_plugin.py" --project-root "$root"; exit 0; fi
 if [[ ! -d "$source_root/.git" ]]; then mkdir -p "$(dirname "$source_root")"; git clone --filter=blob:none --no-checkout https://github.com/godot-sdk-integrations/godot-ios-plugins.git "$source_root"; fi
 git -C "$source_root" fetch --quiet origin "$commit"; git -C "$source_root" checkout --detach "$commit"; git -C "$source_root" reset --hard "$commit" >/dev/null
-git -C "$source_root" apply --check "$patch"; git -C "$source_root" apply "$patch"
 git -C "$source_root" apply --check "$identity_patch"; git -C "$source_root" apply "$identity_patch"
+git -C "$source_root" apply --check "$patch"; git -C "$source_root" apply "$patch"
 [[ "$(grep -c 'gamecenter_presentation_controller();' "$source_root/plugins/gamecenter/game_center.mm")" == "2" ]] || { echo "patch must cover authentication and leaderboard presentation" >&2; exit 1; }
 git -C "$source_root" submodule update --init godot; git -C "$source_root/godot" fetch --quiet --tags origin "$tag"; git -C "$source_root/godot" checkout --detach "$tag"
 (cd "$source_root/godot" && scons platform=ios target=template_debug -j"${FLINS_IOS_PLUGIN_JOBS:-4}")
