@@ -24,6 +24,9 @@ const WildlifeAnimationRig = preload("res://scripts/wildlife_animation_rig.gd")
 const GoldenEggRunState = preload("res://scripts/golden_egg_run_state.gd")
 const GoldenEggDiscoveryStore = preload("res://scripts/golden_egg_discovery_store.gd")
 const GoldenEggClient = preload("res://scripts/golden_egg_client.gd")
+const GoldenEggService = preload("res://scripts/golden_egg_service.gd")
+const GoldenEggLocalStore = preload("res://scripts/golden_egg_local_store.gd")
+const GoldenEggNetworkBridge = preload("res://scripts/golden_egg_network_bridge.gd")
 
 enum Screen { TITLE, STORY, INSTRUCTIONS, PLAYING, FAILED, COMPLETE, LEADERBOARD, CUSTOMIZE, GOLDEN_EGG }
 const START := Vector2(135, 560)
@@ -121,6 +124,10 @@ var application_backgrounded := false
 var golden_run: RefCounted = GoldenEggRunState.new()
 var golden_discovery: RefCounted = GoldenEggDiscoveryStore.new()
 var golden_client: RefCounted = GoldenEggClient.new()
+var golden_service: RefCounted = GoldenEggService.new()
+var golden_secure_store: RefCounted = GoldenEggLocalStore.new()
+var golden_network: Node = GoldenEggNetworkBridge.new()
+var golden_production_network_enabled := true
 var golden_reveal_seconds := 0.0
 var golden_discovery_status := "pending"
 var golden_privacy := "anonymous"
@@ -200,6 +207,7 @@ func _handle_back_request() -> String:
 
 func _ready() -> void:
     if DisplayServer.get_name() == "headless" and str(customization.path) == FrogCustomization.DEFAULT_PATH:
+        golden_production_network_enabled = false
         customization = FrogCustomization.new("")
         golden_run = GoldenEggRunState.new("user://headless_fred_golden_egg_guard.json")
         golden_discovery = GoldenEggDiscoveryStore.new("user://headless_fred_golden_egg_discovery.json")
@@ -218,6 +226,11 @@ func _ready() -> void:
     var result := saver.load_session(session)
     game_center = GameCenterAdapter.new()
     add_child(game_center)
+    add_child(golden_network)
+    golden_network.operation_completed.connect(_on_golden_network_operation_completed)
+    golden_service.configure(golden_network.request_json, golden_secure_store)
+    if golden_production_network_enabled and golden_service.has_pending_discovery():
+        golden_network.start_retry(golden_service)
     var game_center_available := bool(game_center.configure())
     game_scoring.configure(
         OS.get_name(),
@@ -781,6 +794,12 @@ func _reveal_golden_egg() -> void:
     var staged: Dictionary = golden_discovery.stage_pending(golden_run.evidence(), idempotency_key)
     if not bool(staged.get("ok", false)):
         golden_discovery_status = "local_recovery_required"
+    elif golden_production_network_enabled and golden_service.production_client_ready():
+        var evidence_text := JSON.stringify(golden_run.evidence())
+        if golden_network.start_submit(golden_service, evidence_text):
+            golden_discovery_status = "submitting"
+        else:
+            golden_discovery_status = "pending"
     screen = Screen.GOLDEN_EGG
     if audio_enabled and is_instance_valid(golden_chime):
         golden_chime.play()
@@ -944,10 +963,16 @@ func _handle_click(position: Vector2) -> void:
     elif screen == Screen.GOLDEN_EGG and GOLDEN_EGG_PRIVATE_RECT.has_point(position):
         golden_privacy = "anonymous"
         golden_discovery.set_privacy("anonymous")
+        if golden_service.has_canonical_discovery() and not golden_network.is_busy():
+            golden_network.start_privacy(golden_service, false, "")
+            golden_discovery_status = "saving_privacy"
         _set_feedback("[PRIVATE] Your discovery stays anonymous.")
     elif screen == Screen.GOLDEN_EGG and GOLDEN_EGG_PUBLIC_RECT.has_point(position):
         golden_privacy = "public"
         golden_discovery.set_privacy("public", identity.profile_label)
+        if golden_service.has_canonical_discovery() and not golden_network.is_busy():
+            golden_network.start_privacy(golden_service, true, identity.profile_label)
+            golden_discovery_status = "saving_privacy"
         _set_feedback("[SHARE READY] Your chosen marsh name may appear after secure confirmation.")
     elif screen == Screen.GOLDEN_EGG and GOLDEN_EGG_HUNT_RECT.has_point(position):
         _open_golden_egg_hunt()
@@ -963,6 +988,21 @@ func _open_golden_egg_hunt() -> void:
         _set_feedback("[GOLDEN EGG HUNT] The official App Vault hunt opened in your browser.")
     else:
         _set_feedback("[HUNT LINK] Visit theflinsappvaultllc.com/golden-eggs.")
+
+func _on_golden_network_operation_completed(operation: String, result: Dictionary) -> void:
+    if operation in ["submit", "retry"]:
+        if bool(result.get("success", false)):
+            golden_discovery_status = "accepted"
+            if golden_privacy == "public":
+                if golden_network.start_privacy(golden_service, true, identity.profile_label):
+                    golden_discovery_status = "saving_privacy"
+            elif golden_network.start_privacy(golden_service, false, ""):
+                golden_discovery_status = "saving_privacy"
+        else:
+            golden_discovery_status = "pending"
+    elif operation.begins_with("privacy_"):
+        golden_discovery_status = "privacy_saved" if bool(result.get("success", false)) else "pending"
+    queue_redraw()
 
 func _return_to_level_five() -> void:
     level_number = GoldenEggRunState.TARGET_LEVEL
@@ -1285,14 +1325,21 @@ func _draw_golden_egg_reveal() -> void:
     _text(Vector2(640,60),"A SECRET OF MOONPETAL MARSH!",36,Color("ffe184"),HORIZONTAL_ALIGNMENT_CENTER,1080)
     _text(Vector2(640,108),"You found one of the hidden Golden Eggs.",25,Color.WHITE,HORIZONTAL_ALIGNMENT_CENTER,920)
     _text(Vector2(640,486),"Your place is confirmed only by the secure App Vault service.",17,Color("d9f4e2"),HORIZONTAL_ALIGNMENT_CENTER,880)
-    var status_text := "DISCOVERY SAFELY QUEUED — RETRIES USE THE SAME RECORD" if golden_discovery_status == "pending" else "DISCOVERY SAVED LOCALLY — SECURE CONNECTION REQUIRED"
+    var status_messages := {
+        "submitting": "SECURELY REGISTERING YOUR DISCOVERY…",
+        "accepted": "DISCOVERY REGISTERED ON THE APP VAULT LEADERBOARD",
+        "saving_privacy": "SAVING YOUR LEADERBOARD DISPLAY CHOICE…",
+        "privacy_saved": "LEADERBOARD DISPLAY CHOICE SAVED",
+        "pending": "DISCOVERY SAFELY QUEUED — IT WILL RETRY AUTOMATICALLY",
+    }
+    var status_text := str(status_messages.get(golden_discovery_status, "DISCOVERY SAVED LOCALLY — SECURE CONNECTION REQUIRED"))
     _text(Vector2(640,516),status_text,14,Color("b9f5c7"),HORIZONTAL_ALIGNMENT_CENTER,960)
     _text(Vector2(640,542),"Choose whether your marsh name may appear publicly. Anonymous is the default.",14,Color("d9f4e2"),HORIZONTAL_ALIGNMENT_CENTER,980)
     _button(GOLDEN_EGG_PRIVATE_RECT,"KEEP ME ANONYMOUS" if golden_privacy != "anonymous" else "ANONYMOUS ✓")
     _button(GOLDEN_EGG_PUBLIC_RECT,"SHARE MY MARSH NAME" if golden_privacy != "public" else "PUBLIC NAME ✓")
     _button(GOLDEN_EGG_HUNT_RECT,"OPEN GOLDEN EGG HUNT")
     _button(GOLDEN_EGG_RETURN_RECT,"RETURN TO LEVEL 5")
-    _text(Vector2(640,705),"No rank, time, or secret code is created on this device.",12,Color("9ec8cf"),HORIZONTAL_ALIGNMENT_CENTER,800)
+    _text(Vector2(640,705),"The App Vault service records the official rank and time.",12,Color("9ec8cf"),HORIZONTAL_ALIGNMENT_CENTER,800)
 
 func _draw_title() -> void:
     draw_texture_rect(title_art, Rect2(0,0,1280,720), false)
