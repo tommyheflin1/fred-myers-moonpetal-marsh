@@ -84,9 +84,17 @@ case "$mode" in
     cat > "$lane/ExportOptions.plist" <<EOF
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0"><dict><key>method</key><string>app-store-connect</string><key>destination</key><string>upload</string><key>signingStyle</key><string>manual</string><key>teamID</key><string>${APPLE_TEAM_ID:?APPLE_TEAM_ID required}</string><key>provisioningProfiles</key><dict><key>${bundle}</key><string>${profile_name}</string></dict></dict></plist>
+<plist version="1.0"><dict><key>method</key><string>app-store-connect</string><key>destination</key><string>export</string><key>signingStyle</key><string>manual</string><key>teamID</key><string>${APPLE_TEAM_ID:?APPLE_TEAM_ID required}</string><key>provisioningProfiles</key><dict><key>${bundle}</key><string>${profile_name}</string></dict><key>manageAppVersionAndBuildNumber</key><false/></dict></plist>
 EOF
-    caffeinate -dimsu -- xcodebuild -exportArchive -archivePath "$archive" -exportPath "$lane/Upload" -exportOptionsPlist "$lane/ExportOptions.plist" -allowProvisioningUpdates | tee "$lane/upload.log"
+    caffeinate -dimsu -- xcodebuild -exportArchive -archivePath "$archive" -exportPath "$lane/Upload" -exportOptionsPlist "$lane/ExportOptions.plist" | tee "$lane/export.log"
+    ipa="$(find "$lane/Upload" -maxdepth 1 -name '*.ipa' -print -quit)"
+    [[ -n "$ipa" ]] || { echo "APPLE_UPLOAD_STOP exported IPA missing"; exit 3; }
+    api_key_id="${APPLE_API_KEY_ID:-AQX2CFYPVZ}"
+    api_issuer_id="${APPLE_API_ISSUER_ID:-de911c2a-77f4-4b17-9c05-f25feef339e8}"
+    api_key_path="${APPLE_API_PRIVATE_KEY_PATH:-$HOME/.appstoreconnect/private_keys/AuthKey_${api_key_id}.p8}"
+    [[ -s "$api_key_path" ]] || { echo "APPLE_UPLOAD_STOP existing App Store Connect API key unavailable"; exit 3; }
+    xcrun altool --validate-app -f "$ipa" -t ios --apiKey "$api_key_id" --apiIssuer "$api_issuer_id" | tee "$lane/validate.log"
+    caffeinate -dimsu -- xcrun altool --upload-app -f "$ipa" -t ios --apiKey "$api_key_id" --apiIssuer "$api_issuer_id" | tee "$lane/upload.log"
     write_checkpoint upload-command-succeeded
     echo "APPLE_UPLOAD_COMMAND_SUCCEEDED version=$version build=$build processing=unverified release=not-authorized"
     ;;
