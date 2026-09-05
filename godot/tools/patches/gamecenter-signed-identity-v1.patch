@@ -1,13 +1,17 @@
 diff --git a/plugins/gamecenter/game_center.mm b/plugins/gamecenter/game_center.mm
 --- a/plugins/gamecenter/game_center.mm
 +++ b/plugins/gamecenter/game_center.mm
-@@ -172 +172,3 @@ Error GameCenter::authenticate() {
+@@ -171,3 +171,5 @@ Error GameCenter::authenticate() {
+ 				if (@available(iOS 13, *)) {
 -					ret["player_id"] = [player.teamPlayerID UTF8String];
 +					ret["team_player_id"] = [player.teamPlayerID UTF8String];
 +					ret["game_player_id"] = [player.gamePlayerID UTF8String];
 +					ret["player_id"] = [player.teamPlayerID UTF8String];
-@@ -413 +415,3 @@ Error GameCenter::request_identity_verification_signature() {
+ 				} else {
+@@ -412,3 +414,5 @@ Error GameCenter::request_identity_verification_signature() {
+ 			if (@available(iOS 13.5, *)) {
 -				ret["player_id"] = [player.teamPlayerID UTF8String];
 +				ret["team_player_id"] = [player.teamPlayerID UTF8String];
 +				ret["game_player_id"] = [player.gamePlayerID UTF8String];
 +				ret["player_id"] = [player.teamPlayerID UTF8String];
+ 			} else {

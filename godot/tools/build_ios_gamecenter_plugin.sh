@@ -3,7 +3,7 @@ set -euo pipefail
 root="${1:?usage: build_ios_gamecenter_plugin.sh <project-root>}"; root="$(cd "$root" && pwd)"
 commit="fbdbc317fe2ab422ef9bf5fb07f876eb2e773bcb"; tag="4.7.1-stable"
 patch="$root/tools/patches/gamecenter-uiwindow-scene-v1.patch"; patch_sha="bdcc0f6dbdb199c62867c2a7aefc0397cac858113a6f893e047838b188c99ee2"
-identity_patch="$root/tools/patches/gamecenter-signed-identity-v1.patch"; identity_patch_sha="64de6a5dba83f854dcbce981ab1ca8de81c44793e10e76195fbba1a38a899b66"
+identity_patch="$root/tools/patches/gamecenter-signed-identity-v1.patch"; identity_patch_sha="b707125386cc2be1d4c73714c487b58fbb4b6a1497ae3de67da47a5e22d7d201"
 source_root="${FLINS_IOS_PLUGIN_CACHE:-$HOME/Library/Caches/flins-mobile-game/godot-ios-plugins-$commit}"
 destination="$root/ios/plugins/gamecenter"
 for tool in git python3 scons xcodebuild shasum; do command -v "$tool" >/dev/null || { echo "$tool is required" >&2; exit 1; }; done
@@ -12,8 +12,8 @@ for tool in git python3 scons xcodebuild shasum; do command -v "$tool" >/dev/nul
 if [[ -d "$destination" ]]; then python3 "$root/tools/validate_ios_gamecenter_plugin.py" --project-root "$root"; exit 0; fi
 if [[ ! -d "$source_root/.git" ]]; then mkdir -p "$(dirname "$source_root")"; git clone --filter=blob:none --no-checkout https://github.com/godot-sdk-integrations/godot-ios-plugins.git "$source_root"; fi
 git -C "$source_root" fetch --quiet origin "$commit"; git -C "$source_root" checkout --detach "$commit"; git -C "$source_root" reset --hard "$commit" >/dev/null
-git -C "$source_root" apply --check "$identity_patch"; git -C "$source_root" apply "$identity_patch"
 git -C "$source_root" apply --check "$patch"; git -C "$source_root" apply "$patch"
+git -C "$source_root" apply --check "$identity_patch"; git -C "$source_root" apply "$identity_patch"
 [[ "$(grep -c 'gamecenter_presentation_controller();' "$source_root/plugins/gamecenter/game_center.mm")" == "2" ]] || { echo "patch must cover authentication and leaderboard presentation" >&2; exit 1; }
 git -C "$source_root" submodule update --init godot; git -C "$source_root/godot" fetch --quiet --tags origin "$tag"; git -C "$source_root/godot" checkout --detach "$tag"
 (cd "$source_root/godot" && scons platform=ios target=template_debug -j"${FLINS_IOS_PLUGIN_JOBS:-4}")
