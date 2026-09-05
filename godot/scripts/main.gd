@@ -264,7 +264,12 @@ func _ready() -> void:
 
 func _on_game_center_sign_in_completed(result: Dictionary) -> void:
     if bool(result.get("ok", false)):
-        game_center_status = "GAME CENTER CONNECTED"
+        if golden_service.set_verified_game_center_identity(result):
+            game_center_status = "GAME CENTER IDENTITY READY"
+            if golden_production_network_enabled and golden_service.has_pending_discovery() and not golden_network.is_busy():
+                golden_network.start_retry(golden_service)
+        else:
+            game_center_status = "GAME CENTER CONNECTED — DISCOVERY SAFE FOR RETRY"
     else:
         var error := str(result.get("error", ""))
         if error == "game_center_timeout":
@@ -968,12 +973,18 @@ func _handle_click(position: Vector2) -> void:
             golden_discovery_status = "saving_privacy"
         _set_feedback("[PRIVATE] Your discovery stays anonymous.")
     elif screen == Screen.GOLDEN_EGG and GOLDEN_EGG_PUBLIC_RECT.has_point(position):
-        golden_privacy = "public"
-        golden_discovery.set_privacy("public", identity.profile_label)
-        if golden_service.has_canonical_discovery() and not golden_network.is_busy():
-            golden_network.start_privacy(golden_service, true, identity.profile_label)
-            golden_discovery_status = "saving_privacy"
-        _set_feedback("[SHARE READY] Your chosen marsh name may appear after secure confirmation.")
+        var game_center_name: String = str(golden_service.game_center_display_name())
+        if game_center_name.is_empty():
+            golden_privacy = "anonymous"
+            _request_game_center_connection()
+            _set_feedback("[DISCOVERY SAFE] Sign in to Game Center to show your Game Center name, or stay Anonymous.")
+        else:
+            golden_privacy = "public"
+            golden_discovery.set_privacy("public", game_center_name)
+            if golden_service.has_canonical_discovery() and not golden_network.is_busy():
+                golden_network.start_privacy(golden_service, true, "")
+                golden_discovery_status = "saving_privacy"
+            _set_feedback("[SHARE READY] Your Game Center name may appear after secure confirmation.")
     elif screen == Screen.GOLDEN_EGG and GOLDEN_EGG_HUNT_RECT.has_point(position):
         _open_golden_egg_hunt()
     elif screen == Screen.GOLDEN_EGG and GOLDEN_EGG_RETURN_RECT.has_point(position):
@@ -994,7 +1005,7 @@ func _on_golden_network_operation_completed(operation: String, result: Dictionar
         if bool(result.get("success", false)):
             golden_discovery_status = "accepted"
             if golden_privacy == "public":
-                if golden_network.start_privacy(golden_service, true, identity.profile_label):
+                if golden_network.start_privacy(golden_service, true, ""):
                     golden_discovery_status = "saving_privacy"
             elif golden_network.start_privacy(golden_service, false, ""):
                 golden_discovery_status = "saving_privacy"

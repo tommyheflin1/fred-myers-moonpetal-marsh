@@ -6,19 +6,23 @@ const HUNT_URL := "https://theflinsappvaultllc.com/golden-eggs"
 const BOOTSTRAP_PATH := "/api/golden-eggs/player/bootstrap"
 const DISCOVERY_PATH := "/api/golden-eggs/discoveries"
 const PRIVACY_PATH_TEMPLATE := "/api/golden-eggs/discoveries/%s/privacy"
+const GAME_CENTER_IDENTITY_EXCHANGE_PATH := "/api/game-center/identity/exchange"
 const SESSION_PATH_TEMPLATE := "/api/golden-eggs/discovery/%s/session"
 const GAME_ID := "fred-myers"
 const EGG_ID := "moonpetal-golden-egg"
 const EGG_VERSION := "1"
 const APP_VERSION := "1.1"
-const BUILD_VERSION := "9"
+const BUILD_VERSION := "10"
 const AUTH_PROTOCOL := "bearer-v2"
+const GAME_CENTER_AUTH_PROTOCOL := "game-center-identity-v1"
+const EXPECTED_BUNDLE_ID := "com.flinsvault.fredmyers"
 
 const STORE_CLIENT_KEY := "golden_egg.client_player_key"
 const STORE_ACCESS_TOKEN := "golden_egg.player_access_token"
 const STORE_PENDING_OPERATION := "golden_egg.pending_operation"
 const STORE_SESSION_TOKEN := "golden_egg.discovery_session_token"
 const STORE_SECURE_URL := "golden_egg.secure_discovery_url"
+const STORE_GAME_CENTER_IDENTITY := "golden_egg.game_center_identity"
 
 var request_transport: Callable
 var secure_store: Object
@@ -26,6 +30,17 @@ var status := "idle"
 var public_result: Dictionary = {}
 var privacy_status := "PENDING_PRIVACY_CHOICE"
 var last_safe_error := ""
+
+func set_verified_game_center_identity(result: Dictionary) -> bool:
+    if not bool(result.get("verified_signature", false)) or result.get("game_center_identity", null) is not Dictionary:
+        return false
+    var identity: Dictionary = (result.game_center_identity as Dictionary).duplicate(true)
+    identity["display_name"] = str(result.get("display_name", "")).strip_edges().left(32)
+    return _valid_game_center_identity(identity) and _store_json_secret(STORE_GAME_CENTER_IDENTITY, identity)
+
+func game_center_display_name() -> String:
+    var identity := _load_game_center_identity()
+    return str(identity.get("display_name", "")) if _valid_game_center_identity(identity) else ""
 
 
 func configure(transport: Callable, platform_secure_store: Object, _legacy_signer: Callable = Callable()) -> bool:
@@ -86,13 +101,12 @@ func has_pending_discovery() -> bool:
     return not _load_pending_operation().is_empty()
 
 
-func submit_privacy_choice(make_public: bool, display_name: String = "") -> Dictionary:
+func submit_privacy_choice(make_public: bool) -> Dictionary:
     if public_result.is_empty() or str(public_result.get("discovery_id", "")).is_empty():
         return _safe_failure("NO_ACCEPTED_DISCOVERY")
-    var normalized_name := display_name.strip_edges()
-    if make_public and (normalized_name.length() < 2 or normalized_name.length() > 30):
-        return _safe_failure("DISPLAY_NAME_MUST_BE_2_TO_30_CHARACTERS")
-    var payload := {"privacy_status": "PUBLIC", "display_name": normalized_name} if make_public else {"privacy_status": "ANONYMOUS"}
+    if make_public and not _valid_game_center_identity(_load_game_center_identity()):
+        return _safe_failure("GAME_CENTER_AUTHENTICATION_REQUIRED")
+    var payload := {"privacy_status": "PUBLIC"} if make_public else {"privacy_status": "ANONYMOUS"}
     var result := _authenticated_request(
         "PATCH",
         PRIVACY_PATH_TEMPLATE % str(public_result.discovery_id),
@@ -104,7 +118,7 @@ func submit_privacy_choice(make_public: bool, display_name: String = "") -> Dict
     privacy_status = str(result.get("privacy_status", payload["privacy_status"]))
     public_result["privacy_status"] = privacy_status
     if privacy_status == "PUBLIC":
-        public_result["public_player"] = str(result.get("public_player", normalized_name))
+        public_result["public_player"] = str(result.get("public_player", ""))
     else:
         public_result["public_player"] = "Anonymous"
     status = "privacy_saved"
@@ -192,7 +206,19 @@ func _submit_pending(pending: Dictionary) -> Dictionary:
     var payload: Variant = pending.get("payload", {})
     if payload is not Dictionary:
         return _pending_failure("PENDING_DISCOVERY_INVALID")
-    var result := _authenticated_request("POST", DISCOVERY_PATH, payload, str(pending.get("idempotency_key", "")))
+    var identity := _load_game_center_identity()
+    if not _valid_game_center_identity(identity):
+        return _pending_failure("GAME_CENTER_AUTHENTICATION_REQUIRED")
+    var exchange_payload := _private_identity_payload(identity)
+    exchange_payload["game_id"] = GAME_ID
+    exchange_payload["provider_display_name"] = str(identity.get("display_name", ""))
+    exchange_payload["provider_display_name_source"] = "game_center_reported"
+    var exchange := _authenticated_request("POST", GAME_CENTER_IDENTITY_EXCHANGE_PATH, exchange_payload, str(pending.get("idempotency_key", "")), GAME_CENTER_AUTH_PROTOCOL)
+    if not bool(exchange.get("success", false)) or str(exchange.get("discovery_authorization", "")).is_empty():
+        return _pending_failure(str(exchange.get("error", "GAME_CENTER_IDENTITY_EXCHANGE_PENDING")))
+    var protected_payload: Dictionary = payload.duplicate(true)
+    protected_payload["discovery_authorization"] = str(exchange.discovery_authorization)
+    var result := _authenticated_request("POST", DISCOVERY_PATH, protected_payload, str(pending.get("idempotency_key", "")))
     if not bool(result.get("success", false)):
         return _pending_failure(str(result.get("error", "SECURE_REGISTRATION_PENDING")))
     if not _validate_discovery_response(result):
@@ -231,14 +257,14 @@ func _ensure_player() -> Dictionary:
     return {"success": true}
 
 
-func _authenticated_request(method: String, path: String, payload: Dictionary, idempotency_key: String) -> Dictionary:
+func _authenticated_request(method: String, path: String, payload: Dictionary, idempotency_key: String, protocol: String = AUTH_PROTOCOL) -> Dictionary:
     var access_token := _get_secret(STORE_ACCESS_TOKEN)
     if access_token.is_empty():
         return _safe_failure("PLAYER_ACCESS_UNAVAILABLE")
-    return _client_request(method, path, payload, idempotency_key, access_token, 1)
+    return _client_request(method, path, payload, idempotency_key, access_token, 1, protocol)
 
 
-func _client_request(method: String, path: String, payload: Dictionary, idempotency_key: String, bearer: String, retry_remaining: int = 1) -> Dictionary:
+func _client_request(method: String, path: String, payload: Dictionary, idempotency_key: String, bearer: String, retry_remaining: int = 1, protocol: String = AUTH_PROTOCOL) -> Dictionary:
     if not production_client_ready():
         return _safe_failure("CLIENT_RUNTIME_NOT_PROVISIONED")
     var body := JSON.stringify(payload)
@@ -250,7 +276,7 @@ func _client_request(method: String, path: String, payload: Dictionary, idempote
         "Accept": "application/json",
         "Accept-Encoding": "identity",
         "X-Golden-Egg-Game-Id": GAME_ID,
-        "X-Golden-Egg-Protocol": AUTH_PROTOCOL,
+        "X-Golden-Egg-Protocol": protocol,
         "X-Golden-Egg-Timestamp": timestamp,
         "X-Golden-Egg-Nonce": nonce,
         "Idempotency-Key": stable_idempotency,
@@ -264,7 +290,7 @@ func _client_request(method: String, path: String, payload: Dictionary, idempote
     if int(response.get("status", 0)) == 409 and retry_remaining > 0:
         # The nonce is per-attempt. A single bounded retry keeps the logical
         # idempotency key and payload while rebuilding freshness.
-        return _client_request(method, path, payload, idempotency_key, bearer, retry_remaining - 1)
+        return _client_request(method, path, payload, idempotency_key, bearer, retry_remaining - 1, protocol)
     if int(response.get("status", 0)) == 409:
         return _safe_failure("ANTI_REPLAY_REJECTED")
     var response_body: Variant = response.get("body", response)
@@ -325,6 +351,24 @@ func _load_pending_operation() -> Dictionary:
         return {}
     var value: Variant = JSON.parse_string(encoded)
     return value if value is Dictionary else {}
+
+func _load_game_center_identity() -> Dictionary:
+    var encoded := _get_secret(STORE_GAME_CENTER_IDENTITY)
+    if encoded.is_empty(): return {}
+    var value: Variant = JSON.parse_string(encoded)
+    return value if value is Dictionary else {}
+
+func _valid_game_center_identity(identity: Dictionary) -> bool:
+    if str(identity.get("bundle_id", "")) != EXPECTED_BUNDLE_ID or int(identity.get("timestamp", 0)) <= 0: return false
+    for field in ["team_player_id", "game_player_id", "public_key_url", "signature", "salt"]:
+        if str(identity.get(field, "")).is_empty(): return false
+    return str(identity.public_key_url).begins_with("https://")
+
+func _private_identity_payload(identity: Dictionary) -> Dictionary:
+    var result := {}
+    for field in ["team_player_id", "game_player_id", "bundle_id", "timestamp", "salt", "signature", "public_key_url"]:
+        result[field] = identity[field]
+    return result
 
 
 func _store_json_secret(key: String, value: Dictionary) -> bool:

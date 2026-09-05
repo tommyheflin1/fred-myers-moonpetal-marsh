@@ -13,11 +13,14 @@ const DASHBOARD_REENTRY_GUARD_SECONDS := 1.25
 const DASHBOARD_FAILSAFE_SECONDS := 4.0
 const SCORE_LEADERBOARD_ID := "com.flinsvault.fredmyers.adventure_score"
 const LEVEL_LEADERBOARD_ID := "com.flinsvault.fredmyers.highest_level"
+const BUNDLE_ID := "com.flinsvault.fredmyers"
 
 var plugin: Object
 var state := "unavailable"
 var elapsed_seconds := 0.0
 var display_name := ""
+var team_player_id := ""
+var game_player_id := ""
 var pending_records: Array[Dictionary] = []
 var in_flight_record: Dictionary = {}
 var submission_elapsed_seconds := 0.0
@@ -72,14 +75,14 @@ func diagnostic_snapshot() -> Dictionary:
 
 
 func begin_sign_in() -> bool:
-	if not is_available() or state == "authenticating":
+	if not is_available() or state in ["authenticating", "awaiting_signature"]:
 		return false
 	if is_authenticated():
 		state = "authenticated"
 		last_auth_error = ""
 		last_auth_error_code = 0
-		sign_in_completed.emit({"ok": true, "display_name": display_name})
-		return true
+		state = "awaiting_signature"
+		return _request_identity_signature()
 	elapsed_seconds = 0.0
 	state = "authenticating"
 	var error := int(plugin.call("authenticate"))
@@ -150,7 +153,7 @@ func _process(delta: float) -> void:
 		if dashboard_elapsed_seconds >= release_after:
 			dashboard_state = "idle"
 			dashboard_elapsed_seconds = 0.0
-	if state == "authenticating":
+	if state in ["authenticating", "awaiting_signature"]:
 		elapsed_seconds += maxf(0.0, delta)
 		if elapsed_seconds >= SIGN_IN_TIMEOUT_SECONDS:
 			_finish_sign_in({"ok": false, "error": "game_center_timeout"})
@@ -176,8 +179,27 @@ func _handle_event(event: Dictionary) -> void:
 				"error_code": int(event.get("error_code", 0)),
 			})
 			return
+		team_player_id = str(event.get("team_player_id", event.get("player_id", "")))
+		game_player_id = str(event.get("game_player_id", ""))
 		display_name = str(event.get("displayName", event.get("alias", ""))).strip_edges().left(32)
-		_finish_sign_in({"ok": true, "display_name": display_name})
+		state = "awaiting_signature"
+		_request_identity_signature()
+		return
+	if event_type == "identity_verification_signature" and state == "awaiting_signature":
+		var identity := {
+			"team_player_id": str(event.get("team_player_id", team_player_id)),
+			"game_player_id": str(event.get("game_player_id", game_player_id)),
+			"bundle_id": BUNDLE_ID,
+			"public_key_url": str(event.get("public_key_url", "")),
+			"signature": str(event.get("signature", "")),
+			"salt": str(event.get("salt", "")),
+			"timestamp": int(event.get("timestamp", 0)),
+		}
+		var complete := str(event.get("result", "")) == "ok"
+		for field in ["team_player_id", "game_player_id", "public_key_url", "signature", "salt"]:
+			complete = complete and not str(identity[field]).is_empty()
+		complete = complete and int(identity.timestamp) > 0
+		_finish_sign_in({"ok": true, "display_name": display_name, "game_center_identity": identity, "verified_signature": complete})
 		return
 	if event_type == "post_score" and not in_flight_record.is_empty():
 		var event_category := str(event.get("category", ""))
@@ -212,6 +234,17 @@ func _finish_sign_in(result: Dictionary) -> void:
 	sign_in_completed.emit(result.duplicate(true))
 	if state == "authenticated":
 		_try_submit_next()
+
+
+func _request_identity_signature() -> bool:
+	if not plugin.has_method("request_identity_verification_signature"):
+		_finish_sign_in({"ok": true, "display_name": display_name, "verified_signature": false})
+		return false
+	var error := int(plugin.call("request_identity_verification_signature"))
+	if error != OK:
+		_finish_sign_in({"ok": true, "display_name": display_name, "verified_signature": false})
+		return false
+	return true
 
 
 func _queue_personal_record(category: String, score: int) -> void:
@@ -278,6 +311,7 @@ func _has_required_interface(candidate: Object) -> bool:
 		"pop_pending_event",
 		"post_score",
 		"show_game_center",
+		"request_identity_verification_signature",
 	]:
 		if not candidate.has_method(method_name):
 			return false
@@ -291,6 +325,8 @@ func _reset_transient_state() -> void:
 	submission_elapsed_seconds = 0.0
 	retry_delay_seconds = 0.0
 	display_name = ""
+	team_player_id = ""
+	game_player_id = ""
 	last_auth_error = ""
 	last_auth_error_code = 0
 	dashboard_state = "idle"

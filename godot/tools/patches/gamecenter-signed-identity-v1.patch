@@ -1,0 +1,13 @@
+diff --git a/plugins/gamecenter/game_center.mm b/plugins/gamecenter/game_center.mm
+--- a/plugins/gamecenter/game_center.mm
++++ b/plugins/gamecenter/game_center.mm
+@@ -172 +172,3 @@ Error GameCenter::authenticate() {
+-					ret["player_id"] = [player.teamPlayerID UTF8String];
++					ret["team_player_id"] = [player.teamPlayerID UTF8String];
++					ret["game_player_id"] = [player.gamePlayerID UTF8String];
++					ret["player_id"] = [player.teamPlayerID UTF8String];
+@@ -413 +415,3 @@ Error GameCenter::request_identity_verification_signature() {
+-				ret["player_id"] = [player.teamPlayerID UTF8String];
++				ret["team_player_id"] = [player.teamPlayerID UTF8String];
++				ret["game_player_id"] = [player.gamePlayerID UTF8String];
++				ret["player_id"] = [player.teamPlayerID UTF8String];

@@ -7,7 +7,7 @@
   "core_gameplay_loop": "Guide Fred through Moonpetal Marsh, leap between lilies, dive and surface, catch bugs, evade predators, complete changing level objectives, earn coins, and unlock reusable frog appearances.",
   "orientation": "landscape",
   "marketing_version": "1.1",
-  "build_number": 9,
+  "build_number": 10,
   "save_schema": 1,
   "audience": "family",
   "platforms": [
@@ -35,7 +35,7 @@
       "origin": "https://theflinsappvaultllc.com",
       "hunt_path": "/golden-eggs",
       "egg_id": "moonpetal-golden-egg",
-      "auth_protocol": "platform-secure-hmac-v1"
+      "auth_protocol": "game-center-identity-v1"
     }
   },
   "privacy": {

@@ -25,7 +25,7 @@ func start_retry(service: RefCounted) -> bool:
 
 
 func start_privacy(service: RefCounted, make_public: bool, display_name: String) -> bool:
-    return _start("privacy_public" if make_public else "privacy_anonymous", service, display_name)
+    return _start("privacy_public" if make_public else "privacy_anonymous", service, "")
 
 
 func _start(operation: String, service: RefCounted, argument: String) -> bool:
@@ -68,7 +68,7 @@ func _run_operation(operation: String, service: RefCounted, argument: String) ->
         "retry":
             return service.retry_pending_discovery()
         "privacy_public":
-            return service.submit_privacy_choice(true, argument)
+            return service.submit_privacy_choice(true)
         "privacy_anonymous":
             return service.submit_privacy_choice(false)
         _:
@@ -76,7 +76,7 @@ func _run_operation(operation: String, service: RefCounted, argument: String) ->
 
 
 func request_json(method: String, url: String, headers: Dictionary, body: String) -> Dictionary:
-    if not url.begins_with("%s/api/golden-eggs/" % ALLOWED_ORIGIN):
+    if not (url.begins_with("%s/api/golden-eggs/" % ALLOWED_ORIGIN) or url == "%s/api/game-center/identity/exchange" % ALLOWED_ORIGIN):
         return _failure("REQUEST_ORIGIN_REJECTED")
     var method_id := _method_id(method)
     if method_id < 0:

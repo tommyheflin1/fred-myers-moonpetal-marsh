@@ -11,6 +11,7 @@ class FakeGameCenter:
 	var events: Array[Dictionary] = []
 	var posts: Array[Dictionary] = []
 	var presented: Array[Dictionary] = []
+	var identity_signature_requests := 0
 	var presentation_error := OK
 
 	func authenticate() -> int:
@@ -32,6 +33,10 @@ class FakeGameCenter:
 	func show_game_center(payload: Dictionary) -> int:
 		presented.append(payload.duplicate(true))
 		return presentation_error
+
+	func request_identity_verification_signature() -> int:
+		identity_signature_requests += 1
+		return OK
 
 
 var passed := 0
@@ -72,7 +77,19 @@ func _run() -> void:
 	check(adapter.last_auth_error == "game_center_auth_failed" and adapter.last_auth_error_code == 6, "authentication diagnostic retains only bounded error metadata")
 	check(adapter.begin_sign_in(), "Game Center authentication can be retried without relaunching the app")
 	plugin.authenticated = true
-	plugin.events.append({"type": "authentication", "result": "ok", "displayName": "Marsh Hero", "player_id": "fictional-player"})
+	plugin.events.append({"type": "authentication", "result": "ok", "displayName": "Marsh Hero", "team_player_id": "fictional-team-player", "game_player_id": "fictional-game-player"})
+	adapter.poll()
+	check(adapter.state == "awaiting_signature" and plugin.identity_signature_requests == 1, "successful authentication requests one signed Game Center identity")
+	plugin.events.append({
+		"type": "identity_verification_signature",
+		"result": "ok",
+		"team_player_id": "fictional-team-player",
+		"game_player_id": "fictional-game-player",
+		"public_key_url": "https://static.gc.apple.com/public-key",
+		"signature": "fictional-signature",
+		"salt": "fictional-salt",
+		"timestamp": 1700000000000,
+	})
 	adapter.poll()
 	check(adapter.state == "authenticated", "successful native authentication is observed")
 	check(adapter.display_name == "Marsh Hero", "safe platform display name is retained for status only")
