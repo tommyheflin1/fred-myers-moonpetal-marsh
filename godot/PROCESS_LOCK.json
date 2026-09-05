@@ -9,19 +9,19 @@
     ".agents/skills/apple-remote-delivery/references/standard-release-process.md": "507a4eedea43aaf09fef6609e5acc63aabc8d4dd44acae2197ad6126ce04c8e2",
     ".agents/skills/apple-remote-delivery/references/troubleshooting.md": "37b6e411795f7b7a88c8171dd5762c59ef8f2371e3fced0a769088d71a5bf582",
     ".agents/skills/apple-remote-delivery/scripts/apple_api_upload.sh": "ec803c9a0ac500525fb22a15401e2340e6a1b8b6a804232e3974f455d413d61a",
-    ".agents/skills/apple-remote-delivery/scripts/apple_delivery.sh": "4f98d8296e1299ab71aa18c2b39411a67454d54e6cc68ac461d96ccdcd2c1737",
+    ".agents/skills/apple-remote-delivery/scripts/apple_delivery.sh": "b950f8b9d127e62634c0822bf42be66f4a08d0ca4c7320bf6b87668ec95512e9",
     ".agents/skills/apple-remote-delivery/scripts/apple_receipt_status.py": "1480c032658b8da4692b515a4b0812820c19d41623ec549edf9bf760dba1ee2e",
     ".agents/skills/apple-remote-delivery/scripts/apple_remote_doctor.sh": "64f297ed2b9265c3d0d9583b4df07311f9e703537d2b588c4890c06d1025295d",
     ".agents/skills/shared-build-process/SKILL.md": "f10bf532696be81f71d4868481630b51cb4ba397f3ae75e20cbf951fa36c479d",
     "docs/SHARED_BUILD_PROCESS.md": "e3798108dc69acda9d1f29ecaa8c3788285104a0ab9c90ebe0367b59b4e7cb20",
     "tools/audit_process.py": "00b5a70ccb8050420983edb0355608e5d0531e50cf473da3db5879ec52cbdbe7",
-    "tools/build_ios_gamecenter_plugin.sh": "cacbd2ff9f942cc1df4e37434b63f65df7dc7ab5806f34554c5b47a829360e9d",
+    "tools/build_ios_gamecenter_plugin.sh": "7402affe438787358540e62742285cbb5ce5c67c800983e7786390844bead0f3",
     "tools/patches/gamecenter-uiwindow-scene-v1.patch": "bdcc0f6dbdb199c62867c2a7aefc0397cac858113a6f893e047838b188c99ee2",
     "tools/prepare_source_handoff.py": "ad4f12bf260a89135efcb4128308226f0f34057a34f76b639208133c0c923ef6",
     "tools/privacy_policy.py": "c2cd5282a9e074f093421bc47a15ccc186455231dce213c19c846956a89aa1ce",
     "tools/release-ios": "75e65b303c4a6cc7a10202b8215effe37c0959d9d8a419d687539703c8f00585",
     "tools/release_checkpoint.py": "43047cebcd5e20538c89088a87a38e8f20307f8d89590849243a4d4917ec1b77",
-    "tools/validate_ios_gamecenter_plugin.py": "f9e7633097135c8bf8f801b6b744c145395028508bbcf666988535c0da65e4b3",
+    "tools/validate_ios_gamecenter_plugin.py": "01f83b16bf7b57ebc05c448eae646ff4f52b6c0a9b804eba0b9a8b8c383dc5ed",
     "tools/validate_ios_release_config.py": "c076aae98636512399967af0c245ffdac846f39a5417cfb765ac6b2c6d044b76"
   }
 }

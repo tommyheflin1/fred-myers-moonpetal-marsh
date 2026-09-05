@@ -17,5 +17,6 @@ git -C "$source_root" submodule update --init godot; git -C "$source_root/godot"
 (cd "$source_root" && ./scripts/generate_xcframework.sh gamecenter release_debug 4.0 && ./scripts/generate_xcframework.sh gamecenter release 4.0)
 staging="$(mktemp -d "${TMPDIR:-/tmp}/flins-gamecenter.XXXXXX")"; trap 'rm -rf "$staging"' EXIT; mkdir -p "$staging/gamecenter"
 cp "$source_root/plugins/gamecenter/gamecenter.gdip" "$staging/gamecenter/"; cp -R "$source_root/bin/gamecenter.release_debug.xcframework" "$staging/gamecenter/gamecenter.debug.xcframework"; cp -R "$source_root/bin/gamecenter.release.xcframework" "$staging/gamecenter/"; cp "$source_root/LICENCE" "$staging/gamecenter/LICENSE.godot-ios-plugins.txt"
+find "$staging/gamecenter" -type d -name '.symbols' -prune -exec rm -rf -- {} +
 printf 'source_commit=%s\ngodot_tag=%s\npatch_id=gamecenter-uiwindow-scene-v1\npatch_sha256=%s\n' "$commit" "$tag" "$patch_sha" > "$staging/gamecenter/PROVENANCE.txt"
 mkdir -p "$(dirname "$destination")"; mv "$staging/gamecenter" "$destination"; python3 "$root/tools/validate_ios_gamecenter_plugin.py" --project-root "$root"

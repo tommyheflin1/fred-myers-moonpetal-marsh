@@ -7,6 +7,9 @@ COMMIT="fbdbc317fe2ab422ef9bf5fb07f876eb2e773bcb"; TAG="4.7.1-stable"; PATCH_ID=
 
 def validate(root: Path) -> list[str]:
     errors=[]; plugin=root/"ios/plugins/gamecenter"; patch=root/"tools/patches/gamecenter-uiwindow-scene-v1.patch"
+    if plugin.is_dir():
+        forbidden=[p.relative_to(root).as_posix() for p in plugin.rglob("*") if ".symbols" in p.parts]
+        if forbidden: errors.append(f"Game Center plugin contains Apple-forbidden .symbols paths: {', '.join(forbidden[:5])}")
     for path in (plugin/"gamecenter.gdip",plugin/"PROVENANCE.txt",plugin/"LICENSE.godot-ios-plugins.txt",patch):
         if not path.is_file(): errors.append(f"missing {path.relative_to(root).as_posix()}")
     if patch.is_file() and hashlib.sha256(patch.read_bytes()).hexdigest()!=PATCH_SHA: errors.append("Game Center patch hash mismatch")

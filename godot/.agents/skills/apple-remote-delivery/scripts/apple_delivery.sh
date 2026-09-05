@@ -63,6 +63,8 @@ case "$mode" in
     caffeinate -dimsu -- xcodebuild -project "$xcodeproj" -scheme "$scheme" -configuration Release -destination generic/platform=iOS -archivePath "$archive" DEVELOPMENT_TEAM="$APPLE_TEAM_ID" CODE_SIGN_STYLE=Automatic -allowProvisioningUpdates archive | tee "$lane/archive.log"
     app="$(find "$archive/Products/Applications" -maxdepth 1 -name '*.app' -print -quit)"
     [[ -n "$app" ]] || { echo "APPLE_ARCHIVE_STOP signed app missing"; exit 3; }
+    forbidden_symbols="$(find "$app" -name '.symbols' -print -quit)"
+    [[ -z "$forbidden_symbols" ]] || { echo "APPLE_ARCHIVE_STOP forbidden path in signed app: $forbidden_symbols"; exit 3; }
     codesign --verify --deep --strict --verbose=2 "$app"
     plist="$app/Info.plist"
     [[ "$(plutil -extract CFBundleIdentifier raw "$plist")" == "$bundle" ]]

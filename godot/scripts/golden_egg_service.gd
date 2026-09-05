@@ -11,7 +11,7 @@ const GAME_ID := "fred-myers"
 const EGG_ID := "moonpetal-golden-egg"
 const EGG_VERSION := "1"
 const APP_VERSION := "1.1"
-const BUILD_VERSION := "8"
+const BUILD_VERSION := "9"
 const AUTH_PROTOCOL := "bearer-v2"
 
 const STORE_CLIENT_KEY := "golden_egg.client_player_key"

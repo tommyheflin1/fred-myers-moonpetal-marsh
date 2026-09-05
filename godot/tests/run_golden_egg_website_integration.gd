@@ -30,7 +30,7 @@ func _init() -> void:
 	check(not requests[0].headers.has("X-Golden-Egg-Signature"), "Fred ships no shared signing secret")
 	var discovery_body: Dictionary = JSON.parse_string(str(requests[1].body))
 	check(str(discovery_body.get("egg_id", "")) == "moonpetal-golden-egg", "Fred sends its own Golden Egg identity")
-	check(str(discovery_body.get("build_version", "")) == "8", "website registration is bound to Build 8")
+	check(str(discovery_body.get("build_version", "")) == "9", "website registration is bound to Build 9")
 	print("RESULT golden_egg_website_passed=%d golden_egg_website_failed=%d" % [passed, failed])
 	quit(0 if failed == 0 else 1)
 
