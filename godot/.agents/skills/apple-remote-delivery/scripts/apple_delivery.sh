@@ -89,6 +89,18 @@ EOF
     caffeinate -dimsu -- xcodebuild -exportArchive -archivePath "$archive" -exportPath "$lane/Upload" -exportOptionsPlist "$lane/ExportOptions.plist" | tee "$lane/export.log"
     ipa="$(find "$lane/Upload" -maxdepth 1 -name '*.ipa' -print -quit)"
     [[ -n "$ipa" ]] || { echo "APPLE_UPLOAD_STOP exported IPA missing"; exit 3; }
+    if [[ "$game_center" == true ]]; then
+      ipa_check="$lane/ExportedAppCheck"
+      rm -rf "$ipa_check"
+      mkdir -p "$ipa_check"
+      ditto -x -k "$ipa" "$ipa_check"
+      exported_app="$(find "$ipa_check/Payload" -maxdepth 1 -name '*.app' -print -quit)"
+      [[ -n "$exported_app" ]] || { echo "APPLE_UPLOAD_STOP exported app missing from IPA"; exit 3; }
+      [[ "$(codesign -d --entitlements :- "$exported_app" 2>/dev/null | plutil -extract 'com.apple.developer.game-center' raw -)" == true ]] || {
+        echo "APPLE_UPLOAD_STOP exported IPA lost com.apple.developer.game-center entitlement" >&2
+        exit 3
+      }
+    fi
     api_key_id="${APPLE_API_KEY_ID:-AQX2CFYPVZ}"
     api_issuer_id="${APPLE_API_ISSUER_ID:-de911c2a-77f4-4b17-9c05-f25feef339e8}"
     api_key_path="${APPLE_API_PRIVATE_KEY_PATH:-$HOME/.appstoreconnect/private_keys/AuthKey_${api_key_id}.p8}"

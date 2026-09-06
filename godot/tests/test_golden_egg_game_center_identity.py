@@ -29,7 +29,7 @@ class FredGameCenterIdentityContractTests(unittest.TestCase):
         game = (ROOT / "game/game.json").read_text(encoding="utf-8")
         self.assertIn('ret["team_player_id"]', patch)
         self.assertIn('ret["game_player_id"]', patch)
-        self.assertIn('"build_number": 10', game)
+        self.assertIn('"build_number": 11', game)
 
 
 if __name__ == "__main__":
