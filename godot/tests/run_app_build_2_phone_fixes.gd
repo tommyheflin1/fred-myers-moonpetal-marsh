@@ -110,6 +110,7 @@ func _run() -> void:
 	check(main_source.contains("not session.paused and countdown_seconds <= 0.0"), "touch controls stay hidden behind countdown and pause overlays")
 	var export_config := FileAccess.get_file_as_string("res://export_presets.cfg")
 	check(export_config.contains('application/version="11"'), "iOS export declares App Store build number 11")
+	check(export_config.contains("entitlements/game_center=true"), "iOS export embeds the required Game Center entitlement")
 	check(export_config.contains("fred-myers-app-build-2-debug.apk"), "Android development export has a distinct Build 2 artifact name")
 
 	game.menu_music.stop()
