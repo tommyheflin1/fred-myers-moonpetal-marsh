@@ -323,3 +323,28 @@ No logout, remote reconnection, browser reset, or alternate Apple session was us
 
 No runtime files changed in this artwork checkpoint. Earlier exact-runtime test
 results retain their stated boundaries; no new native or Apple submission claim.
+
+## Apple visibility reconciliation and session expiration (2026-09-13)
+
+The same Apple tab recovered without any logout, browser/session reset or Mac work.
+Reopened Hero of Moonpetal and First Lily Trail from the catalog and independently
+verified each persisted showBeforeEarned=true, points=40 and repeatable=false.
+Save was then issued after field/identity checks for campaign_008 through
+campaign_080 (inclusive, steps of four), changing only showBeforeEarned to true.
+Those 19 records still require independent reopen/readback before considering the
+visibility audit complete. Existing IDs, point values and repeatability were retained.
+
+When opening campaign_084, the expected heading was absent. A fresh DOM snapshot
+showed Apple's sign-in screen with empty Email or Phone Number and Password fields.
+No sign-out action was performed. campaign_084,088,092,096 were not changed.
+Resume with the same authenticated tab after owner sign-in, first rereading saves;
+do not recreate records or repeat already-persisted mutations blindly.
+
+Canonical process audit remains MATCH, zero file differences at ca7a9ba. Internal
+TestFlight release-readiness was actually rerun and still reports ten failures:
+the four non-device Golden Egg reviews, missing backbone evidence, disabled
+achievements, third-party SDK review, creative review, audible mix review and
+store-package approval. No failed gate was relabeled or waived. The harness task
+confirmed no explicit sizing answer and no successful website publication; it
+remains sole website lifecycle owner. Original artwork, runtime and signing assets
+are unchanged. No new build/archive/upload or App Review submission occurred.
