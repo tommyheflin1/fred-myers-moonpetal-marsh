@@ -348,3 +348,22 @@ store-package approval. No failed gate was relabeled or waived. The harness task
 confirmed no explicit sizing answer and no successful website publication; it
 remains sole website lifecycle owner. Original artwork, runtime and signing assets
 are unchanged. No new build/archive/upload or App Review submission occurred.
+
+## Apple achievement visibility complete (2026-09-13)
+
+The existing App Store Connect tab returned to an authenticated apps page.
+Opened the exact existing campaign_084/088/092/096 records, checked each identity,
+40-point value and non-repeatability, then saved showBeforeEarned=true.
+Individually reopened all 25 achievement URLs and verified every record's name,
+40 points, showBeforeEarned=true (Hidden=No), and repeatable=false. All 25 unique
+milestones passed the read-back check. No IDs, point values, or leaderboards changed.
+This supersedes the partial verification and Apple-login blocker above.
+
+Two immediate same-call navigation/read attempts hit heading deadlines. The same
+tab's subsequent snapshot showed the correct page; separating navigation from the
+next read completed verification without resetting the browser or touching the Mac.
+No artwork/localization was uploaded, and none of these records was added for review.
+Original artwork still requires Apple-sized copies; the one explicit resizing
+permission question remains outstanding. Production website and exact native
+release gates remain separate and incomplete. The canonical process audit remains
+MATCH with zero file differences, disabled achievements and missing backbone evidence.
