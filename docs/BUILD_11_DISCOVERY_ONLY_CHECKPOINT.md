@@ -367,3 +367,11 @@ Original artwork still requires Apple-sized copies; the one explicit resizing
 permission question remains outstanding. Production website and exact native
 release gates remain separate and incomplete. The canonical process audit remains
 MATCH with zero file differences, disabled achievements and missing backbone evidence.
+
+Live TestFlight inventory was inspected after the visibility work: newest visible
+upload is version 1.1 Build 10, Complete, created September 5, 2026 at 12:22 PM
+(Apple display time), Apple build ID 67b04dfd-7c1b-4160-83ee-eae9cf829fd6.
+It is Ready to Submit and has no group assigned in this inventory. The version 1.1
+build list contains 10,9,7,6; Build 8 is a failed upload. Build 11 is not present.
+No group assignment, upload or submission was performed, and the older Build 10
+must not be represented as containing this candidate's new changes.
