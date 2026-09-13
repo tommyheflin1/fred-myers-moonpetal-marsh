@@ -299,3 +299,27 @@ failed at the native 60-second upload boundary. Latest reported request is
 d74cea13-21ba-4b70-8118-53771482c2f1. Existing version 83 is preserved. This is
 not evidence of broken website source or successful publication. No additional
 website operations were performed by the Fred task after ownership transfer.
+
+## Complete achievement original artwork set (2026-09-13)
+
+All 25 distinct original badges are now preserved in docs/artwork-drafts,
+including separate Hero of Moonpetal and First Lily Trail originals. The new
+ACHIEVEMENT_ORIGINALS.json maps every milestone ID to its original, SHA-256,
+dimensions, generation source, and prompt (or existing prompt provenance).
+All 25 are opaque RGB PNGs, 1254x1254. They are not yet Apple-compliant 1024x1024
+copies, production assets, uploaded localizations, or owner-approved visuals.
+One shared permission question for non-generative dimension-only resizing remains
+pending; do not duplicate it. The superhero Golden Egg artwork is unchanged.
+
+Direct Apple DOM and screenshot inspection found a visibility mismatch in the
+new records' defaults: showBeforeEarned=false displays Hidden=Yes, whereas the
+app catalog specifies hidden=false. For Hero of Moonpetal (campaign_100), selected
+showBeforeEarned=true and clicked Save; the current form then showed true and
+repeatable=false. Subsequent breadcrumb navigation timed out at the CDP transport
+and read-only snapshots timed out. Persistence must be reverified before claiming
+the visibility correction complete. Inspect and reconcile the other 24 records
+against the same runtime definition; do not recreate IDs or change point values.
+No logout, remote reconnection, browser reset, or alternate Apple session was used.
+
+No runtime files changed in this artwork checkpoint. Earlier exact-runtime test
+results retain their stated boundaries; no new native or Apple submission claim.
