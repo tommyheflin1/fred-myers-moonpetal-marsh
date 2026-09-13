@@ -22,11 +22,15 @@ const GameCenterAdapter = preload("res://scripts/game_center_adapter.gd")
 const PredatorDepth = preload("res://scripts/predator_depth.gd")
 const WildlifeAnimationRig = preload("res://scripts/wildlife_animation_rig.gd")
 const GoldenEggRunState = preload("res://scripts/golden_egg_run_state.gd")
+const GoldenEggArt = preload("res://scripts/golden_egg_art.gd")
 const GoldenEggDiscoveryStore = preload("res://scripts/golden_egg_discovery_store.gd")
 const GoldenEggClient = preload("res://scripts/golden_egg_client.gd")
 const GoldenEggService = preload("res://scripts/golden_egg_service.gd")
 const GoldenEggLocalStore = preload("res://scripts/golden_egg_local_store.gd")
 const GoldenEggNetworkBridge = preload("res://scripts/golden_egg_network_bridge.gd")
+const UpdateGateScript = preload("res://scripts/fred_update_gate.gd")
+const ThirdPartyNotices = preload("res://scripts/third_party_notices.gd")
+const TITLE_LICENSES_RECT := Rect2(1010, 30, 225, 58)
 
 enum Screen { TITLE, STORY, INSTRUCTIONS, PLAYING, FAILED, COMPLETE, LEADERBOARD, CUSTOMIZE, GOLDEN_EGG }
 const START := Vector2(135, 560)
@@ -39,11 +43,12 @@ const WHIRLPOOLS := [Vector2(500,405), Vector2(790,315), Vector2(960,500)]
 const FAIRY_POSITIONS := [Vector2(455,205), Vector2(835,545), Vector2(1080,365)]
 const PREDATOR_SPECIES: Array[String] = ["BASS", "PIKE", "HERON", "SNAKE", "MUSKIE"]
 const RESPAWN_COUNTDOWN_SECONDS := 2.0
-const MENU_MUSIC_PATH := "res://assets/audio/the_marshland_march.mp3"
-const GAMEPLAY_MUSIC_PATH := "res://assets/audio/marshland_chase.mp3"
+const MENU_MUSIC_PATH := "res://assets/audio/custom/the_marshland_march.mp3"
+const GAMEPLAY_MUSIC_PATH := "res://assets/audio/custom/marshland_chase.mp3"
 const TITLE_START_RECT := Rect2(90,405,390,68)
 const TITLE_CUSTOMIZE_RECT := Rect2(90,490,390,58)
 const TITLE_LEADERBOARD_RECT := Rect2(90,565,390,58)
+const TITLE_PENDING_EGG_RECT := Rect2(720,620,490,55)
 const LEADERBOARD_GAME_CENTER_RECT := Rect2(260,620,300,55)
 const LEADERBOARD_HOME_SPLIT_RECT := Rect2(720,620,300,55)
 const LEADERBOARD_HOME_CENTER_RECT := Rect2(490,620,300,55)
@@ -131,10 +136,21 @@ var golden_production_network_enabled := true
 var golden_reveal_seconds := 0.0
 var golden_discovery_status := "pending"
 var golden_privacy := "anonymous"
+var golden_identity_link_requested := false
+var golden_public_review_requested := false
+var golden_anonymous_requested := false
+var golden_pending_review_available := false
 var _world_labels_key := ""
 var _cached_world_labels: Array[Dictionary] = []
 var golden_chime: AudioStreamPlayer
 var golden_room_open := false
+var update_gate: Node
+var third_party_notices: Control
+var update_overlay: CanvasLayer
+var update_title: Label
+var update_detail: Label
+var update_retry: Button
+var update_connection_started := false
 const GOLDEN_ROOM_EGG := Vector2(640, 360)
 const GOLDEN_ROOM_EGG_RADIUS := 78.0
 
@@ -163,6 +179,8 @@ func _handle_application_paused() -> void:
         menu_music.stream_paused = true
     if is_instance_valid(chase_music):
         chase_music.stream_paused = true
+    if is_instance_valid(golden_chime):
+        golden_chime.stream_paused = true
     if screen == Screen.PLAYING:
         golden_run.note_pause(level_number)
         session.paused = true
@@ -172,6 +190,8 @@ func _handle_application_resumed() -> void:
     if not application_backgrounded:
         return
     application_backgrounded = false
+    if is_instance_valid(update_gate) and update_gate.required:
+        update_gate.begin_check()
     if is_instance_valid(game_center) and game_center.has_method("notify_application_resumed"):
         game_center.notify_application_resumed()
     touch_contacts.clear()
@@ -180,15 +200,22 @@ func _handle_application_resumed() -> void:
     _refresh_touch_holds()
     _fixed_accumulator = 0.0
     if is_instance_valid(menu_music):
-        menu_music.stream_paused = false
+        menu_music.stream_paused = _update_blocks_play()
     if is_instance_valid(chase_music):
-        chase_music.stream_paused = false
+        chase_music.stream_paused = _update_blocks_play()
+    if is_instance_valid(golden_chime):
+        golden_chime.stream_paused = _update_blocks_play()
     if screen == Screen.PLAYING:
         session.paused = true
         _set_feedback("[PAUSED] Fred is safe. Tap RESUME when you are ready.")
     _sync_music()
 
 func _handle_back_request() -> String:
+    if _update_blocks_play():
+        return "update_blocked"
+    if is_instance_valid(third_party_notices) and third_party_notices.visible:
+        third_party_notices.close()
+        return "licenses_closed"
     touch_contacts.clear()
     touch_positions.clear()
     pointer_touch_active = false
@@ -229,8 +256,7 @@ func _ready() -> void:
     add_child(golden_network)
     golden_network.operation_completed.connect(_on_golden_network_operation_completed)
     golden_service.configure(golden_network.request_json, golden_secure_store)
-    if golden_production_network_enabled and golden_service.has_pending_discovery():
-        golden_network.start_retry(golden_service)
+    golden_pending_review_available = golden_service.has_pending_discovery() or golden_service.has_canonical_discovery()
     var game_center_available := bool(game_center.configure())
     game_scoring.configure(
         OS.get_name(),
@@ -240,7 +266,6 @@ func _ready() -> void:
     if game_center_available:
         game_center.sign_in_completed.connect(_on_game_center_sign_in_completed)
         game_center.score_submission_completed.connect(_on_game_center_score_submission_completed)
-        _request_game_center_connection()
     boost.reset()
     _set_feedback(FredSaveFeedback.load_message(result))
     menu_music = AudioStreamPlayer.new()
@@ -259,17 +284,116 @@ func _ready() -> void:
     add_child(chase_music)
     add_child(golden_chime)
     _sync_fred_style()
+    _configure_update_gate()
+    var notices_layer := CanvasLayer.new()
+    notices_layer.layer = 50
+    add_child(notices_layer)
+    third_party_notices = ThirdPartyNotices.new()
+    notices_layer.add_child(third_party_notices)
+    if not _update_blocks_play() and game_center_available:
+        update_connection_started = true
+        _request_game_center_connection()
     _sync_music()
     set_process(true)
 
+func _configure_update_gate() -> void:
+    update_gate = UpdateGateScript.new()
+    add_child(update_gate)
+    var definition: Variant = JSON.parse_string(FileAccess.get_file_as_string("res://game/game.json"))
+    update_gate.configure(definition if definition is Dictionary else {})
+    if not update_gate.required:
+        return
+    _create_update_overlay()
+    update_gate.state_changed.connect(_on_update_gate_state_changed)
+    update_gate.begin_check()
+
+func _create_update_overlay() -> void:
+    if is_instance_valid(update_overlay):
+        return
+    update_overlay = CanvasLayer.new()
+    update_overlay.layer = 100
+    add_child(update_overlay)
+    var background := ColorRect.new()
+    background.color = Color("102d2c")
+    background.mouse_filter = Control.MOUSE_FILTER_STOP
+    background.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+    update_overlay.add_child(background)
+    var center := CenterContainer.new()
+    center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+    background.add_child(center)
+    var panel := VBoxContainer.new()
+    panel.custom_minimum_size = Vector2(560, 270)
+    panel.add_theme_constant_override("separation", 16)
+    center.add_child(panel)
+    update_title = Label.new()
+    update_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+    update_title.add_theme_font_size_override("font_size", 32)
+    panel.add_child(update_title)
+    update_detail = Label.new()
+    update_detail.custom_minimum_size = Vector2(560, 85)
+    update_detail.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+    update_detail.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+    update_detail.add_theme_font_size_override("font_size", 22)
+    panel.add_child(update_detail)
+    var store_button := Button.new()
+    store_button.text = "OPEN APP STORE"
+    store_button.custom_minimum_size.y = 64
+    store_button.add_theme_font_size_override("font_size", 24)
+    store_button.pressed.connect(update_gate.open_store)
+    panel.add_child(store_button)
+    update_retry = Button.new()
+    update_retry.text = "RETRY"
+    update_retry.custom_minimum_size.y = 64
+    update_retry.add_theme_font_size_override("font_size", 24)
+    update_retry.pressed.connect(update_gate.begin_check)
+    panel.add_child(update_retry)
+
+func _update_blocks_play() -> bool:
+    return is_instance_valid(update_gate) and bool(update_gate.blocks_gameplay())
+
+func _on_update_gate_state_changed(state: String) -> void:
+    var blocked := _update_blocks_play()
+    touch_contacts.clear()
+    touch_positions.clear()
+    pointer_touch_active = false
+    _refresh_touch_holds()
+    _fixed_accumulator = 0.0
+    if blocked and screen == Screen.PLAYING:
+        session.paused = true
+    update_overlay.visible = blocked
+    if blocked:
+        update_retry.disabled = state == "checking"
+        update_title.text = "Checking the marsh" if state == "checking" else ("Update required" if state == "update_required" else "Unable to verify updates")
+        update_detail.text = "Checking for important updates before Fred's adventure." if state == "checking" else ("Install the latest Fred Myers update, then return and tap Retry." if state == "update_required" else "Connect to the internet and tap Retry. Your adventure stays paused until the version is verified.")
+    _sync_music()
+    if not blocked and not update_connection_started and not application_backgrounded:
+        update_connection_started = true
+        _request_game_center_connection()
+    queue_redraw()
+
 func _on_game_center_sign_in_completed(result: Dictionary) -> void:
+    # Ordinary Game Center does not initialize or exchange website identity.
+    if bool(result.get("ok", false)) and not golden_public_review_requested and not golden_identity_link_requested:
+        game_center_status = "GAME CENTER CONNECTED"
+        queue_redraw()
+        return
     if bool(result.get("ok", false)):
         if golden_service.set_verified_game_center_identity(result):
             game_center_status = "GAME CENTER IDENTITY READY"
-            if golden_production_network_enabled and golden_service.has_pending_discovery() and not golden_network.is_busy():
-                golden_network.start_retry(golden_service)
+            if golden_public_review_requested and golden_production_network_enabled and not golden_network.is_busy():
+                if golden_service.has_pending_discovery() and not golden_service.has_canonical_discovery() and not golden_service.authorize_pending_identity_link():
+                    _cancel_golden_public_review()
+                    _set_feedback("[DISCOVERY SAFE] Use the original Game Center account for this discovery.")
+                elif not golden_network.start_identity_review(golden_service):
+                    _cancel_golden_public_review()
+            elif golden_identity_link_requested and golden_production_network_enabled and golden_service.has_pending_discovery() and not golden_network.is_busy():
+                if golden_service.authorize_pending_identity_link():
+                    golden_network.start_retry(golden_service)
+                else:
+                    _set_feedback("[DISCOVERY SAFE] Use the original Game Center account for this discovery.")
         else:
             game_center_status = "GAME CENTER CONNECTED — DISCOVERY SAFE FOR RETRY"
+            _cancel_golden_public_review()
     else:
         var error := str(result.get("error", ""))
         if error == "game_center_timeout":
@@ -278,7 +402,41 @@ func _on_game_center_sign_in_completed(result: Dictionary) -> void:
             game_center_status = "GAME CENTER SIGN-IN NEEDED — TAP CONNECT"
         else:
             game_center_status = "GAME CENTER UNAVAILABLE — LOCAL SCORES ARE SAFE"
+        if golden_public_review_requested:
+            golden_discovery_status = "name_check_failed"
+        _cancel_golden_public_review()
+    golden_identity_link_requested = false
     queue_redraw()
+
+func _request_golden_pending_registration() -> void:
+    if not golden_production_network_enabled or golden_network.is_busy() or not golden_service.has_pending_discovery():
+        return
+    golden_identity_link_requested = true
+    _request_game_center_connection()
+
+func _cancel_golden_public_review() -> void:
+    golden_public_review_requested = false
+    golden_service.clear_public_name_review()
+
+func _review_or_confirm_golden_public_name() -> void:
+    if golden_network.is_busy() or golden_public_review_requested:
+        _set_feedback("[DISCOVERY SAFE] Checking your choice. You can still return to Level 5.")
+        return
+    var reviewed_name: String = golden_service.public_name_for_review()
+    if not reviewed_name.is_empty():
+        # Only this second, explicit player action can start PUBLIC publication.
+        if golden_network.start_privacy(golden_service, true, ""):
+            golden_discovery_status = "saving_privacy"
+            _set_feedback("[SHARING] Saving the Game Center name you reviewed.")
+        return
+    _cancel_golden_public_review()
+    golden_public_review_requested = true
+    if not golden_production_network_enabled or not _request_game_center_connection():
+        _cancel_golden_public_review()
+        golden_discovery_status = "name_check_failed"
+        _set_feedback("[DISCOVERY SAFE] Connect to Game Center to review your name, or stay Anonymous.")
+    else:
+        _set_feedback("[NAME CHECK] Your name stays private until you review it and choose Share.")
 
 func _game_center_available() -> bool:
     return is_instance_valid(game_center) and game_center.has_method("is_available") and bool(game_center.is_available())
@@ -289,15 +447,13 @@ func _game_center_auth_state() -> String:
     return str(game_center.authentication_state())
 
 func _request_game_center_connection() -> bool:
+    if _update_blocks_play():
+        return false
     if not _game_center_available():
         game_center_status = "APPLE GAME CENTER IS NOT AVAILABLE ON THIS DEVICE"
         queue_redraw()
         return false
-    if game_center.is_authenticated():
-        game_center_status = "GAME CENTER CONNECTED"
-        queue_redraw()
-        return true
-    if _game_center_auth_state() == "authenticating":
+    if _game_center_auth_state() in ["authenticating", "awaiting_signature"]:
         game_center_status = "CONNECTING TO GAME CENTER"
         queue_redraw()
         return false
@@ -316,6 +472,8 @@ func _on_game_center_score_submission_completed(result: Dictionary) -> void:
     queue_redraw()
 
 func _process(delta: float) -> void:
+    if application_backgrounded or _update_blocks_play():
+        return
     _advance_visual(delta)
     _tick_feedback(delta)
     if screen != Screen.PLAYING or session.paused: return
@@ -335,6 +493,8 @@ func _advance_visual(delta: float) -> void:
     queue_redraw()
 
 func _fixed_tick(delta: float) -> void:
+    if application_backgrounded or _update_blocks_play():
+        return
     simulation_time += maxf(0.0, delta)
     danger_cooldown_seconds = maxf(0.0, danger_cooldown_seconds - maxf(0.0, delta))
     if countdown_enabled and countdown_seconds > 0.0:
@@ -428,6 +588,13 @@ func _fixed_tick(delta: float) -> void:
 
 func _sync_music() -> void:
     if not is_instance_valid(menu_music) or not is_instance_valid(chase_music):
+        return
+    var audio_blocked := application_backgrounded or _update_blocks_play()
+    menu_music.stream_paused = audio_blocked
+    chase_music.stream_paused = audio_blocked
+    if is_instance_valid(golden_chime):
+        golden_chime.stream_paused = audio_blocked
+    if audio_blocked:
         return
     if not audio_enabled:
         menu_music.stop()
@@ -792,6 +959,7 @@ func _reveal_golden_egg() -> void:
     impact_burst_seconds = 1.2
     impact_burst_kind = "MOONPETAL DISCOVERY"
     golden_reveal_seconds = 0.0
+    _cancel_golden_public_review()
     golden_discovery_status = "pending"
     golden_privacy = "anonymous"
     var raw_id := Crypto.new().generate_random_bytes(16).hex_encode()
@@ -801,10 +969,12 @@ func _reveal_golden_egg() -> void:
         golden_discovery_status = "local_recovery_required"
     elif golden_production_network_enabled and golden_service.production_client_ready():
         var evidence_text := JSON.stringify(golden_run.evidence())
-        if golden_network.start_submit(golden_service, evidence_text):
-            golden_discovery_status = "submitting"
-        else:
-            golden_discovery_status = "pending"
+        var queued: Dictionary = golden_service.stage_discovery(evidence_text)
+        if bool(queued.get("success", false)):
+            golden_pending_review_available = true
+            # Only stage locally. The player's explicit publication/Anonymous
+            # choice starts remote verification; returning never depends on it.
+        golden_discovery_status = "pending"
     screen = Screen.GOLDEN_EGG
     if audio_enabled and is_instance_valid(golden_chime):
         golden_chime.play()
@@ -812,6 +982,10 @@ func _reveal_golden_egg() -> void:
     queue_redraw()
 
 func _unhandled_input(event: InputEvent) -> void:
+    if _update_blocks_play():
+        return
+    if is_instance_valid(third_party_notices) and third_party_notices.visible:
+        return
     # Native touch and the desktop pointer already share one Fred input path.
     # Godot compatibility events would otherwise execute the same tap twice
     # (Pause immediately unpauses). Keep this guard even if an export overrides
@@ -853,6 +1027,8 @@ func _unhandled_input(event: InputEvent) -> void:
         elif screen == Screen.INSTRUCTIONS: _start()
 
 func _set_gameplay_paused(paused: bool) -> void:
+    if _update_blocks_play():
+        return
     if paused:
         golden_run.note_pause(level_number)
     session.paused = paused
@@ -865,6 +1041,10 @@ func _set_gameplay_paused(paused: bool) -> void:
     _set_feedback("[PAUSED] Your last checkpoint is safe." if paused else "[PLAYING] Adventure resumed.")
 
 func _handle_touch(index: int, position: Vector2, pressed: bool) -> void:
+    if _update_blocks_play():
+        return
+    if is_instance_valid(third_party_notices) and third_party_notices.visible:
+        return
     touch_controls_visible = true
     if not pressed:
         touch_contacts.erase(index)
@@ -899,6 +1079,8 @@ func _handle_touch(index: int, position: Vector2, pressed: bool) -> void:
             _go_home()
 
 func _move_touch(index: int, position: Vector2) -> void:
+    if _update_blocks_play():
+        return
     if not touch_contacts.has(index):
         return
     var original_action := str(touch_contacts[index])
@@ -926,7 +1108,27 @@ func _refresh_touch_holds() -> void:
         touch_movement = MarshRouteLayout.touch_movement_vector(target)
 
 func _handle_click(position: Vector2) -> void:
-    if screen == Screen.TITLE and TITLE_START_RECT.has_point(position): _open_story()
+    if _update_blocks_play():
+        return
+    if is_instance_valid(third_party_notices) and third_party_notices.visible:
+        return
+    if screen == Screen.TITLE and TITLE_LICENSES_RECT.has_point(position):
+        touch_contacts.clear()
+        touch_positions.clear()
+        pointer_touch_active = false
+        _refresh_touch_holds()
+        third_party_notices.open()
+        return
+    if screen == Screen.TITLE and golden_pending_review_available and TITLE_PENDING_EGG_RECT.has_point(position):
+        _cancel_golden_public_review()
+        golden_privacy = "public" if golden_service.privacy_status == "PUBLIC" else "anonymous"
+        golden_discovery_status = "accepted" if golden_service.has_canonical_discovery() else "pending"
+        golden_reveal_seconds = 0.0
+        screen = Screen.GOLDEN_EGG
+        _set_feedback("[DISCOVERY SAFE] Review your website privacy choice. Nothing changes until you choose.")
+        _sync_music()
+        queue_redraw()
+    elif screen == Screen.TITLE and TITLE_START_RECT.has_point(position): _open_story()
     elif screen == Screen.TITLE and TITLE_CUSTOMIZE_RECT.has_point(position):
         _reset_wardrobe_selection()
         screen = Screen.CUSTOMIZE; _sync_music(); queue_redraw()
@@ -966,25 +1168,19 @@ func _handle_click(position: Vector2) -> void:
     elif screen == Screen.COMPLETE and Rect2(490,500,300,60).has_point(position):
         _advance_level()
     elif screen == Screen.GOLDEN_EGG and GOLDEN_EGG_PRIVATE_RECT.has_point(position):
+        _cancel_golden_public_review()
+        golden_service.choose_pending_publication("ANONYMOUS")
+        golden_anonymous_requested = true
         golden_privacy = "anonymous"
         golden_discovery.set_privacy("anonymous")
+        _request_golden_pending_registration()
         if golden_service.has_canonical_discovery() and not golden_network.is_busy():
-            golden_network.start_privacy(golden_service, false, "")
-            golden_discovery_status = "saving_privacy"
-        _set_feedback("[PRIVATE] Your discovery stays anonymous.")
-    elif screen == Screen.GOLDEN_EGG and GOLDEN_EGG_PUBLIC_RECT.has_point(position):
-        var game_center_name: String = str(golden_service.game_center_display_name())
-        if game_center_name.is_empty():
-            golden_privacy = "anonymous"
-            _request_game_center_connection()
-            _set_feedback("[DISCOVERY SAFE] Sign in to Game Center to show your Game Center name, or stay Anonymous.")
-        else:
-            golden_privacy = "public"
-            golden_discovery.set_privacy("public", game_center_name)
-            if golden_service.has_canonical_discovery() and not golden_network.is_busy():
-                golden_network.start_privacy(golden_service, true, "")
+            if golden_network.start_privacy(golden_service, false, ""):
+                golden_anonymous_requested = false
                 golden_discovery_status = "saving_privacy"
-            _set_feedback("[SHARE READY] Your Game Center name may appear after secure confirmation.")
+        _set_feedback("[PRIVATE] Anonymous selected. Website confirmation is shown below.")
+    elif screen == Screen.GOLDEN_EGG and GOLDEN_EGG_PUBLIC_RECT.has_point(position):
+        _review_or_confirm_golden_public_name()
     elif screen == Screen.GOLDEN_EGG and GOLDEN_EGG_HUNT_RECT.has_point(position):
         _open_golden_egg_hunt()
     elif screen == Screen.GOLDEN_EGG and GOLDEN_EGG_RETURN_RECT.has_point(position):
@@ -1003,19 +1199,48 @@ func _open_golden_egg_hunt() -> void:
 func _on_golden_network_operation_completed(operation: String, result: Dictionary) -> void:
     if operation in ["submit", "retry"]:
         if bool(result.get("success", false)):
+            golden_pending_review_available = true
             golden_discovery_status = "accepted"
-            if golden_privacy == "public":
-                if golden_network.start_privacy(golden_service, true, ""):
-                    golden_discovery_status = "saving_privacy"
-            elif golden_network.start_privacy(golden_service, false, ""):
-                golden_discovery_status = "saving_privacy"
         else:
             golden_discovery_status = "pending"
+    elif operation == "identity_review":
+        var review_wanted := golden_public_review_requested and screen == Screen.GOLDEN_EGG
+        golden_public_review_requested = false
+        if not review_wanted:
+            golden_service.clear_public_name_review()
+            if screen != Screen.GOLDEN_EGG and not golden_service.has_canonical_discovery():
+                # The name lookup may finish after Don't post/Return. It must
+                # not leave an unsent find eligible for any future retry.
+                golden_service.keep_discovery_local()
+        elif bool(result.get("success", false)) and not golden_service.public_name_for_review().is_empty():
+            golden_discovery_status = "name_reviewed"
+            _set_feedback("[REVIEW YOUR NAME] Choose Share this name to display it publicly, or stay Anonymous.")
+        else:
+            golden_service.clear_public_name_review()
+            golden_discovery_status = "name_check_failed"
+            _set_feedback("[NAME STILL PRIVATE] Name check unavailable. Retry when connected or choose Anonymous.")
     elif operation.begins_with("privacy_"):
         golden_discovery_status = "privacy_saved" if bool(result.get("success", false)) else "pending"
+        if bool(result.get("success", false)):
+            golden_privacy = "public" if golden_service.privacy_status == "PUBLIC" else "anonymous"
+            golden_discovery.set_privacy(golden_privacy, str(golden_service.public_result.get("public_player", "")) if golden_privacy == "public" else "")
+        else:
+            _set_feedback("[CHOICE NOT SAVED] Review your current name again before sharing, or retry Anonymous.")
+    # An Anonymous choice made while a request was running is applied next.
+    if golden_anonymous_requested and golden_service.has_canonical_discovery() and not golden_network.is_busy():
+        if golden_network.start_privacy(golden_service, false, ""):
+            golden_anonymous_requested = false
+            golden_discovery_status = "saving_privacy"
     queue_redraw()
 
 func _return_to_level_five() -> void:
+    if _update_blocks_play():
+        return
+    _cancel_golden_public_review()
+    golden_identity_link_requested = false
+    golden_anonymous_requested = false
+    if not golden_network.is_busy() and not golden_service.has_canonical_discovery():
+        golden_service.keep_discovery_local()
     level_number = GoldenEggRunState.TARGET_LEVEL
     level_profile = FredLevelIntensity.profile(level_number)
     session = AdventureSession.new(1337 + level_number)
@@ -1059,6 +1284,8 @@ func _open_instructions() -> void:
     queue_redraw()
 
 func _start() -> void:
+    if _update_blocks_play():
+        return
     if session.completed:
         level_number = 1
         level_profile = FredLevelIntensity.profile(1)
@@ -1085,6 +1312,8 @@ func _start() -> void:
     queue_redraw()
 
 func _retry() -> void:
+    if _update_blocks_play():
+        return
     level_number = 1
     level_profile = FredLevelIntensity.profile(1)
     session = AdventureSession.new(1337)
@@ -1189,6 +1418,8 @@ func _try_golden_egg_predator_event() -> bool:
     return false
 
 func _advance_level() -> void:
+    if _update_blocks_play():
+        return
     if level_number >= FredLevelIntensity.MAX_LEVEL:
         _go_home()
         _set_feedback("[CAMPAIGN 1 COMPLETE] Fred is the hero in every little frog's dreams!")
@@ -1335,21 +1566,29 @@ func _draw_golden_egg_reveal() -> void:
     _draw_canonical_golden_egg(Vector2(640,330),1.0+pulse/350.0)
     _text(Vector2(640,60),"A SECRET OF MOONPETAL MARSH!",36,Color("ffe184"),HORIZONTAL_ALIGNMENT_CENTER,1080)
     _text(Vector2(640,108),"You found one of the hidden Golden Eggs.",25,Color.WHITE,HORIZONTAL_ALIGNMENT_CENTER,920)
-    _text(Vector2(640,486),"Your place is confirmed only by the secure App Vault service.",17,Color("d9f4e2"),HORIZONTAL_ALIGNMENT_CENTER,880)
+    var reviewed_name: String = golden_service.public_name_for_review()
+    var name_text := "Game Center name: checking securely…" if golden_public_review_requested else "Game Center name: tap Review to confirm your current name"
+    if not reviewed_name.is_empty():
+        name_text = "Game Center name (read-only): %s" % reviewed_name
+    elif golden_service.privacy_status == "PUBLIC":
+        name_text = "Currently public: %s — review to share your current name" % str(golden_service.public_result.get("public_player", ""))
+    _text(Vector2(640,486),name_text,17,Color("d9f4e2"),HORIZONTAL_ALIGNMENT_CENTER,1120)
     var status_messages := {
         "submitting": "SECURELY REGISTERING YOUR DISCOVERY…",
         "accepted": "DISCOVERY REGISTERED ON THE APP VAULT LEADERBOARD",
         "saving_privacy": "SAVING YOUR LEADERBOARD DISPLAY CHOICE…",
         "privacy_saved": "LEADERBOARD DISPLAY CHOICE SAVED",
-        "pending": "DISCOVERY SAFELY QUEUED — IT WILL RETRY AUTOMATICALLY",
+        "name_reviewed": "NAME CONFIRMED — NOT SHARED UNTIL YOU TAP SHARE THIS NAME",
+        "name_check_failed": "NAME CHECK UNAVAILABLE — RETRY OR CHOOSE ANONYMOUS",
+        "pending": "DISCOVERY SAFELY QUEUED — CHOOSE A DISPLAY OPTION TO RETRY",
     }
     var status_text := str(status_messages.get(golden_discovery_status, "DISCOVERY SAVED LOCALLY — SECURE CONNECTION REQUIRED"))
     _text(Vector2(640,516),status_text,14,Color("b9f5c7"),HORIZONTAL_ALIGNMENT_CENTER,960)
-    _text(Vector2(640,542),"Choose whether your marsh name may appear publicly. Anonymous is the default.",14,Color("d9f4e2"),HORIZONTAL_ALIGNMENT_CENTER,980)
-    _button(GOLDEN_EGG_PRIVATE_RECT,"KEEP ME ANONYMOUS" if golden_privacy != "anonymous" else "ANONYMOUS ✓")
-    _button(GOLDEN_EGG_PUBLIC_RECT,"SHARE MY MARSH NAME" if golden_privacy != "public" else "PUBLIC NAME ✓")
+    _text(Vector2(640,542),"Post your Game Center name, post as Anonymous, or don't post and keep playing.",14,Color("d9f4e2"),HORIZONTAL_ALIGNMENT_CENTER,980)
+    _button(GOLDEN_EGG_PRIVATE_RECT,"ANONYMOUS ✓" if golden_service.has_canonical_discovery() and golden_service.privacy_status == "ANONYMOUS" else "POST AS ANONYMOUS")
+    _button(GOLDEN_EGG_PUBLIC_RECT,"SHARE THIS NAME" if not reviewed_name.is_empty() else ("CHECKING NAME…" if golden_public_review_requested else "REVIEW GAME CENTER NAME"))
     _button(GOLDEN_EGG_HUNT_RECT,"OPEN GOLDEN EGG HUNT")
-    _button(GOLDEN_EGG_RETURN_RECT,"RETURN TO LEVEL 5")
+    _button(GOLDEN_EGG_RETURN_RECT,"RETURN TO LEVEL 5" if golden_service.has_canonical_discovery() or golden_network.is_busy() else "DON'T POST · RETURN TO GAME")
     _text(Vector2(640,705),"The App Vault service records the official rank and time.",12,Color("9ec8cf"),HORIZONTAL_ALIGNMENT_CENTER,800)
 
 func _draw_title() -> void:
@@ -1369,8 +1608,11 @@ func _draw_title() -> void:
     _button(TITLE_START_RECT, "BEGIN FRED'S STORY")
     _button(TITLE_CUSTOMIZE_RECT, "CUSTOMIZE FRED  •  %d COINS" % customization.coins)
     _button(TITLE_LEADERBOARD_RECT, "MARSH LEADERBOARDS")
+    _button(TITLE_LICENSES_RECT, "LICENSES")
+    if golden_pending_review_available:
+        _button(TITLE_PENDING_EGG_RECT, "REVIEW SAVED GOLDEN EGG")
     _status_panel(Rect2(70,640,440,42), 14)
-    _text(Vector2(285,708), "THE MARSHLAND MARCH  •  PLAY INSTANTLY  •  ACCOUNT OPTIONAL", 11, Color("b9f5c7"), HORIZONTAL_ALIGNMENT_CENTER, 520)
+    _text(Vector2(285,708), "THE MARSHLAND MARCH  •  LOCAL SAVES  •  GAME CENTER OPTIONAL", 11, Color("b9f5c7"), HORIZONTAL_ALIGNMENT_CENTER, 520)
 
 func _draw_story() -> void:
     draw_texture_rect(title_art, Rect2(0,0,1280,720), false, Color(0.42,0.58,0.54,1.0))
@@ -1589,6 +1831,7 @@ func _draw_level() -> void:
     _draw_marsh_background(water)
     if golden_room_open:
         _draw_golden_room()
+        _draw_gameplay_hud()
         return
     _draw_depth_cues()
     for glow in [Vector2(180,170), Vector2(530,270), Vector2(1020,420)]:
@@ -1638,6 +1881,7 @@ func _draw_level() -> void:
         _draw_impact_burst()
     draw_set_transform(Vector2.ZERO)
     _draw_depth_status()
+    _draw_gameplay_hud()
 
 func _draw_golden_room() -> void:
     draw_rect(MarshRouteLayout.PLAYFIELD_RECT, Color("0a3c47"), true)
@@ -1648,14 +1892,18 @@ func _draw_golden_room() -> void:
     _draw_canonical_golden_egg(GOLDEN_ROOM_EGG,0.62+pulse)
     fred_rig.render_to(self,fred,simulation_time,reduced_motion,false)
 
+func _exit_tree() -> void:
+    # Release playback explicitly, including paused update-gate/chime streams.
+    # Removing/replacing the scene must not leave audio owned by the audio server.
+    for player: AudioStreamPlayer in [menu_music, chase_music, golden_chime]:
+        if is_instance_valid(player):
+            player.stop()
+            player.stream = null
+
 func _draw_canonical_golden_egg(center: Vector2, scale: float = 1.0) -> void:
-    draw_colored_polygon(_ellipse_points(center+Vector2(0,18)*scale,Vector2(96,128)*scale,0.0),Color("f8c947"))
-    draw_arc(center,76.0*scale,0.0,TAU,64,Color("fff3a6"),5.0)
-    draw_circle(center+Vector2(-24,-12)*scale,17.0*scale,Color("72c96b"))
-    draw_circle(center+Vector2(24,-12)*scale,17.0*scale,Color("72c96b"))
-    draw_circle(center+Vector2(-24,-15)*scale,5.0*scale,Color("13242a"))
-    draw_circle(center+Vector2(24,-15)*scale,5.0*scale,Color("13242a"))
-    draw_arc(center+Vector2(0,12)*scale,25.0*scale,0.25,PI-0.25,18,Color("7d5609"),4.0)
+    GoldenEggArt.draw_egg(self, center, scale, visual_time, reduced_motion)
+
+func _draw_gameplay_hud() -> void:
     _text(Vector2(25,42), "LILY LEAP", 27, Color("f7d36a"), HORIZONTAL_ALIGNMENT_LEFT, 270)
     _text(MarshRouteLayout.CAMPAIGN_TEXT_RECT.position + Vector2(7.0,14.0), "CAMPAIGN 1  •  LEVEL %03d / 100  •  %s" % [level_profile.level, level_profile.label], 13, Color("d9f4e2"), HORIZONTAL_ALIGNMENT_LEFT, MarshRouteLayout.CAMPAIGN_TEXT_RECT.size.x - 14.0)
     var route_summary := "%s  |  %s  |  %.1fx  |  THREATS %d  |  NEW: %s" % [
@@ -2438,7 +2686,7 @@ func _draw_leaderboard() -> void:
         _button(LEADERBOARD_HOME_SPLIT_RECT, "HOME")
     else:
         _button(LEADERBOARD_HOME_CENTER_RECT, "HOME")
-    _text(Vector2(640,704), "Apple sign-in is optional. Local play and scores always remain available.", 13, Color("bfd8dc"), HORIZONTAL_ALIGNMENT_CENTER, 900)
+    _text(Vector2(640,704), "Game Center is optional. Scores are saved on this device.", 13, Color("bfd8dc"), HORIZONTAL_ALIGNMENT_CENTER, 900)
 
 func _button(rect: Rect2, label: String) -> void:
     draw_rect(Rect2(rect.position+Vector2(0,6),rect.size), Color(0.0,0.02,0.03,0.55), true)

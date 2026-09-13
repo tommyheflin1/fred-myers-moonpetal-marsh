@@ -5,11 +5,14 @@ const Main = preload("res://scripts/main.gd")
 var output_dir := ""
 var device_label := "device"
 var target_size := Vector2i(2868, 1320)
+var review_saved_egg := false
 var capture_viewport: SubViewport
 
 
 func _init() -> void:
 	for argument in OS.get_cmdline_user_args():
+		if argument == "--review-saved-egg":
+			review_saved_egg = true
 		if argument.begins_with("--store-output="):
 			output_dir = argument.trim_prefix("--store-output=")
 		elif argument.begins_with("--store-device="):
@@ -63,6 +66,9 @@ func _capture() -> void:
 	game.touch_controls_visible = true
 	canvas.add_child(game)
 	await process_frame
+	await process_frame
+	game.golden_pending_review_available = review_saved_egg
+	game.queue_redraw()
 	await process_frame
 	await _save("02-main-menu")
 

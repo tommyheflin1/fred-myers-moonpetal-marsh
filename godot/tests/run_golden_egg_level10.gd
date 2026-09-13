@@ -53,6 +53,13 @@ func _init() -> void:
 	check(game.fred == game._level_start_position() and game.collected.is_empty(), "return option starts Level 5 from its clean beginning")
 	check(not game.golden_room_open and game.golden_privacy == "public", "return closes secret room while preserving display choice")
 	check(game.golden_run.phase == RunState.Phase.REVEALED, "return cannot replay the already found secret")
+	game.screen = game.Screen.TITLE
+	game.golden_pending_review_available = true
+	game._handle_click(game.TITLE_PENDING_EGG_RECT.get_center())
+	check(game.screen == game.Screen.GOLDEN_EGG and game.golden_privacy == "anonymous", "pending discovery can be reviewed later without automatically publishing a name")
+	check(not game.golden_network.is_busy(), "opening saved discovery review does not start a network operation")
+	game._handle_click(game.GOLDEN_EGG_RETURN_RECT.get_center())
+	check(game.screen == game.Screen.PLAYING and game.level_number == 5, "saved discovery review retains the return-to-Level-5 action")
 	game.queue_free()
 	print("RESULT golden_egg_level5_passed=%d golden_egg_level5_failed=%d" % [passed,failed])
 	quit(1 if failed else 0)

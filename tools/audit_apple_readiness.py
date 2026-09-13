@@ -7,8 +7,12 @@ import subprocess
 
 
 ROOT = Path(__file__).resolve().parents[1]
-APP_VAULT = ROOT.parent
-EXPECTED_CORE_TREE = "288d87420c5694f80c071f00aa71a0b581f9f60c"
+# Git worktrees may be nested beneath the workspace's worktrees directory.
+APP_VAULT = next(
+    (parent for parent in ROOT.parents if (parent / "FLINS_MOBILE_GAME_ENGINE_ARCHITECTURE.md").is_file()),
+    ROOT.parent,
+)
+EXPECTED_CORE_TREE = "ce7821a6431681adca8bd5997fab8fe24b82ec23"
 BUILD_1_RUNTIME_COMMIT = "c8fcf859e4aa7a9c419e88f1bde7f1ecabbdb943"
 EXPECTED_BUNDLE_ID = "com.flinsvault.fredmyers"
 EXPECTED_IPA_SHA256 = "f5bfb51d8fcad4ab6e8a2320f91d885d541ef2b44296546feb38e36a19e32620"
@@ -83,10 +87,13 @@ def main() -> None:
         for path in (ROOT / "docs").glob("*IOS*EVIDENCE*.md")
         if "PLAN" not in path.name.upper()
     ]
-    current_build_number = "2" if 'application/version="2"' in preset else ""
+    game = read_json(ROOT / "godot/game/game.json")
+    declared_build = str(game.get("build_number", ""))
+    current_build_number = declared_build if declared_build and f'application/version="{declared_build}"' in preset else ""
     current_candidate_external_evidence = (
         external_evidence_valid
         and external.get("build") == current_build_number
+        and external.get("version") == game.get("marketing_version")
         and external.get("runtime_source_commit") == git("rev-parse", "HEAD")
     )
 
@@ -94,7 +101,7 @@ def main() -> None:
         "independent_game_repository": (ROOT / ".git").exists(),
         "central_engine_documents_available": all(path.is_file() for path in engine_documents),
         "godot_4_7_contract": 'PackedStringArray("4.7", "GL Compatibility")' in project,
-        "core_0_5_1_exact_tree": (
+        "core_0_5_1_with_reviewed_additive_helpers": (
             read(ROOT / "godot" / "CORE_VERSION").strip() == "0.5.1"
             and git("rev-parse", "HEAD:godot/addons/mobile_game_core") == EXPECTED_CORE_TREE
         ),
@@ -140,7 +147,7 @@ def main() -> None:
             external_evidence_valid and external.get("privacy_manifest_audited") is True
         ),
         "unsigned_xcode_handoff_manifest": (
-            ROOT / "builds" / "ios-handoff-build-2" / "handoff-manifest.json"
+            ROOT / "builds" / f"ios-handoff-build-{current_build_number}" / "handoff-manifest.json"
         ).is_file(),
         "xcode_26_ios_26_sdk_validation": bool(ios_evidence) or (
             external_evidence_valid
@@ -194,9 +201,9 @@ def main() -> None:
         },
         "missing_apple_gates": missing,
         "protected_next_action": (
-            "Create a clean hash-guarded iOS Build 2 handoff from the committed candidate, then use "
-            "the authorized Mac to sign and upload Build 2 without releasing publicly. After Apple "
-            "processing, attach only Build 2 to the internal group and repeat physical iPhone audio, "
+            f"Create a clean hash-guarded iOS Build {current_build_number} handoff from the committed candidate, then use "
+            f"the authorized Mac to sign and upload Build {current_build_number} without releasing publicly. After Apple "
+            f"processing, attach only Build {current_build_number} to the internal group and repeat physical iPhone audio, "
             "touch, lifecycle, save and live Game Center acceptance."
         ),
     }

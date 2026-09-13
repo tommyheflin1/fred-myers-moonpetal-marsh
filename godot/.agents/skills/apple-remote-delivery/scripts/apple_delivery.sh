@@ -15,9 +15,15 @@ d=json.load(open(sys.argv[1], encoding='utf-8'))
 print('|'.join((d['game_id'], d['bundle_id'], d['marketing_version'], str(d['build_number']), str(bool(d.get('capabilities',{}).get('game_center'))).lower())))
 PY
 )"
+encryption_declaration="$(python3 - "$root/tools/ios_release_config.json" <<'PY'
+import json, sys
+value=json.load(open(sys.argv[1], encoding='utf-8')).get('uses_non_exempt_encryption')
+print('true' if value is True else 'false' if value is False else 'pending')
+PY
+)"
+[[ "$encryption_declaration" != pending ]] || { echo "APPLE_DELIVERY_STOP export compliance declaration requires owner/legal review"; exit 2; }
 lane="$root/builds/ios/apple-delivery/${version}-${build}"
 checkpoint="$lane/checkpoint.json"
-profile_name="${APPLE_PROVISIONING_PROFILE_SPECIFIER:-Fred Myers App Store Game Center 2026}"
 godot="$(command -v godot 2>/dev/null || true)"
 [[ -n "$godot" ]] || godot=/Applications/Godot.app/Contents/MacOS/Godot
 
@@ -42,11 +48,19 @@ case "$mode" in
     rm -rf "$export_root"
     mkdir -p "$export_root"
     "$godot" --headless --path "$root" --editor --quit
-    "$godot" --headless --path "$root" --export-debug "iOS Unsigned Preparation" "$export_root/Game"
+    # This export is later archived. Its PCK must not contain debug-only behavior.
+    "$godot" --headless --path "$root" --export-release "iOS Unsigned Preparation" "$export_root/Game"
+    python3 "$root/tools/verify_ios_icon_artifacts.py" --project-root "$root" --xcode-export "$export_root"
+    python3 "$root/tools/validate_ios_privacy_manifest.py" --stage "$export_root"
+    python3 "$root/tools/prepare_ios_export_compliance.py" --export-root "$export_root" --uses-non-exempt-encryption "$encryption_declaration"
     xcodeproj="$(find "$lane" -maxdepth 4 -name '*.xcodeproj' -print -quit)"
     [[ -n "$xcodeproj" ]] || { echo "APPLE_PREPARE_STOP Xcode project missing"; exit 3; }
     scheme="$(basename "$xcodeproj" .xcodeproj)"
-    xcodebuild -project "$xcodeproj" -scheme "$scheme" -sdk iphonesimulator -configuration Debug -derivedDataPath "$lane/DerivedData" CODE_SIGNING_ALLOWED=NO ARCHS=x86_64 build | tee "$lane/prepare.log"
+    xcodebuild -project "$xcodeproj" -scheme "$scheme" -sdk iphonesimulator -configuration Release -derivedDataPath "$lane/DerivedData" CODE_SIGNING_ALLOWED=NO ARCHS=x86_64 build | tee "$lane/prepare.log"
+    unsigned_app="$(find "$lane/DerivedData/Build/Products" -type d -name '*.app' -print -quit)"
+    [[ -n "$unsigned_app" ]] || { echo "APPLE_PREPARE_STOP unsigned app missing"; exit 3; }
+    python3 "$root/tools/scan_ios_app_bundle.py" --project-root "$root" --app "$unsigned_app" --stage unsigned
+    python3 "$root/tools/verify_ios_icon_artifacts.py" --project-root "$root" --app "$unsigned_app"
     git -C "$root" ls-files --others --exclude-standard -z | while IFS= read -r -d '' generated; do
       [[ "$generated" == *.gd.uid ]] && git -C "$root" clean -f -- "$generated"
     done
@@ -61,16 +75,22 @@ case "$mode" in
     scheme="$(basename "$xcodeproj" .xcodeproj)"
     archive="$lane/${game_id}.xcarchive"
     sed -i '' '/CODE_SIGN_IDENTITY =/d' "$xcodeproj/project.pbxproj"
-    caffeinate -dimsu -- xcodebuild -project "$xcodeproj" -scheme "$scheme" -configuration Release -destination generic/platform=iOS -archivePath "$archive" DEVELOPMENT_TEAM="$APPLE_TEAM_ID" CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY="Apple Distribution" PROVISIONING_PROFILE_SPECIFIER="$profile_name" archive | tee "$lane/archive.log"
+    signing_lines="$(python3 "$root/tools/ios_signing.py" archive-arguments --root "$root" --team "$APPLE_TEAM_ID")"
+    signing_args=()
+    while IFS= read -r argument; do signing_args+=("$argument"); done <<< "$signing_lines"
+    caffeinate -dimsu -- xcodebuild -project "$xcodeproj" -scheme "$scheme" -configuration Release -destination generic/platform=iOS -archivePath "$archive" "${signing_args[@]}" archive | tee "$lane/archive.log"
     app="$(find "$archive/Products/Applications" -maxdepth 1 -name '*.app' -print -quit)"
     [[ -n "$app" ]] || { echo "APPLE_ARCHIVE_STOP signed app missing"; exit 3; }
     forbidden_symbols="$(find "$app" -name '.symbols' -print -quit)"
     [[ -z "$forbidden_symbols" ]] || { echo "APPLE_ARCHIVE_STOP forbidden path in signed app: $forbidden_symbols"; exit 3; }
     codesign --verify --deep --strict --verbose=2 "$app"
+    python3 "$root/tools/scan_ios_app_bundle.py" --project-root "$root" --app "$app" --stage signed
+    python3 "$root/tools/verify_ios_icon_artifacts.py" --project-root "$root" --app "$app"
     plist="$app/Info.plist"
     [[ "$(plutil -extract CFBundleIdentifier raw "$plist")" == "$bundle" ]]
     [[ "$(plutil -extract CFBundleShortVersionString raw "$plist")" == "$version" ]]
     [[ "$(plutil -extract CFBundleVersion raw "$plist")" == "$build" ]]
+    [[ "$(plutil -extract ITSAppUsesNonExemptEncryption raw "$plist")" == "$encryption_declaration" ]]
     if [[ "$game_center" == true ]]; then
       [[ "$(codesign -d --entitlements :- "$app" 2>/dev/null | plutil -extract 'com.apple.developer.game-center' raw -)" == true ]]
     fi
@@ -81,32 +101,37 @@ case "$mode" in
     [[ "${APPLE_UPLOAD_ACK:-}" == "UPLOAD_BUILD_${build}" ]] || { echo "APPLE_UPLOAD_STOP authorization required: APPLE_UPLOAD_ACK=UPLOAD_BUILD_${build}"; exit 2; }
     archive="$lane/${game_id}.xcarchive"
     [[ -d "$archive" ]] || { echo "APPLE_UPLOAD_STOP archive missing"; exit 3; }
-    cat > "$lane/ExportOptions.plist" <<EOF
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0"><dict><key>method</key><string>app-store-connect</string><key>destination</key><string>export</string><key>signingStyle</key><string>manual</string><key>teamID</key><string>${APPLE_TEAM_ID:?APPLE_TEAM_ID required}</string><key>provisioningProfiles</key><dict><key>${bundle}</key><string>${profile_name}</string></dict><key>manageAppVersionAndBuildNumber</key><false/></dict></plist>
-EOF
-    caffeinate -dimsu -- xcodebuild -exportArchive -archivePath "$archive" -exportPath "$lane/Upload" -exportOptionsPlist "$lane/ExportOptions.plist" | tee "$lane/export.log"
-    ipa="$(find "$lane/Upload" -maxdepth 1 -name '*.ipa' -print -quit)"
-    [[ -n "$ipa" ]] || { echo "APPLE_UPLOAD_STOP exported IPA missing"; exit 3; }
-    if [[ "$game_center" == true ]]; then
-      ipa_check="$lane/ExportedAppCheck"
-      rm -rf "$ipa_check"
-      mkdir -p "$ipa_check"
+    python3 "$root/tools/ios_signing.py" export-options --root "$root" --team "${APPLE_TEAM_ID:?APPLE_TEAM_ID required}"
+    upload_method="$(python3 "$root/tools/ios_signing.py" upload-method --root "$root" --team "$APPLE_TEAM_ID")"
+    if [[ "$upload_method" == altool ]]; then
+      # Preserve the already-established manual export/validate/altool sequence.
+      # Credentials stay in their existing external location; never copy or reset them.
+      credential_lines="$(python3 "$root/tools/ios_signing.py" upload-credentials --root "$root" --team "$APPLE_TEAM_ID")"
+      credentials=()
+      while IFS= read -r argument; do credentials+=("$argument"); done <<< "$credential_lines"
+      [[ ${#credentials[@]} == 2 ]] || { echo "APPLE_UPLOAD_STOP API identity unavailable"; exit 3; }
+      caffeinate -dimsu -- xcodebuild -exportArchive -archivePath "$archive" -exportPath "$lane/Upload" -exportOptionsPlist "$lane/ExportOptions.plist" | tee "$lane/export.log"
+      ipa="$(find "$lane/Upload" -maxdepth 1 -name '*.ipa' -print -quit)"
+      [[ -n "$ipa" ]] || { echo "APPLE_UPLOAD_STOP exported IPA missing"; exit 3; }
+      ipa_check="$(mktemp -d "$lane/ExportedAppCheck.XXXXXX")"
       ditto -x -k "$ipa" "$ipa_check"
       exported_app="$(find "$ipa_check/Payload" -maxdepth 1 -name '*.app' -print -quit)"
-      [[ -n "$exported_app" ]] || { echo "APPLE_UPLOAD_STOP exported app missing from IPA"; exit 3; }
-      [[ "$(codesign -d --entitlements :- "$exported_app" 2>/dev/null | plutil -extract 'com.apple.developer.game-center' raw -)" == true ]] || {
-        echo "APPLE_UPLOAD_STOP exported IPA lost com.apple.developer.game-center entitlement" >&2
-        exit 3
-      }
+      [[ -n "$exported_app" ]] || { echo "APPLE_UPLOAD_STOP exported app missing"; exit 3; }
+      codesign --verify --deep --strict "$exported_app"
+      python3 "$root/tools/scan_ios_app_bundle.py" --project-root "$root" --app "$exported_app" --stage signed
+      [[ "$(plutil -extract CFBundleIdentifier raw "$exported_app/Info.plist")" == "$bundle" ]]
+      [[ "$(plutil -extract CFBundleShortVersionString raw "$exported_app/Info.plist")" == "$version" ]]
+      [[ "$(plutil -extract CFBundleVersion raw "$exported_app/Info.plist")" == "$build" ]]
+      if [[ "$game_center" == true ]]; then
+        [[ "$(codesign -d --entitlements :- "$exported_app" 2>/dev/null | plutil -extract 'com.apple.developer.game-center' raw -)" == true ]] || {
+          echo "APPLE_UPLOAD_STOP exported IPA lost Game Center entitlement"; exit 3;
+        }
+      fi
+      xcrun altool --validate-app -f "$ipa" -t ios --apiKey "${credentials[0]}" --apiIssuer "${credentials[1]}" | tee "$lane/validate.log"
+      caffeinate -dimsu -- xcrun altool --upload-app -f "$ipa" -t ios --apiKey "${credentials[0]}" --apiIssuer "${credentials[1]}" | tee "$lane/upload.log"
+    else
+      caffeinate -dimsu -- xcodebuild -exportArchive -archivePath "$archive" -exportPath "$lane/Upload" -exportOptionsPlist "$lane/ExportOptions.plist" -allowProvisioningUpdates | tee "$lane/upload.log"
     fi
-    api_key_id="${APPLE_API_KEY_ID:-AQX2CFYPVZ}"
-    api_issuer_id="${APPLE_API_ISSUER_ID:-de911c2a-77f4-4b17-9c05-f25feef339e8}"
-    api_key_path="${APPLE_API_PRIVATE_KEY_PATH:-$HOME/.appstoreconnect/private_keys/AuthKey_${api_key_id}.p8}"
-    [[ -s "$api_key_path" ]] || { echo "APPLE_UPLOAD_STOP existing App Store Connect API key unavailable"; exit 3; }
-    xcrun altool --validate-app -f "$ipa" -t ios --apiKey "$api_key_id" --apiIssuer "$api_issuer_id" | tee "$lane/validate.log"
-    caffeinate -dimsu -- xcrun altool --upload-app -f "$ipa" -t ios --apiKey "$api_key_id" --apiIssuer "$api_issuer_id" | tee "$lane/upload.log"
     write_checkpoint upload-command-succeeded
     echo "APPLE_UPLOAD_COMMAND_SUCCEEDED version=$version build=$build processing=unverified release=not-authorized"
     ;;

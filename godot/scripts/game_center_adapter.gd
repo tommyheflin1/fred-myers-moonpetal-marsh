@@ -5,6 +5,7 @@ signal sign_in_completed(result: Dictionary)
 signal score_submission_completed(result: Dictionary)
 
 const SIGN_IN_TIMEOUT_SECONDS := 30.0
+const EventPump = preload("res://addons/mobile_game_core/online/native_event_pump.gd")
 const SCORE_SUBMISSION_TIMEOUT_SECONDS := 20.0
 const SCORE_RETRY_DELAY_SECONDS := 2.0
 const MAX_SCORE_RETRIES := 2
@@ -77,14 +78,13 @@ func diagnostic_snapshot() -> Dictionary:
 func begin_sign_in() -> bool:
 	if not is_available() or state in ["authenticating", "awaiting_signature"]:
 		return false
-	if is_authenticated():
-		state = "authenticated"
-		last_auth_error = ""
-		last_auth_error_code = 0
-		state = "awaiting_signature"
-		return _request_identity_signature()
+	# Re-read provider metadata even when the device is already authenticated.
+	# A fresh adapter otherwise has no current display name/account context.
 	elapsed_seconds = 0.0
 	state = "authenticating"
+	display_name = ""
+	team_player_id = ""
+	game_player_id = ""
 	var error := int(plugin.call("authenticate"))
 	if error != OK:
 		_finish_sign_in({"ok": false, "error": "game_center_auth_start_failed", "error_code": error})
@@ -137,10 +137,7 @@ func notify_application_resumed() -> void:
 func poll() -> void:
 	if not is_available():
 		return
-	while int(plugin.call("get_pending_event_count")) > 0:
-		var event_value: Variant = plugin.call("pop_pending_event")
-		if event_value is Dictionary:
-			_handle_event(event_value)
+	EventPump.drain(plugin, _handle_event)
 
 
 func _process(delta: float) -> void:
@@ -181,6 +178,9 @@ func _handle_event(event: Dictionary) -> void:
 			return
 		team_player_id = str(event.get("team_player_id", event.get("player_id", "")))
 		game_player_id = str(event.get("game_player_id", ""))
+		if team_player_id.is_empty():
+			_finish_sign_in({"ok": false, "error": "game_center_player_missing"})
+			return
 		display_name = str(event.get("displayName", event.get("alias", ""))).strip_edges().left(32)
 		state = "awaiting_signature"
 		_request_identity_signature()
@@ -199,6 +199,9 @@ func _handle_event(event: Dictionary) -> void:
 		for field in ["team_player_id", "game_player_id", "public_key_url", "signature", "salt"]:
 			complete = complete and not str(identity[field]).is_empty()
 		complete = complete and int(identity.timestamp) > 0
+		# Authentication supplies the read-only name. Do not pair it with a proof
+		# from another account if Game Center changed during the asynchronous call.
+		complete = complete and str(identity.team_player_id) == team_player_id and str(identity.game_player_id) == game_player_id
 		_finish_sign_in({"ok": true, "display_name": display_name, "game_center_identity": identity, "verified_signature": complete})
 		return
 	if event_type == "post_score" and not in_flight_record.is_empty():

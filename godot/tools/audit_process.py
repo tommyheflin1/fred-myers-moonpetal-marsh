@@ -38,7 +38,11 @@ def audit(root: Path, reference: Path = ROOT) -> dict:
                 failures.append({"file": "game/game.json", "reason": f"missing-{key}"})
     except (OSError, ValueError):
         failures.append({"file": "game/game.json", "reason": "identity-adapter-required"})
-    result = subprocess.run(["git", "-C", str(root), "rev-parse", "HEAD"], capture_output=True, text=True)
+    result = subprocess.run(
+        ["git", "-c", f"safe.directory={root.as_posix()}", "-C", str(root), "rev-parse", "HEAD"],
+        capture_output=True,
+        text=True,
+    )
     return {"app": root.name, "process_version": lock["process_version"],
             "source_commit": result.stdout.strip() if result.returncode == 0 else None,
             "status": "MATCH" if not failures else "MIGRATION_REQUIRED", "differences": failures,

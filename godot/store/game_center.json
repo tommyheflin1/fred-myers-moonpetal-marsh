@@ -1,0 +1,14 @@
+{
+  "schema": "flins-game-center-package-v1",
+  "enabled": true,
+  "app_store_records_reviewed": true,
+  "app_store_review_evidence": "2026-09-10: Both existing App Store Connect leaderboard records inspected. IDs and English names match runtime; integer, best score, high-to-low, visible. Both remain Prepare for Submission. This is configuration review, not native or Apple approval evidence.",
+  "identifiers_match_runtime": true,
+  "on_device_authentication_tested": false,
+  "on_device_replay_tested": false,
+  "leaderboards": [
+    {"id": "com.flinsvault.fredmyers.adventure_score", "name": "Moonpetal Adventure Score"},
+    {"id": "com.flinsvault.fredmyers.highest_level", "name": "Highest Marsh Level"}
+  ],
+  "achievements": []
+}

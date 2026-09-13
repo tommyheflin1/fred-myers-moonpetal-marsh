@@ -1,0 +1,132 @@
+diff --git a/plugins/gamecenter/game_center.h b/plugins/gamecenter/game_center.h
+index 9d1ac97..6216d6f 100644
+--- a/plugins/gamecenter/game_center.h
++++ b/plugins/gamecenter/game_center.h
+@@ -63,6 +63,9 @@ public:
+ 	void request_achievement_descriptions();
+ 	Error show_game_center(Dictionary p_params);
+ 	Error request_identity_verification_signature();
++	Dictionary flins_keychain_read(String p_key);
++	int flins_keychain_write(String p_key, String p_value);
++	int flins_keychain_erase(String p_key);
+ 
+ 	void game_center_closed();
+ 
+diff --git a/plugins/gamecenter/game_center.mm b/plugins/gamecenter/game_center.mm
+index 102ec7f..d5a7518 100644
+--- a/plugins/gamecenter/game_center.mm
++++ b/plugins/gamecenter/game_center.mm
+@@ -49,6 +49,7 @@
+ #endif
+ 
+ #import <GameKit/GameKit.h>
++#import <Security/Security.h>
+ 
+ #if VERSION_MAJOR == 4
+ typedef PackedStringArray GodotStringArray;
+@@ -74,11 +75,93 @@ void GameCenter::_bind_methods() {
+ 	ClassDB::bind_method(D_METHOD("request_achievement_descriptions"), &GameCenter::request_achievement_descriptions);
+ 	ClassDB::bind_method(D_METHOD("show_game_center"), &GameCenter::show_game_center);
+ 	ClassDB::bind_method(D_METHOD("request_identity_verification_signature"), &GameCenter::request_identity_verification_signature);
++	ClassDB::bind_method(D_METHOD("flins_keychain_read", "key"), &GameCenter::flins_keychain_read);
++	ClassDB::bind_method(D_METHOD("flins_keychain_write", "key", "value"), &GameCenter::flins_keychain_write);
++	ClassDB::bind_method(D_METHOD("flins_keychain_erase", "key"), &GameCenter::flins_keychain_erase);
+ 
+ 	ClassDB::bind_method(D_METHOD("get_pending_event_count"), &GameCenter::get_pending_event_count);
+ 	ClassDB::bind_method(D_METHOD("pop_pending_event"), &GameCenter::pop_pending_event);
+ };
+ 
++// The main bundle is the namespace; never use another game's access group.
++static NSMutableDictionary *flins_keychain_query(const String &p_key) {
++	if (!p_key.begins_with("golden_egg.") || p_key.length() > 128) {
++		return nil;
++	}
++	NSString *bundle = [[NSBundle mainBundle] bundleIdentifier];
++	NSString *account = [NSString stringWithUTF8String:p_key.utf8().get_data()];
++	if (bundle.length == 0 || account.length == 0) {
++		return nil;
++	}
++	return [@{
++		(__bridge id)kSecClass: (__bridge id)kSecClassGenericPassword,
++		(__bridge id)kSecAttrService: [bundle stringByAppendingString:@".golden-egg"],
++		(__bridge id)kSecAttrAccount: account,
++		(__bridge id)kSecAttrSynchronizable: @NO
++	} mutableCopy];
++}
++
++Dictionary GameCenter::flins_keychain_read(String p_key) {
++	Dictionary result;
++	result["ok"] = false;
++	result["found"] = false;
++	@autoreleasepool {
++		NSMutableDictionary *query = flins_keychain_query(p_key);
++		if (!query) {
++			result["status"] = (int)errSecParam;
++			return result;
++		}
++		query[(__bridge id)kSecReturnData] = @YES;
++		query[(__bridge id)kSecMatchLimit] = (__bridge id)kSecMatchLimitOne;
++		CFTypeRef item = NULL;
++		OSStatus status = SecItemCopyMatching((__bridge CFDictionaryRef)query, &item);
++		if (status == errSecSuccess && item && CFGetTypeID(item) == CFDataGetTypeID()) {
++			NSString *value = [[NSString alloc] initWithData:(__bridge NSData *)item encoding:NSUTF8StringEncoding];
++			if (value && value.length <= 8192) {
++				result["value"] = String([value UTF8String]);
++				result["ok"] = true;
++				result["found"] = true;
++			} else {
++				status = errSecDecode;
++			}
++		} else if (status == errSecItemNotFound) {
++			result["ok"] = true;
++		}
++		if (item) CFRelease(item);
++		result["status"] = (int)status;
++	}
++	return result;
++}
++
++int GameCenter::flins_keychain_write(String p_key, String p_value) {
++	@autoreleasepool {
++		NSMutableDictionary *query = flins_keychain_query(p_key);
++		if (!query || p_value.length() > 8192) return (int)errSecParam;
++		NSString *value = [NSString stringWithUTF8String:p_value.utf8().get_data()];
++		if (!value) return (int)errSecParam;
++		NSDictionary *attributes = @{
++			(__bridge id)kSecValueData: [value dataUsingEncoding:NSUTF8StringEncoding],
++			(__bridge id)kSecAttrAccessible: (__bridge id)kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly
++		};
++		OSStatus status = SecItemUpdate((__bridge CFDictionaryRef)query, (__bridge CFDictionaryRef)attributes);
++		if (status == errSecItemNotFound) {
++			[query addEntriesFromDictionary:attributes];
++			status = SecItemAdd((__bridge CFDictionaryRef)query, NULL);
++		}
++		return (int)status;
++	}
++}
++
++int GameCenter::flins_keychain_erase(String p_key) {
++	@autoreleasepool {
++		NSMutableDictionary *query = flins_keychain_query(p_key);
++		if (!query) return (int)errSecParam;
++		// Account AND app-owned service are always required: no bulk deletion.
++		OSStatus status = SecItemDelete((__bridge CFDictionaryRef)query);
++		return (status == errSecItemNotFound) ? (int)errSecSuccess : (int)status;
++	}
++}
++
+ Error GameCenter::authenticate() {
+ 	//if this class isn't available, game center isn't implemented
+ 	if ((NSClassFromString(@"GKLocalPlayer")) == nil) {
+diff --git a/plugins/gamecenter/gamecenter.gdip b/plugins/gamecenter/gamecenter.gdip
+index 8c88d5d..4c62007 100644
+--- a/plugins/gamecenter/gamecenter.gdip
++++ b/plugins/gamecenter/gamecenter.gdip
+@@ -8,6 +8,6 @@ deinitialization="unregister_gamecenter_types"
+ [dependencies]
+ linked=[]
+ embedded=[]
+-system=["GameKit.framework"]
++system=["GameKit.framework", "Security.framework"]
+ 
+ capabilities=["gamekit"]

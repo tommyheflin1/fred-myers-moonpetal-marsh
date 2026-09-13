@@ -12,7 +12,7 @@ EXPECTED = {
     "name": '"Android Development"',
     "platform": '"Android"',
     "export_path": '"../builds/android/fred-myers-app-build-2-debug.apk"',
-    "exclude_filter": '"tests/**,tools/**,docs/evidence/**"',
+    "exclude_filter": '"tests/**,tools/**,docs/**,builds/**,store/**,governance/**,.agents/**,assets/store/screenshots/**"',
     "package/unique_name": '"com.flinsappvault.fredmyers.dev"',
     "package/name": '"Fred Myers App Build 2"',
     "version/code": "20201",

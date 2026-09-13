@@ -5,8 +5,10 @@ Use a clean checkout at one exact commit. Keep the version/build immutable throu
 ## Before the Mac
 
 1. Run the project's local tests and record what actually passed.
-2. Confirm `game/game.json`, `export_presets.cfg`, App Store Connect, and the intended release record agree on bundle ID, marketing version, build number, orientation, and capabilities.
-3. Create and hash the source handoff with `tools/prepare_source_handoff.py`; verify the hash again on the Mac.
+2. Run `python tools/store_readiness.py release --root . --verify-live` and preserve
+   its exact result. Owner-reviewed screenshots are store assets, not CI evidence.
+3. Confirm `game/game.json`, `export_presets.cfg`, App Store Connect, and the intended release record agree on bundle ID, marketing version, build number, orientation, and capabilities.
+4. Create and hash the source handoff with `tools/prepare_source_handoff.py`; verify the hash again on the Mac.
 
 ## Live App Store Connect readiness
 
@@ -54,6 +56,14 @@ tools/release-ios status "$COMMIT"
 An upload command returning success proves only command acceptance. Open App Store Connect and confirm the exact version/build becomes visible and finishes processing. Record the Apple-visible state or delivery identifier.
 
 ## Xcode-account failure recovery
+
+An app with a previously successful manual export/altool lane may retain it with
+`signing_style: manual`, its exact `app_store_profile_name` (or UUID), and
+`upload_method: altool` in its release configuration. The standard release-ios
+commands still enforce all checkpoints and acknowledgements. The existing API key
+stays at its configured standard external location; no copying or rotation occurs.
+Do not select this option merely because another uploader failed. Preserve the
+project's demonstrated historical lane and independently verify its Mac result.
 
 If upload fails with account/authentication error `-501`, preserve the archive and
 checkpoint. Check Apple status for the exact build before retrying; reauthenticate

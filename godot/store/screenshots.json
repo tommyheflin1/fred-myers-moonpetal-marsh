@@ -1,0 +1,6 @@
+{
+  "schema": "flins-app-store-screenshots-v1",
+  "capture_commit": "",
+  "sets": {"iphone-6.9": [], "ipad-13": []},
+  "notes": "Build 11 exact-candidate screenshots are pending. Earlier Apple screenshots are not relabeled as new captures."
+}

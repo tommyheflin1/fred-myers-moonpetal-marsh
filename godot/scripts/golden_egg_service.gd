@@ -12,10 +12,11 @@ const GAME_ID := "fred-myers"
 const EGG_ID := "moonpetal-golden-egg"
 const EGG_VERSION := "1"
 const APP_VERSION := "1.1"
-const BUILD_VERSION := "10"
+const BUILD_VERSION := "11"
 const AUTH_PROTOCOL := "bearer-v2"
 const GAME_CENTER_AUTH_PROTOCOL := "game-center-identity-v1"
 const EXPECTED_BUNDLE_ID := "com.flinsvault.fredmyers"
+const PublicationContract = preload("res://addons/mobile_game_core/online/golden_egg_publication_contract.gd")
 
 const STORE_CLIENT_KEY := "golden_egg.client_player_key"
 const STORE_ACCESS_TOKEN := "golden_egg.player_access_token"
@@ -23,6 +24,10 @@ const STORE_PENDING_OPERATION := "golden_egg.pending_operation"
 const STORE_SESSION_TOKEN := "golden_egg.discovery_session_token"
 const STORE_SECURE_URL := "golden_egg.secure_discovery_url"
 const STORE_GAME_CENTER_IDENTITY := "golden_egg.game_center_identity"
+const STORE_PUBLIC_SNAPSHOT := "golden_egg.public_snapshot"
+const STORE_DISCOVERY_TEAM := "golden_egg.discovery_team_player_id"
+const STORE_PENDING_PRIVACY := "golden_egg.pending_privacy_choice"
+const IDENTITY_FRESHNESS_MSEC := 300000
 
 var request_transport: Callable
 var secure_store: Object
@@ -30,10 +35,21 @@ var status := "idle"
 var public_result: Dictionary = {}
 var privacy_status := "PENDING_PRIVACY_CHOICE"
 var last_safe_error := ""
+var _public_name_review: Dictionary = {}
+var _public_review_generation := 0
+var _last_review_signature := ""
+var _review_authorization: Dictionary = {}
+var _publication := PublicationContract.new()
 
 func set_verified_game_center_identity(result: Dictionary) -> bool:
+    clear_public_name_review()
     if not bool(result.get("verified_signature", false)) or result.get("game_center_identity", null) is not Dictionary:
         return false
+    # Preserve the original account when opening discoveries saved by older builds.
+    if has_canonical_discovery() and _get_secret(STORE_DISCOVERY_TEAM).is_empty():
+        var original_team := str(_load_game_center_identity().get("team_player_id", ""))
+        if not original_team.is_empty() and not _store_secret(STORE_DISCOVERY_TEAM, original_team):
+            return false
     var identity: Dictionary = (result.game_center_identity as Dictionary).duplicate(true)
     identity["display_name"] = str(result.get("display_name", "")).strip_edges().left(32)
     return _valid_game_center_identity(identity) and _store_json_secret(STORE_GAME_CENTER_IDENTITY, identity)
@@ -44,8 +60,19 @@ func game_center_display_name() -> String:
 
 
 func configure(transport: Callable, platform_secure_store: Object, _legacy_signer: Callable = Callable()) -> bool:
+    clear_public_name_review()
+    if not _publication.configure(GAME_ID, EGG_ID):
+        return false
     request_transport = transport
     secure_store = platform_secure_store
+    if production_client_ready():
+        var saved_snapshot := _get_secret(STORE_PUBLIC_SNAPSHOT)
+        if not saved_snapshot.is_empty():
+            var parser := JSON.new()
+            if parser.parse(saved_snapshot) == OK:
+                restore_public_snapshot(parser.data)
+        if not _get_secret(STORE_PENDING_PRIVACY).is_empty():
+            status = "pending"
     return production_client_ready()
 
 
@@ -71,12 +98,21 @@ func trust_boundary_status() -> Dictionary:
 
 
 func submit_discovery(verification_evidence: String) -> Dictionary:
+    var staged := stage_discovery(verification_evidence)
+    if not bool(staged.get("success", false)):
+        return staged
+    return _submit_pending(_load_pending_operation())
+
+
+func stage_discovery(verification_evidence: String) -> Dictionary:
     if verification_evidence.length() < 16 or verification_evidence.length() > 2048:
         return _pending_failure("INVALID_LOCAL_INTEGRITY_EVIDENCE")
     var pending := _load_pending_operation()
     if pending.is_empty():
         pending = {
+            "publication_choice": "UNDECIDED",
             "idempotency_key": _uuid_v4(),
+            "team_player_id": str(_load_game_center_identity().get("team_player_id", "")),
             "payload": {
                 "egg_id": EGG_ID,
                 "egg_version": EGG_VERSION,
@@ -87,7 +123,20 @@ func submit_discovery(verification_evidence: String) -> Dictionary:
         }
         if not _store_json_secret(STORE_PENDING_OPERATION, pending):
             return _pending_failure("PLATFORM_SECURE_STORAGE_UNAVAILABLE")
-    return _submit_pending(pending)
+    status = "pending"
+    return {"success": true, "pending": true}
+
+
+func authorize_pending_identity_link() -> bool:
+    var pending := _load_pending_operation()
+    var identity := _load_game_center_identity()
+    if pending.is_empty() or not _valid_game_center_identity(identity):
+        return false
+    var original_team := str(pending.get("team_player_id", ""))
+    if not original_team.is_empty() and original_team != str(identity.team_player_id):
+        return false
+    pending["team_player_id"] = str(identity.team_player_id)
+    return _store_json_secret(STORE_PENDING_OPERATION, pending)
 
 
 func retry_pending_discovery() -> Dictionary:
@@ -101,12 +150,37 @@ func has_pending_discovery() -> bool:
     return not _load_pending_operation().is_empty()
 
 
+func choose_pending_publication(choice: String) -> bool:
+    if choice not in ["PUBLIC", "ANONYMOUS", "LOCAL_ONLY"]:
+        return false
+    var pending := _load_pending_operation()
+    if pending.is_empty():
+        return false
+    pending["publication_choice"] = choice
+    return _store_json_secret(STORE_PENDING_OPERATION, pending)
+
+
+func keep_discovery_local() -> void:
+    clear_public_name_review()
+    choose_pending_publication("LOCAL_ONLY")
+
+
 func submit_privacy_choice(make_public: bool) -> Dictionary:
-    if public_result.is_empty() or str(public_result.get("discovery_id", "")).is_empty():
-        return _safe_failure("NO_ACCEPTED_DISCOVERY")
-    if make_public and not _valid_game_center_identity(_load_game_center_identity()):
-        return _safe_failure("GAME_CENTER_AUTHENTICATION_REQUIRED")
-    var payload := {"privacy_status": "PUBLIC"} if make_public else {"privacy_status": "ANONYMOUS"}
+    var reviewed_name := public_name_for_review()
+    if make_public and reviewed_name.is_empty():
+        return _safe_failure("FRESH_PUBLIC_NAME_REVIEW_REQUIRED")
+    if not has_canonical_discovery():
+        if not choose_pending_publication("PUBLIC" if make_public else "ANONYMOUS"):
+            return _safe_failure("NO_ACCEPTED_DISCOVERY")
+        return _submit_pending(_load_pending_operation())
+    var choice := "PUBLIC" if make_public else "ANONYMOUS"
+    var payload := _publication.privacy_body(choice, _review_authorization.get("exchange", {}), reviewed_name, int(Time.get_unix_time_from_system()))
+    if payload.is_empty():
+        return _safe_failure("PUBLICATION_AUTHORIZATION_INVALID")
+    if not _store_json_secret(STORE_PENDING_PRIVACY, {"discovery_id": str(public_result.discovery_id), "privacy_status": choice}):
+        return _pending_failure("PRIVACY_CHOICE_LOCAL_RECOVERY_UNAVAILABLE")
+    status = "pending"
+    clear_public_name_review()
     var result := _authenticated_request(
         "PATCH",
         PRIVACY_PATH_TEMPLATE % str(public_result.discovery_id),
@@ -115,14 +189,102 @@ func submit_privacy_choice(make_public: bool) -> Dictionary:
     )
     if not bool(result.get("success", false)):
         return result
-    privacy_status = str(result.get("privacy_status", payload["privacy_status"]))
+    if str(result.get("discovery_id", "")) != str(public_result.discovery_id) or result.get("privacy_status") != choice:
+        return _safe_failure("PRIVACY_ACKNOWLEDGEMENT_INVALID")
+    if result.get("public_identity_source") != ("game_center_reported" if make_public else "anonymous") or result.get("public_player") != (reviewed_name if make_public else "Anonymous"):
+        return _safe_failure("PRIVACY_ACKNOWLEDGEMENT_INVALID")
+    privacy_status = choice
     public_result["privacy_status"] = privacy_status
     if privacy_status == "PUBLIC":
         public_result["public_player"] = str(result.get("public_player", ""))
     else:
         public_result["public_player"] = "Anonymous"
     status = "privacy_saved"
+    if not _store_json_secret(STORE_PUBLIC_SNAPSHOT, public_snapshot()):
+        return _safe_failure("PRIVACY_SAVED_LOCAL_RECOVERY_UNAVAILABLE")
+    _erase_secret(STORE_PENDING_PRIVACY)
+    _erase_secret(STORE_PENDING_OPERATION)
     return _public_response(result)
+
+
+func clear_public_name_review() -> void:
+    _public_review_generation += 1
+    _public_name_review = {}
+    _review_authorization = {}
+
+
+func public_name_for_review() -> String:
+    if _public_name_review.is_empty():
+        return ""
+    var identity := _load_game_center_identity()
+    if not _fresh_game_center_identity(identity):
+        return ""
+    if int(_public_name_review.get("generation", -1)) != _public_review_generation:
+        return ""
+    if Time.get_ticks_msec() >= int(_public_name_review.get("expires_ticks", 0)):
+        return ""
+    if str(_public_name_review.get("signature", "")) != str(identity.get("signature", "")):
+        return ""
+    if str(_public_name_review.get("team_player_id", "")) != str(identity.get("team_player_id", "")):
+        return ""
+    if str(_public_name_review.get("discovery_id", "")) != str(public_result.get("discovery_id", "")):
+        return ""
+    return str(_public_name_review.get("name", ""))
+
+
+func prepare_public_name() -> Dictionary:
+    # This operation only reviews identity. It never grants public consent.
+    var identity := _load_game_center_identity()
+    if not _fresh_game_center_identity(identity):
+        return _safe_failure("FRESH_GAME_CENTER_SIGNATURE_REQUIRED")
+    if str(identity.signature) == _last_review_signature:
+        return _safe_failure("NEW_GAME_CENTER_SIGNATURE_REQUIRED")
+    var original_team := _get_secret(STORE_DISCOVERY_TEAM)
+    if has_canonical_discovery() and not original_team.is_empty() and original_team != str(identity.team_player_id):
+        return _safe_failure("DISCOVERY_ACCOUNT_MISMATCH")
+    clear_public_name_review()
+    var generation := _public_review_generation
+    _last_review_signature = str(identity.signature)
+    if not has_canonical_discovery():
+        var pending := _load_pending_operation()
+        if pending.is_empty():
+            return _safe_failure("NO_ACCEPTED_DISCOVERY")
+        if str(pending.get("team_player_id", "")).is_empty():
+            return _safe_failure("EXPLICIT_IDENTITY_LINK_REQUIRED")
+        if str(pending.team_player_id) != str(identity.team_player_id):
+            return _safe_failure("DISCOVERY_ACCOUNT_MISMATCH")
+    var player_result := _ensure_player()
+    if not bool(player_result.get("success", false)):
+        return player_result
+    # Each explicit review is a new proof, not a replay of discovery authorization.
+    var pending := _load_pending_operation()
+    var review_key := str(pending.get("idempotency_key", _uuid_v4()))
+    var exchange := _exchange_identity(identity, review_key)
+    if not bool(exchange.get("success", false)):
+        return exchange
+    var review := _complete_public_name_review(exchange, identity, generation)
+    if bool(review.get("success", false)):
+        _review_authorization = {"idempotency_key": review_key, "exchange": exchange.duplicate(true)}
+    return review
+
+
+func _complete_public_name_review(exchange: Dictionary, identity: Dictionary, generation: int) -> Dictionary:
+    if generation != _public_review_generation:
+        return _safe_failure("PUBLIC_NAME_REVIEW_CANCELLED")
+    var name := str(exchange.get("provider_display_name", ""))
+    if str(exchange.get("provider_display_name_source", "")) != "game_center_reported" or name.length() < 2 or name.length() > 32:
+        return _safe_failure("SERVER_CONFIRMED_NAME_UNAVAILABLE")
+    if not _fresh_game_center_identity(identity):
+        return _safe_failure("FRESH_GAME_CENTER_SIGNATURE_REQUIRED")
+    _public_name_review = {
+        "name": name,
+        "team_player_id": str(identity.team_player_id),
+        "signature": str(identity.signature),
+        "discovery_id": str(public_result.get("discovery_id", "")),
+        "expires_ticks": Time.get_ticks_msec() + IDENTITY_FRESHNESS_MSEC,
+        "generation": generation,
+    }
+    return {"success": true, "public_name_reviewed": true, "provider_display_name": name}
 
 
 func public_snapshot() -> Dictionary:
@@ -134,6 +296,7 @@ func public_snapshot() -> Dictionary:
 
 
 func restore_public_snapshot(snapshot_value: Variant) -> void:
+    clear_public_name_review()
     if snapshot_value is not Dictionary:
         return
     var snapshot: Dictionary = snapshot_value
@@ -198,6 +361,12 @@ func exchange_discovery_session() -> Dictionary:
 
 
 func _submit_pending(pending: Dictionary) -> Dictionary:
+    var choice := str(pending.get("publication_choice", "UNDECIDED"))
+    if choice not in ["PUBLIC", "ANONYMOUS"]:
+        return _pending_failure("EXPLICIT_PUBLICATION_CHOICE_REQUIRED")
+    var reviewed_name := public_name_for_review()
+    if choice == "PUBLIC" and reviewed_name.is_empty():
+        return _pending_failure("FRESH_PUBLIC_NAME_REVIEW_REQUIRED")
     if not production_client_ready():
         return _pending_failure("CLIENT_RUNTIME_NOT_PROVISIONED")
     var player_result := _ensure_player()
@@ -209,28 +378,53 @@ func _submit_pending(pending: Dictionary) -> Dictionary:
     var identity := _load_game_center_identity()
     if not _valid_game_center_identity(identity):
         return _pending_failure("GAME_CENTER_AUTHENTICATION_REQUIRED")
-    var exchange_payload := _private_identity_payload(identity)
-    exchange_payload["game_id"] = GAME_ID
-    exchange_payload["provider_display_name"] = str(identity.get("display_name", ""))
-    exchange_payload["provider_display_name_source"] = "game_center_reported"
-    var exchange := _authenticated_request("POST", GAME_CENTER_IDENTITY_EXCHANGE_PATH, exchange_payload, str(pending.get("idempotency_key", "")), GAME_CENTER_AUTH_PROTOCOL)
+    var pending_team := str(pending.get("team_player_id", ""))
+    if pending_team.is_empty():
+        return _pending_failure("EXPLICIT_IDENTITY_LINK_REQUIRED")
+    if pending_team != str(identity.team_player_id):
+        return _pending_failure("DISCOVERY_ACCOUNT_MISMATCH")
+    var exchange: Dictionary
+    if choice == "PUBLIC" and str(_review_authorization.get("idempotency_key", "")) == str(pending.get("idempotency_key", "")):
+        exchange = _review_authorization.get("exchange", {})
+    else:
+        exchange = _exchange_identity(identity, str(pending.get("idempotency_key", "")))
     if not bool(exchange.get("success", false)) or str(exchange.get("discovery_authorization", "")).is_empty():
         return _pending_failure(str(exchange.get("error", "GAME_CENTER_IDENTITY_EXCHANGE_PENDING")))
-    var protected_payload: Dictionary = payload.duplicate(true)
-    protected_payload["discovery_authorization"] = str(exchange.discovery_authorization)
+    var protected_payload := _publication.discovery_body(payload, choice, exchange, reviewed_name, int(Time.get_unix_time_from_system()))
+    if protected_payload.is_empty():
+        return _pending_failure("PUBLICATION_AUTHORIZATION_INVALID")
     var result := _authenticated_request("POST", DISCOVERY_PATH, protected_payload, str(pending.get("idempotency_key", "")))
     if not bool(result.get("success", false)):
         return _pending_failure(str(result.get("error", "SECURE_REGISTRATION_PENDING")))
     if not _validate_discovery_response(result):
         return _pending_failure("BACKEND_RESPONSE_INVALID")
+    if result.get("privacy_status") == choice and not _publication.accepts_discovery(result, choice, reviewed_name):
+        return _pending_failure("PUBLICATION_ACKNOWLEDGEMENT_INVALID")
     public_result = _public_response(result)
     privacy_status = str(result.get("privacy_status", "PENDING_PRIVACY_CHOICE"))
     status = "accepted"
-    _erase_secret(STORE_PENDING_OPERATION)
     _store_secret(STORE_SESSION_TOKEN, str(result.get("discovery_session_token", "")))
     _store_secret(STORE_SECURE_URL, str(result.get("secure_discovery_url", "")))
+    if not _store_secret(STORE_DISCOVERY_TEAM, str(identity.team_player_id)) or not _store_json_secret(STORE_PUBLIC_SNAPSHOT, public_snapshot()):
+        return _pending_failure("ACCEPTED_DISCOVERY_LOCAL_RECOVERY_UNAVAILABLE")
+    if privacy_status != choice:
+        # A lost response or legacy record may already own this idempotent find.
+        # Preserve its server rank, then apply only this explicit current choice.
+        if choice == "PUBLIC" and not _public_name_review.is_empty():
+            _public_name_review["discovery_id"] = str(public_result.discovery_id)
+        return submit_privacy_choice(choice == "PUBLIC")
+    _erase_secret(STORE_PENDING_OPERATION)
+    clear_public_name_review()
     last_safe_error = ""
     return _public_response(result)
+
+
+func _exchange_identity(identity: Dictionary, idempotency_key: String) -> Dictionary:
+    var exchange_payload := _private_identity_payload(identity)
+    exchange_payload["game_id"] = GAME_ID
+    exchange_payload["provider_display_name"] = str(identity.get("display_name", ""))
+    exchange_payload["provider_display_name_source"] = "game_center_reported"
+    return _authenticated_request("POST", GAME_CENTER_IDENTITY_EXCHANGE_PATH, exchange_payload, idempotency_key, GAME_CENTER_AUTH_PROTOCOL)
 
 
 func _ensure_player() -> Dictionary:
@@ -293,6 +487,9 @@ func _client_request(method: String, path: String, payload: Dictionary, idempote
         return _client_request(method, path, payload, idempotency_key, bearer, retry_remaining - 1, protocol)
     if int(response.get("status", 0)) == 409:
         return _safe_failure("ANTI_REPLAY_REJECTED")
+    var response_status := int(response.get("status", 0))
+    if response_status < 200 or response_status >= 300:
+        return _safe_failure("BACKEND_HTTP_%d" % response_status)
     var response_body: Variant = response.get("body", response)
     if response_body is not Dictionary:
         return _safe_failure("BACKEND_RESPONSE_INVALID")
@@ -363,6 +560,11 @@ func _valid_game_center_identity(identity: Dictionary) -> bool:
     for field in ["team_player_id", "game_player_id", "public_key_url", "signature", "salt"]:
         if str(identity.get(field, "")).is_empty(): return false
     return str(identity.public_key_url).begins_with("https://")
+
+func _fresh_game_center_identity(identity: Dictionary) -> bool:
+    if not _valid_game_center_identity(identity):
+        return false
+    return absi(int(Time.get_unix_time_from_system() * 1000.0) - int(identity.timestamp)) <= IDENTITY_FRESHNESS_MSEC
 
 func _private_identity_payload(identity: Dictionary) -> Dictionary:
     var result := {}

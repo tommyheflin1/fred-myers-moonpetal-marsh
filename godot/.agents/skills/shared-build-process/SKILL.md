@@ -5,9 +5,18 @@ description: Audit and maintain the shared Flins development-to-Apple process ac
 
 # Shared build process
 
-Read `docs/SHARED_BUILD_PROCESS.md` from the project root. For Apple work then read
+Read `docs/SHARED_BUILD_PROCESS.md` from the project root. Read
+`docs/NATIVE_EVENT_PUMP.md` when changing native callbacks or Game Center loading.
+For Apple delivery read
 the `apple-remote-delivery` skill and its routed references; for policy changes read
-`app-privacy-policy`. These skills are shipped together in this harness.
+`app-privacy-policy`; for story/product copy, pictures, support, TestFlight and
+store metadata read `app-store-package` and `docs/APP_STORE_PACKAGE.md`; for Golden
+Egg public identity read `golden-egg-game-center-identity`.
+For assets, dependencies, licensing, attribution, source provenance, or repository
+exposure read `ip-provenance-governance` and its policy before changing material.
+For force-update behavior, minimum-build activation, or rollback read
+`mandatory-app-update` and its activation reference.
+These skills are shipped together in this harness.
 
 Run `python tools/audit_process.py --root <candidate>` from the canonical harness.
 For all registered checkouts use `--fleet <workspace>`. Missing tools or mismatched

@@ -16,6 +16,9 @@ python3 "$ROOT/tools/release_checkpoint.py" check --root "$ROOT" --commit "$COMM
 python3 "$ROOT/tools/validate_ios_release_config.py" --root "$ROOT"
 case "$MODE" in
   preflight)
+    python3 "$ROOT/tools/ip_provenance.py" release --root "$ROOT"
+    python3 "$ROOT/tools/verify_live_update_policy.py" --root "$ROOT"
+    python3 "$ROOT/tools/store_readiness.py" release --root "$ROOT" --verify-live --purpose "${FLINS_RELEASE_PURPOSE:-app-review}"
     python3 "$ROOT/tools/privacy_policy.py" verify --root "$ROOT"
     python3 "$ROOT/.agents/skills/apple-remote-delivery/scripts/apple_receipt_status.py" --root "$ROOT" --authenticate-only
     bash "$ROOT/.agents/skills/apple-remote-delivery/scripts/apple_delivery.sh" prepare "$ROOT" "$COMMIT"

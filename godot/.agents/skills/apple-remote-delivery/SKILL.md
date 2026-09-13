@@ -9,6 +9,8 @@ Use one versioned release lane from the exact clean candidate through Apple proc
 
 Before release work, use the bundled `shared-build-process` skill and run the canonical
 `tools/audit_process.py` against this candidate. A mismatch requires reviewed migration.
+Use `app-store-package` to validate the app-owned story/product copy, policy/support
+URLs, media and store decisions. Apple preflight fails until its release gate passes.
 Checkpoints are bound to commit/tree and archive content, not just version/build names.
 Status exits 0 only for a valid, unexpired processed build; 3 is pending/absent/unknown,
 2 is failed/invalid/expired. Preserve the archive and investigate, without changing lanes.
@@ -21,6 +23,7 @@ Status exits 0 only for a valid, unexpired processed build; 3 is pending/absent/
 - Signing, upload, tester distribution, App Review submission, and public release each require explicit owner authorization. Automatic public release stays disabled.
 - A build number is immutable after Apple accepts an upload. Stop on a duplicate rather than silently changing it.
 - Preserve the last successful checkpoint and logs. Resume from the failed gate instead of rebuilding everything.
+- Apple cannot force-install an update. For apps that block old builds, use the bundled `mandatory-app-update` skill. Public release and raising the live minimum build remain separate protected actions.
 
 ## Route the task
 
@@ -36,13 +39,19 @@ Status exits 0 only for a valid, unexpired processed build; 3 is pending/absent/
 1. Preflight locally and create a hash-guarded, exact-commit source bundle.
 2. Transfer the bundle plus its manifest to the remote Mac; verify SHA-256 before opening it.
 3. Run the doctor. Install or repair only the missing prerequisite, then rerun the doctor.
-4. Run `tools/release-ios preflight`: authenticate the exact App Store Connect app before lengthy work, check the clean exact commit, validate Game Center provenance, perform Godot import/export, and compile unsigned for the simulator.
+4. Run `tools/release-ios preflight`: validate the approved App Store package, live
+   support/privacy pages, and signed mandatory-update response before invoking the
+   remote preparation lane. The response must be current and bound to the exact bundle
+   ID and iOS platform. Authenticate the exact App Store Connect app before lengthy
+   work, check the clean exact commit, validate Game Center provenance, perform Godot
+   import/export, and compile unsigned for the simulator.
 5. Confirm Apple identifiers and capabilities in both the candidate and live App Store Connect record.
 6. After archive authorization, run `tools/release-ios archive`: sign, archive, verify code signature, distribution entitlements, bundle ID, version, and build.
 7. After upload authorization, run `tools/release-ios upload`; do not treat command completion as Apple processing.
 8. Run `tools/release-ios status`. It must authenticate through the App Store Connect API and match both marketing version and build before reporting Apple receipt.
 9. Assign only the approved internal TestFlight group, then perform physical iPhone/iPad and live Game Center checks where applicable.
 10. Stop before external beta, App Review, or public release unless each is explicitly authorized.
+11. After public release, leave the existing minimum unchanged until the replacement is verified downloadable on all supported storefronts/devices. Only then, with separate approval, activate the signed minimum-build policy and verify both old-build blocking and replacement access.
 
 ## Success condition
 

@@ -18,25 +18,55 @@ def validate(game: dict, require_approved: bool = False) -> list[str]:
     if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", str(privacy.get("effective_date", ""))): errors.append("effective date must be YYYY-MM-DD")
     if privacy.get("review_status") not in {"draft", "approved"}: errors.append("privacy review status must be draft or approved")
     if require_approved and privacy.get("review_status") != "approved": errors.append("owner-approved privacy inventory is required before Apple preflight")
+    if not isinstance(privacy.get("persistent_local_data"), bool): errors.append("privacy persistent-local-data flag is required")
     capabilities=game.get("capabilities", {})
     for field in ("game_center", "golden_eggs"):
         if bool(privacy.get(field)) != bool(capabilities.get(field)): errors.append(f"privacy {field} differs from enabled capability")
+    remote=privacy.get("remote_data",{})
+    expected={"game_center_user_id":bool(capabilities.get("game_center")),"game_center_display_name":bool(capabilities.get("golden_eggs")),"golden_egg_discovery":bool(capabilities.get("golden_eggs"))}
+    for field,collected in expected.items():
+        item=remote.get(field,{})
+        if item.get("collected") is not collected or item.get("linked_to_user") is not collected: errors.append(f"privacy remote data {field} collection/linkage mismatch")
+        if item.get("purpose") != "app_functionality" or item.get("tracking") is not False: errors.append(f"privacy remote data {field} purpose/tracking classification invalid")
+    if remote.get("game_center_display_name",{}).get("public_display_requires_consent") is not True: errors.append("Game Center display-name public consent contract missing")
+    if privacy.get("advertising_or_broker_sharing") is not False or privacy.get("cross_company_ad_linking") is not False: errors.append("Golden Egg identity must not be used for advertising, brokers, or cross-company ad linking")
     for field in ("local_data", "excluded_data"):
         values=privacy.get(field)
         if not isinstance(values, list) or not values or any(not isinstance(v,str) or not v.strip() for v in values): errors.append(f"privacy {field} inventory is invalid")
     return errors
 
 def registry_entry(game: dict) -> dict:
+    errors = validate(game)
+    if errors:
+        raise ValueError("; ".join(errors))
     p=game["privacy"]
-    return {"id":game["game_id"],"name":game["display_name"],"effectiveDate":date.fromisoformat(p["effective_date"]).strftime("%B %-d, %Y") if __import__('os').name != 'nt' else date.fromisoformat(p["effective_date"]).strftime("%B %d, %Y").replace(" 0"," "),"policyVersion":p["policy_version"],"localData":p["local_data"],"gameCenter":p["game_center"],"goldenEggs":p["golden_eggs"],"paidDownload":p["paid_download"],"excludedData":p["excluded_data"]}
+    remote = p["remote_data"]
+    # The public website consumes camelCase booleans, not the app's nested audit
+    # records. Translate only validated claims; preserve the source inventory.
+    web_remote = {
+        "gameCenterUserId": remote["game_center_user_id"]["collected"],
+        "gameCenterDisplayName": remote["game_center_display_name"]["collected"],
+        "goldenEggDiscovery": remote["golden_egg_discovery"]["collected"],
+        "linkedToUser": any(remote[key]["linked_to_user"] for key in (
+            "game_center_user_id", "game_center_display_name", "golden_egg_discovery")),
+        "purpose": "app_functionality",
+        "tracking": False,
+        "publicDisplayRequiresConsent": remote["game_center_display_name"]["public_display_requires_consent"],
+    }
+    return {"id":game["game_id"],"name":game["display_name"],"effectiveDate":date.fromisoformat(p["effective_date"]).strftime("%B %-d, %Y") if __import__('os').name != 'nt' else date.fromisoformat(p["effective_date"]).strftime("%B %d, %Y").replace(" 0"," "),"policyVersion":p["policy_version"],"localData":p["local_data"],"persistentLocalData":p["persistent_local_data"],"gameCenter":p["game_center"],"goldenEggs":p["golden_eggs"],"paidDownload":p["paid_download"],"remoteData":web_remote,"advertisingOrBrokerSharing":p["advertising_or_broker_sharing"],"crossCompanyAdLinking":p["cross_company_ad_linking"],"excludedData":p["excluded_data"]}
 
 def sync_website(game: dict, website: Path) -> None:
+    errors = validate(game, require_approved=True)
+    if errors:
+        raise ValueError("; ".join(errors))
     path=website/"app/appPrivacyPolicies.json"; data=json.loads(path.read_text(encoding="utf-8")); data[game["game_id"]]=registry_entry(game); path.write_text(json.dumps(dict(sorted(data.items())),indent=2)+"\n",encoding="utf-8")
 
 def verify_live(game: dict) -> None:
     privacy=game["privacy"]; request=urllib.request.Request(privacy["policy_url"],headers={"User-Agent":"FlinsPrivacyGate/1.0"})
     with urllib.request.urlopen(request,timeout=30) as response: body=response.read(262144).decode("utf-8",errors="replace")
     if response.status != 200 or f'data-policy-id="{game["game_id"]}"' not in body or f'data-policy-version="{privacy["policy_version"]}"' not in body: raise RuntimeError("live app privacy policy identity/version mismatch")
+    if privacy.get("golden_eggs") and 'data-golden-egg-public-name-contract="game-center-consent-v1"' not in body:
+        raise RuntimeError("live policy is missing the Golden Egg Game Center public-name consent contract")
 
 def main()->int:
     p=argparse.ArgumentParser(); p.add_argument("mode",choices=["prepare","sync","verify"]); p.add_argument("--root",type=Path,default=Path.cwd()); p.add_argument("--website-root",type=Path); a=p.parse_args(); root=a.root.resolve(); game=load_game(root)

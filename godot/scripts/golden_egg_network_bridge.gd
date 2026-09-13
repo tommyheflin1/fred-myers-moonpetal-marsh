@@ -24,6 +24,10 @@ func start_retry(service: RefCounted) -> bool:
     return _start("retry", service, "")
 
 
+func start_identity_review(service: RefCounted) -> bool:
+    return _start("identity_review", service, "")
+
+
 func start_privacy(service: RefCounted, make_public: bool, display_name: String) -> bool:
     return _start("privacy_public" if make_public else "privacy_anonymous", service, "")
 
@@ -67,6 +71,8 @@ func _run_operation(operation: String, service: RefCounted, argument: String) ->
             return service.submit_discovery(argument)
         "retry":
             return service.retry_pending_discovery()
+        "identity_review":
+            return service.prepare_public_name()
         "privacy_public":
             return service.submit_privacy_choice(true)
         "privacy_anonymous":

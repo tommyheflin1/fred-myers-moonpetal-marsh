@@ -1,6 +1,7 @@
 .godot/
 godot/.godot/
-godot/ios/
+godot/ios/*
+!godot/ios/PrivacyInfo.xcprivacy
 builds/
 exports/
 *.tmp

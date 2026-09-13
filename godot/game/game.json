@@ -1,5 +1,5 @@
 {
-  "display_name": "Fred Myers and the Moonpetal Marsh",
+  "display_name": "Fred Myers: Moonpetal Marsh",
   "game_id": "fred-myers",
   "bundle_id": "com.flinsvault.fredmyers",
   "android_package": "com.flinsappvault.fredmyers.dev",
@@ -35,20 +35,61 @@
       "origin": "https://theflinsappvaultllc.com",
       "hunt_path": "/golden-eggs",
       "egg_id": "moonpetal-golden-egg",
-      "auth_protocol": "game-center-identity-v1"
+      "auth_protocol": "game-center-identity-v1",
+      "public_identity_source": "verified_game_center_session",
+      "provider_display_name_source": "game_center_reported",
+      "private_cross_game_identity": "verified_team_player_id",
+      "private_game_audit_identity": "provider_reported_game_player_id",
+      "offline_linking": "explicit_server_verified_only",
+      "activation_trigger": "verified_local_discovery",
+      "startup_network_requests": false,
+      "core_gameplay_requires_backend": false,
+      "game_center_independent": true,
+      "failure_mode": "pending_nonblocking_idempotent_retry",
+      "anonymous_public_name": "Anonymous",
+      "version_enforcement_independent": true,
+      "website_name_entry_allowed": false,
+      "public_name_consent_required": true
     }
+  },
+  "updates": {
+    "enabled": false,
+    "product_decision": "Owner September 12 2026: Fred Build 11 must not contact the website during startup or enforce website minimum versions; Golden Egg networking is discovery-triggered only.",
+    "mode": "mandatory_minimum_build",
+    "policy_origin": "https://theflinsappvaultllc.com",
+    "policy_path": "/api/app-updates/policy",
+    "fail_closed": true,
+    "activation_gate": "replacement_build_storefront_verified",
+    "app_store_url": "https://apps.apple.com/app/id6803295872",
+    "public_key_path": "res://assets/security/update-policy-public.pub",
+    "trusted_key_id": "run-fly-policy-2026-09-05"
   },
   "privacy": {
     "policy_url": "https://theflinsappvaultllc.com/fred-myers/privacy",
-    "policy_version": "fred-myers-2026-08-25",
-    "effective_date": "2026-08-25",
-    "review_status": "approved",
+    "policy_version": "fred-myers-2026-09-12-v3",
+    "effective_date": "2026-09-12",
+    "review_status": "draft",
+    "persistent_local_data": true,
     "game_center": true,
     "golden_eggs": true,
     "paid_download": true,
+    "remote_data": {
+      "game_center_user_id": {"collected": true, "linked_to_user": true, "purpose": "app_functionality", "tracking": false},
+      "game_center_display_name": {"collected": true, "linked_to_user": true, "purpose": "app_functionality", "tracking": false, "public_display_requires_consent": true},
+      "golden_egg_discovery": {"collected": true, "linked_to_user": true, "purpose": "app_functionality", "tracking": false}
+    },
+    "advertising_or_broker_sharing": false,
+    "cross_company_ad_linking": false,
     "local_data": [
       "Campaign progress, settings, earned coins, unlocked frog cosmetics, local scores and ordinary gameplay records stored on the device",
-      "Golden Egg eligibility, pending discovery evidence and privacy choice stored on the device until a secure authenticated service connection is available"
+      "Golden Egg eligibility, pending discovery evidence and explicit Public, Anonymous or local-only choice stored on the device; local-only finds are never automatically submitted",
+      "Game Center identity-verification information and Golden Egg service credentials stored privately; iOS credentials use app-scoped device Keychain storage and may survive app deletion"
+    ],
+    "server_data": [
+      "Game Center team-scoped and game-scoped identifiers, provider-reported display name, identity proof and pseudonymous service player binding used for authenticated Golden Egg functionality",
+      "Opaque discovery verification, app/build version, server-assigned ranks, timestamps, public references and Public or Anonymous choice",
+      "Network and request-security information used to protect the optional discovery service; no advertising or behavioral analytics",
+      "No company website request is made for normal launch, menu, gameplay, Game Center authentication, native leaderboards or foreground resume. Website identity exchange and discovery requests occur only after a local Golden Egg find and the player's publication or Anonymous choice."
     ],
     "excluded_data": [
       "Advertising, cross-app tracking, developer analytics and marketing attribution",

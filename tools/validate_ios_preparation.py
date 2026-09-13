@@ -14,11 +14,13 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 PROJECT = ROOT / "godot"
-EXPECTED_CORE_TREE = "288d87420c5694f80c071f00aa71a0b581f9f60c"
+# Core 0.5.1 base remains intact; additive tested helpers are pinned explicitly.
+# See docs/BUILD_11_DISCOVERY_ONLY_CHECKPOINT.md for their upstream provenance.
+EXPECTED_CORE_TREE = "ce7821a6431681adca8bd5997fab8fe24b82ec23"
 DEVELOPMENT_BUNDLE_ID = "com.flinsvault.fredmyers"
 PRODUCTION_BUNDLE_ID = "com.flinsvault.fredmyers"
 MARKETING_VERSION = "1.1"
-BUILD_NUMBER = "8"
+BUILD_NUMBER = "11"
 
 
 def _git(*args: str) -> str:
@@ -55,7 +57,7 @@ def validate(root: Path = ROOT) -> dict[str, object]:
         'name="iOS Unsigned Preparation"': 1,
         'platform="iOS"': 1,
         'export_filter="all_resources"': 2,
-        'exclude_filter="tests/**,tools/**,docs/evidence/**"': 2,
+        'exclude_filter="tests/**,tools/**,docs/**,builds/**,store/**,governance/**,.agents/**,assets/store/screenshots/**"': 2,
         f'application/bundle_identifier="{DEVELOPMENT_BUNDLE_ID}"': 1,
         f'application/short_version="{MARKETING_VERSION}"': 1,
         f'application/version="{BUILD_NUMBER}"': 1,

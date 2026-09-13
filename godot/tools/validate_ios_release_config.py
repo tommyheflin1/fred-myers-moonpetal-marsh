@@ -2,9 +2,15 @@
 from __future__ import annotations
 
 import argparse
+import importlib.util
 import json
 import re
 from pathlib import Path
+
+_signing_spec = importlib.util.spec_from_file_location("flins_ios_signing", Path(__file__).with_name("ios_signing.py"))
+_signing_module = importlib.util.module_from_spec(_signing_spec)
+_signing_spec.loader.exec_module(_signing_module)
+signing_settings = _signing_module.settings
 
 
 def validate(root: Path) -> list[str]:
@@ -23,6 +29,10 @@ def validate(root: Path) -> list[str]:
         if not re.fullmatch(pattern, str(config.get(field, ""))):
             errors.append(f"release config {field} is unset or invalid")
     key_path = str(config.get("api_key_path", ""))
+    try:
+        signing_settings(config, game, str(config.get("team_id", "")))
+    except ValueError as exc:
+        errors.append(str(exc))
     if not key_path.startswith("~/") or not key_path.endswith(".p8"):
         errors.append("API private key path must reference a .p8 outside the repository")
     if game.get("capabilities", {}).get("game_center"):

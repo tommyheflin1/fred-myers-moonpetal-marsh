@@ -1,0 +1,39 @@
+{
+  "schema": "flins-custom-music-package-v1",
+  "rights_reviewed": true,
+  "runtime_mix_reviewed": false,
+  "loop_and_transition_tested": true,
+  "loop_and_transition_evidence": "September 10, 2026: run_soundtrack_lifecycle.gd passed 28 assertions with the actual packaged MP3 streams and Godot 4.7.1 Dummy audio driver. Both tracks were started 50 ms before their decoded end and remained playing after wrap; all nine screen routes selected one track, mute/home transitions and background/foreground were checked. This is automated playback evidence, not physical-device listening or audible-seam/mix approval; runtime_mix_reviewed remains false.",
+  "owner_approved": true,
+  "approval_evidence": {
+    "date": "2026-09-10",
+    "scope": "Existing Fred Build 11 music: The Marshland March and Marshland Chase",
+    "owner_statement": "MUSIC IS APPROVED; PRIVACY - VERIFY PRIVACY POLICY FOLLOW HARNESS GUIDELINES",
+    "basis": "Owner confirmation in response to the specific commercial App Store music-rights question; not independent verification of a third-party license",
+    "approved_file_sha256": {
+      "assets/audio/the_marshland_march.mp3": "3ad3d7a4bd4a4959870365ddaf219c3e75b7389f04748c7ad2fb6a6e89d5f627",
+      "assets/audio/marshland_chase.mp3": "0ed4938c2c5f84afc3b823bffcf0e2e6a2ec81aaa97e200674cbcef111dee517"
+    }
+  },
+  "tracks": [
+    {
+      "id": "the-marshland-march",
+      "title": "The Marshland March",
+      "gameplay_role": "Title, story, instructions and customization music",
+      "composer_or_source": "Owner-supplied Fred soundtrack; owner confirmed commercial App Store distribution rights",
+      "custom_for_this_game": true,
+      "file": "assets/audio/custom/the_marshland_march.mp3",
+      "sha256": "3ad3d7a4bd4a4959870365ddaf219c3e75b7389f04748c7ad2fb6a6e89d5f627"
+    },
+    {
+      "id": "marshland-chase",
+      "title": "Marshland Chase",
+      "gameplay_role": "Playing, failure and completion music",
+      "composer_or_source": "Owner-supplied Fred soundtrack; owner confirmed commercial App Store distribution rights",
+      "custom_for_this_game": true,
+      "file": "assets/audio/custom/marshland_chase.mp3",
+      "sha256": "0ed4938c2c5f84afc3b823bffcf0e2e6a2ec81aaa97e200674cbcef111dee517"
+    }
+  ],
+  "notes": "The approved original Fred tracks were relocated byte-for-byte into the required custom soundtrack directory and runtime paths updated. Original approval hashes remain recorded above. Native listening/mix and loop-transition acceptance are not inferred from packaging."
+}

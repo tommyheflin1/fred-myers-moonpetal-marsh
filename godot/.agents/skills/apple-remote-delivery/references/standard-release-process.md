@@ -5,9 +5,13 @@ This is the only normal Apple lane for generated games. Do not switch to browser
 ## Fixed sequence
 
 1. Freeze one clean candidate commit and record its tree, bundle ID, version, and build.
-2. Use the `app-privacy-policy` skill to publish and verify the exact app-specific policy on `theflinsappvaultllc.com`; reconcile it with the candidate and App Store privacy answers.
+2. Use `app-store-package` and `app-privacy-policy` to approve and validate the
+   app-owned story/product copy, exact-build media, support route, policy route,
+   privacy answers and remaining store decisions. Verify both public routes live.
 3. Fill `tools/ios_release_config.json` from the existing App Store Connect app and existing minimum-role API key. The private `.p8` remains outside the repository.
-4. Run `tools/release-ios preflight <commit>`. This verifies the live policy, authenticates and matches the live App Store app before Godot/Xcode work, then performs the remote doctor and unsigned preparation.
+4. Run `tools/release-ios preflight <commit>`. This verifies the store package and live
+   support/policy routes, authenticates and matches the live App Store app before
+   Godot/Xcode work, then performs the remote doctor and unsigned preparation.
 5. Fix only the failed prerequisite. Rerun the same preflight; do not change the release method.
 6. Set the documented archive acknowledgement and team ID, then run `tools/release-ios archive <commit>`.
 7. Preserve the verified archive and checkpoint. If upload fails, retry from that archive rather than rebuilding.
