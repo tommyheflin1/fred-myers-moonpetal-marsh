@@ -45,7 +45,7 @@ func identity_exchange_body(platform_result: Dictionary, bundle_id: String, publ
     }
 
 func request_headers(protocol: String, timestamp: int, nonce: String, idempotency_key: String) -> Dictionary:
-    if protocol not in ["bearer-v2", "hmac-v1"] or timestamp <= 0 or not _valid_token(nonce) or not _valid_token(idempotency_key): return {}
+    if protocol not in ["bearer-v2", "hmac-v1", "game-center-identity-v1"] or timestamp <= 0 or not _valid_token(nonce) or not _valid_token(idempotency_key): return {}
     return {"Accept":"application/json", "Accept-Encoding":"identity", "Content-Type":"application/json", "X-Golden-Egg-Game-Id":game_id, "X-Golden-Egg-Protocol":protocol, "X-Golden-Egg-Timestamp":str(timestamp), "X-Golden-Egg-Nonce":nonce.to_lower(), "Idempotency-Key":idempotency_key.to_lower()}
 
 func validate_discovery_response(result: Dictionary) -> bool:

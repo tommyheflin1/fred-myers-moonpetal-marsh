@@ -14,6 +14,13 @@ Any visible Hunt entry point requires explicit per-app owner approval and review
 enabling the capability alone is not that approval. Test normal navigation both
 before discovery and after returning home from a discovery result.
 
+Discovery is a temporary event, not an unlocked navigation category. Closing it
+removes reveal, consent and verification controls, including after YES or NO.
+Preserve duplicate prevention and pending state without advertising it. Any recovery
+UI must be temporary and limited to that already-triggered attempt. Test fresh launch,
+all normal menus and pause, actual verifier transition, consent outcomes, close, and
+normal navigation again. A replayed result flag must not reopen a closed event.
+
 Never call the Golden Egg website/backend during launch, menus, ordinary gameplay,
 Game Center initialization, native leaderboard display, achievements, or generic
 version checking. These paths must work offline and must record zero Golden Egg

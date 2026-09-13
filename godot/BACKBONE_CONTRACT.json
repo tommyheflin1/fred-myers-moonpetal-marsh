@@ -1,0 +1,38 @@
+{
+  "schema": "flins-backbone-contract-v1",
+  "revision": 1,
+  "required_capabilities": ["game_center", "leaderboards", "achievements", "golden_eggs", "audio", "lifecycle"],
+  "golden_eggs": {
+    "origin": "https://theflinsappvaultllc.com",
+    "auth_protocol": "game-center-identity-v1",
+    "activation_trigger": "verified_local_discovery",
+    "presentation": "hidden_in_game_discovery",
+    "normal_navigation_visible": false,
+    "startup_network_requests": false,
+    "core_gameplay_requires_backend": false,
+    "game_center_independent": true,
+    "public_name_consent_required": true,
+    "website_name_entry_allowed": false,
+    "private_cross_game_identity": "verified_team_player_id",
+    "private_game_audit_identity": "provider_reported_game_player_id",
+    "provider_display_name_source": "game_center_reported",
+    "failure_mode": "pending_nonblocking_idempotent_retry",
+    "version_enforcement_independent": true
+  },
+  "required_runtime_scenarios": [
+    "startup_zero_egg_requests", "menu_zero_egg_requests", "gameplay_zero_egg_requests",
+    "game_center_independent", "native_leaderboard_independent", "achievement_replay",
+    "offline_gameplay", "dns_failure_gameplay", "http_404_gameplay", "campaign_unavailable_gameplay",
+    "discovery_before_consent_before_network", "public_provider_name_only", "anonymous_no_name",
+    "pending_restart_fresh_identity", "account_switch_rejected", "duplicate_idempotency",
+    "server_authoritative_rank", "secure_storage", "timeout_nonblocking", "privacy_inventory_matches",
+    "local_only_zero_requests_and_retries"
+  ],
+  "required_backend_scenarios": [
+    "apple_signature_app_binding", "expired_proof_rejected", "replayed_proof_rejected",
+    "atomic_identity_binding", "idempotency_unique_constraint", "concurrent_rank_assignment",
+    "server_validates_discovery", "public_dto_redaction", "consent_revocation",
+    "rate_limit", "cross_app_isolation", "no_client_secrets", "pending_records_not_public",
+    "no_legacy_typed_name_fallback"
+  ]
+}

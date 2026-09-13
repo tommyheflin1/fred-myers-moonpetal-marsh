@@ -181,3 +181,27 @@ evidence. No release gate has been marked passed to bypass these failures.
 Existing Mac session became responsive without reconnecting. A bounded
 `caffeinate -di -t 3600` was started, PID 22477. No logout, reboot, account,
 certificate or provisioning changes. No Build 11 archive/upload/submission yet.
+
+## Candidate 30 migration verified
+
+Reviewed and adopted the canonical candidate-30 shared tools, documentation,
+contract and Core helper differences. Canonical audit now reports MATCH with
+zero file differences. This supersedes the earlier 14-difference checkpoint;
+it does not clear backbone, website, Apple or device gates. Fred's app-owned
+transport, Core version pin, gameplay, saves and release-ios lane are unchanged.
+The added shared discovery/secure-store helper is not a replacement of Fred's
+existing authenticated transport. Existing app integration tests still run.
+
+Validation after migration: all 49 app Godot suites passed, shared persistence
+22 checks passed, shared event-driven contract reported zero failures and zero
+pre-discovery requests, and 39 Python tests passed. Two initial imported template
+test failures were fixture assumptions (template placeholders and default icon/
+disabled Golden Egg settings); app-specific test fixtures were corrected without
+changing production review flags. Diff whitespace validation passed.
+
+The fourth unchanged Sites upload failed after 60004ms, request
+5bc37270-f3f0-4b58-b795-e178e3c964dd. New publication is still not verified.
+Internal-TestFlight readiness remains blocked by achievement enablement/evidence,
+Game Center identity and privacy flow review, production website/contract,
+third-party inventory, creative review, audible runtime mix and package review.
+No signing, uploading or App Review submission occurred during this migration.

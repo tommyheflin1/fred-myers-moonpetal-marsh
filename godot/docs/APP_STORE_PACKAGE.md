@@ -46,10 +46,21 @@ build passes on-device. Screenshots are product-page material, not CI evidence;
 privacy-safe CI bundles continue excluding them.
 
 `store/game_center.json` binds Game Center metadata and artwork to runtime behavior.
-It does not force every title to have 25 achievements: it forces one valid App Store
-Connect record and one unique image for every achievement that title declares. Thus
-Snake Reactor's 25-achievement catalog requires exactly 25 matching images. Released
-IDs are never renamed or recycled, and released point values are not changed.
+Starting with candidate 29, the Flins backbone requires 25 app-specific achievements
+for each participating game release, with matching App Store Connect records and
+unique images. This is a Flins requirement, not an Apple minimum. A different count
+requires an explicit exact-build `game_center.achievement_count` owner exception;
+that count exception does not waive the required achievement capability or evidence.
+Released IDs are never renamed or recycled, and released point values are not changed.
+
+For an existing game, inspect its actual App Store Connect achievement inventory first.
+Preserve existing leaderboard IDs and valid achievement IDs. If achievements do not
+exist, deliberately define new app-owned identifiers and predicates using existing
+gameplay, register their records/localizations/artwork, then reconcile the runtime
+catalog and manifest. Proposed IDs are not registered IDs until creation is confirmed.
+Do not change the hidden Golden Egg solution or progression rules merely to add badges.
+Native authentication, unlock/replay, offline recovery and exact-build device evidence
+remain required; a populated JSON catalog is not successful Apple onboarding.
 
 Golden Egg participation is a release package, not only an Easter egg asset. A release
 must prove the app-to-website contract, server-verified Game Center identity, consent

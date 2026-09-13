@@ -87,11 +87,20 @@ def device_check_deferred(package: dict, game: dict, gate: str, purpose: str) ->
                and item.get("deferred_until") == "app-review"
                for item in package.get("release_exceptions", []) if isinstance(item, dict))
 
+def website_check_deferred(package: dict, game: dict, gate: str) -> bool:
+    # Availability/contract deployment only; never identity, consent, privacy or device security.
+    return (gate in {"golden_egg.website_contract_reviewed", "golden_egg.production_endpoint_verified"}
+            and package.get("golden_egg", {}).get("safe_nonblocking_fallback_reviewed") is True
+            and approved_exception(package, game, gate))
+
 def validate(root: Path, release: bool=False, verify_live: bool=False, purpose: str="app-review") -> list[str]:
     errors=[]
     if purpose not in {"app-review", "internal-testflight"}: return ["invalid release purpose"]
     try: game,package,shots,game_center,audio=load(root)
     except (OSError,ValueError) as exc: return [f"package load failed: {exc}"]
+    if release:
+        from backbone_contract import validate as validate_backbone
+        errors.extend("backbone: " + error for error in validate_backbone(root))
     identity=package.get("identity",{}); creative=package.get("creative_contract",{}); version=package.get("version",{})
     distribution=package.get("distribution",{}); compliance=package.get("compliance",{}); media=package.get("media",{})
     public_copy=package.get("public_copy_review",{})
@@ -163,6 +172,8 @@ def validate(root: Path, release: bool=False, verify_live: bool=False, purpose: 
             if release or relative: errors.append(f"Game Center achievement {index} image: {exc}")
     if points>1000: errors.append("Game Center achievement points exceed 1000 total")
     if release and achievements_enabled and not achievements: errors.append("Game Center achievements are enabled but none are declared")
+    if release and achievements_enabled and len(achievements) != 25 and not approved_exception(package, game, "game_center.achievement_count"):
+        errors.append("Game Center requires 25 app-specific achievements or an exact-build owner exception")
     if release and not achievements_enabled and achievements: errors.append("Game Center achievements exist while capability is disabled")
     if release and gc_enabled:
         for field in ("app_store_records_reviewed","identifiers_match_runtime","on_device_authentication_tested","on_device_replay_tested"):
@@ -177,7 +188,7 @@ def validate(root: Path, release: bool=False, verify_live: bool=False, purpose: 
         if release and contract.get("auth_protocol") in {None,"","unconfigured"}: errors.append("Golden Egg authentication protocol is not configured")
         if release:
             for field in ("website_contract_reviewed","game_center_identity_reviewed","privacy_consent_reviewed","production_endpoint_verified","physical_device_flow_reviewed"):
-                if golden.get(field) is not True and not device_check_deferred(package,game,f"golden_egg.{field}",purpose): errors.append(f"Golden Egg {field} missing")
+                if golden.get(field) is not True and not device_check_deferred(package,game,f"golden_egg.{field}",purpose) and not website_check_deferred(package,game,f"golden_egg.{field}"): errors.append(f"Golden Egg {field} missing")
     updates=game.get("updates",{})
     if not isinstance(updates.get("enabled"),bool): errors.append("version enforcement enabled flag must be explicit")
     elif updates.get("enabled") and (updates.get("mode")!="mandatory_minimum_build" or updates.get("fail_closed") is not True): errors.append("mandatory update policy contract mismatch")

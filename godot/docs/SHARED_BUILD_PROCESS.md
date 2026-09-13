@@ -1,9 +1,13 @@
 # Versioned development-to-Apple process
 
-Process 1.8 candidate 28, reviewed 2026-09-12. This is a shared operating contract,
+Process 1.8 candidate 30, reviewed 2026-09-12. This is a shared operating contract,
 not a production monorepo or permission to change released apps.
 
 ## Development and reuse
+
+Read `docs/OWNER_WEBSITE_CONTACT_DECISION.md` before website integration work or an
+owner approval question. It records the latest discovery-only contact instruction
+and supersedes older optional company-website polling defaults for app runtime.
 
 1. Inventory the actual branch, dirty files, commit/tree, game/store/save identities,
    pinned Core/Godot/plugins and enabled features. Preserve dirty work and owner saves.
@@ -117,6 +121,16 @@ without source-tree/archive hashes need a reviewed migration or a new candidate;
 fabricate missing provenance. Never rerun preflight over a preserved signed archive.
 
 ## Stable change processing
+
+Candidate 30 adds the tested shared publication-v2 wire adapter and identity-exchange
+protocol header. Read `docs/GOLDEN_EGG_PUBLICATION_V2.md`. It does not replace each
+app's authenticated transport, or certify website deployment and native-device behavior.
+
+Universal backbone enforcement is defined by `BACKBONE_CONTRACT.json` and
+`docs/UNIVERSAL_BACKBONE.md`. Release validation rejects disabled common services
+and missing/stale per-app integration evidence. Run the canonical fleet audit with
+`--discover --backbone` to include unregistered candidates. A common contract change
+invalidates old reviews by its hash; never equate matching tools with working features.
 
 Candidate 28 makes Golden Egg networking event-driven. Shared configuration and release
 validation require zero startup requests, gameplay/backend independence, independent

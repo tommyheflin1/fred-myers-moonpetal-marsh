@@ -42,6 +42,8 @@ REQUIRED = {
     ".agents/skills/mandatory-app-update/references/activation-and-recovery.md",
     "addons/mobile_game_core/lifecycle/update_policy_service.gd",
     "addons/mobile_game_core/online/golden_egg_discovery_service.gd",
+    "addons/mobile_game_core/online/golden_egg_secure_store.gd",
+    "addons/mobile_game_core/online/golden_egg_publication_contract.gd",
     "store/app_store_package.json", "store/screenshots.json",
 }
 PROHIBITED_SUFFIXES = {".p12", ".mobileprovision", ".jks", ".keystore", ".pem", ".key"}
