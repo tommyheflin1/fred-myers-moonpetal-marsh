@@ -225,3 +225,53 @@ Live Apple inspection still shows First Lily Trail / campaign_004, 40 points,
 Prepare for Submission with no localization. No account/session/signing changes.
 Source SDK review is in BUILD_11_SDK_SOURCE_REVIEW.md; native artifact inspection
 is still missing, so the corresponding release gate remains false.
+
+## Apple metadata authorization checkpoint
+
+Created Reed Runner base record campaign_008, Apple record
+1bf2c625-8fc0-4c71-bdd2-e5760e743eb1. Creation was verified in Apple; its point
+value remains 0, and localization/artwork remain absent. The attempted 40-point
+save was rejected by the action safety reviewer because the exact allocation had
+not been verified against an explicit owner-approved specification. No workaround
+was attempted. Follow-up read showed no change. Request the narrow approval for
+25 campaign milestones at completed levels 4,8,...100, 40 points each, 1000 total;
+this is separate from broad release approval and does not waive release evidence.
+
+Harness task received exact immutable website archive path, byte count, digest,
+native save arguments, last saved version and request IDs. It is investigating
+the upload transport while Fred remains sole deployment owner. Blind retries are
+paused; source and archive remain unchanged. No Apple build submitted.
+
+## Exact-runtime regression and stale validator repair (2026-09-12)
+
+All 49 Godot run_*.gd suites completed on runtime commit fad7534 with
+TOTAL=49 FAILED=0, using isolated temporary APPDATA/LOCALAPPDATA and Dummy audio.
+An initial restricted process launch was denied; the approved elevated runtime
+execution completed. Existing ObjectDB/resource warnings on test shutdown remain;
+these results do not certify native devices, live Apple callbacks or audible mix.
+All 39 shared Python tests also passed.
+
+The two app-owned legacy preparation validators still expected Core tree
+ce7821a6431681adca8bd5997fab8fe24b82ec23 after the reviewed candidate-30 migration
+4f3c0db. Reviewed the complete four-file diff: discovery service persistence,
+secure-store helper plus UID, and identity-exchange protocol header. Canonical
+audit verifies MATCH with zero differences. Updated only the two validation pins
+to fd3a585946e4fa4a78e7a32eb05be66aac9b31c7; Core base version, gameplay, signing,
+and source helpers remain unchanged. Six standalone Python scripts passed 115
+checks; the preparation script then passed 36 rather than 34 checks after adding
+two negative assertions that an unknown Core tree still fails explicitly.
+
+Internal-TestFlight store validation still fails the four Golden Egg integration
+reviews, achievements capability/backbone evidence, third-party SDK review,
+creative review, audible mix review, and store package approval. No review flags
+or exceptions were changed to conceal these gaps.
+
+Website packaging inspection found required outputs and active images, no
+accidental source/node_modules payload. The helper already uses gzip and exposes
+no compression setting; the native upload exposes no timeout setting or inner
+failure detail. The original archive is unchanged. With no Sites calls running,
+sole website lifecycle ownership was explicitly transferred to harness task
+019fc591-9c35-79e2-a59d-cef0f0158890 for product-context transport investigation.
+Fred must not concurrently save, deploy, package or modify that website.
+Apple points remain blocked pending exact allocation approval. No Build 11
+archive, upload, TestFlight device installation, or App Review submission verified.

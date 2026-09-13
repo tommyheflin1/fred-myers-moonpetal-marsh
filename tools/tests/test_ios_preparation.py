@@ -4,6 +4,7 @@ import importlib.util
 import configparser
 import fnmatch
 from pathlib import Path
+from unittest.mock import patch
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -27,6 +28,11 @@ def check(condition: bool, message: str) -> None:
 
 check(report["schema"] == "fred-ios-preparation-v1", "unexpected schema")
 check(report["status"] == "PASS", str(report["errors"]))
+with patch.object(MODULE, "_git", return_value="0" * 40):
+    drifted = MODULE.validate(ROOT)
+check(drifted["status"] == "FAIL", "unreviewed Core drift must remain blocked")
+check(any("Mobile Game Core tree changed" in error for error in drifted["errors"]),
+      "Core drift must retain its explicit diagnostic")
 check(report["development_bundle_id"] == "com.flinsvault.fredmyers", "active bundle changed")
 check(report["production_bundle_id"] == "com.flinsvault.fredmyers", "production bundle changed")
 check(report["marketing_version"] == "1.1", "marketing version changed")

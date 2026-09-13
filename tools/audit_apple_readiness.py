@@ -12,7 +12,8 @@ APP_VAULT = next(
     (parent for parent in ROOT.parents if (parent / "FLINS_MOBILE_GAME_ENGINE_ARCHITECTURE.md").is_file()),
     ROOT.parent,
 )
-EXPECTED_CORE_TREE = "ce7821a6431681adca8bd5997fab8fe24b82ec23"
+# Candidate-30 helpers adopted in 4f3c0db; retain the exact tree guard.
+EXPECTED_CORE_TREE = "fd3a585946e4fa4a78e7a32eb05be66aac9b31c7"
 BUILD_1_RUNTIME_COMMIT = "c8fcf859e4aa7a9c419e88f1bde7f1ecabbdb943"
 EXPECTED_BUNDLE_ID = "com.flinsvault.fredmyers"
 EXPECTED_IPA_SHA256 = "f5bfb51d8fcad4ab6e8a2320f91d885d541ef2b44296546feb38e36a19e32620"

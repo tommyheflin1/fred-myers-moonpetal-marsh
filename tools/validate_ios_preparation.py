@@ -16,7 +16,8 @@ ROOT = Path(__file__).resolve().parents[1]
 PROJECT = ROOT / "godot"
 # Core 0.5.1 base remains intact; additive tested helpers are pinned explicitly.
 # See docs/BUILD_11_DISCOVERY_ONLY_CHECKPOINT.md for their upstream provenance.
-EXPECTED_CORE_TREE = "ce7821a6431681adca8bd5997fab8fe24b82ec23"
+# Candidate-30 helpers adopted in 4f3c0db; canonical process audit verifies their contents.
+EXPECTED_CORE_TREE = "fd3a585946e4fa4a78e7a32eb05be66aac9b31c7"
 DEVELOPMENT_BUNDLE_ID = "com.flinsvault.fredmyers"
 PRODUCTION_BUNDLE_ID = "com.flinsvault.fredmyers"
 MARKETING_VERSION = "1.1"
