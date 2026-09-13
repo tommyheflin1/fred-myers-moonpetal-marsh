@@ -2,8 +2,8 @@
   "schema": "fred-achievement-original-artwork-v1",
   "date": "2026-09-13",
   "source": "Built-in image generation; project-generated original artwork, not marketplace art.",
-  "status": "Draft originals preserved outside Godot production assets. All originals are 1254 square; Apple-compliant 1024 copies have not been produced or uploaded.",
-  "resize_authorization": "Pending one owner question shared with harness. Do not ask again or treat generation approval as explicit approval to switch image-editing tools.",
+  "status": "All 25 original 1254x1254 RGB images preserved unchanged outside Godot production assets. Owner-approved dimension-only 1024x1024 copies are recorded in APPLE_ARTWORK.json and saved to all 25 Apple achievement localizations; original files themselves were not uploaded.",
+  "resize_authorization": "Resolved 2026-09-13: owner answered yes to local image-processing tools for dimension-only 1024x1024 resizing while preserving original artwork. See APPLE_ARTWORK.json owner_resize_approval. No broader visual-review or release-test waiver is implied.",
   "golden_egg_art_unchanged": true,
   "original_count": 25,
   "entries": [

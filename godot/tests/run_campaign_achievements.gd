@@ -26,10 +26,28 @@ func _init() -> void:
 func _run() -> void:
 	var definitions := Catalog.definitions()
 	check(definitions.size() == 25, "25 app-owned campaign achievements")
+	var config: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://game/game.json"))
+	var store_package: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://store/game_center.json"))
+	check(bool(config.get("capabilities", {}).get("achievements", false)), "registered campaign achievement capability enabled in candidate")
+	var store_definitions: Array = store_package.get("achievements", [])
+	check(store_definitions.size() == definitions.size(), "store and runtime catalog sizes match")
+	var image_hashes: Dictionary = {}
+	for index in mini(store_definitions.size(), definitions.size()):
+		var store_record: Dictionary = store_definitions[index]
+		var runtime_record: Dictionary = definitions[index]
+		check(store_record.get("id") == runtime_record.id, "store ID matches exact runtime milestone")
+		check(store_record.get("title") == runtime_record.name and store_record.get("reference_name") == runtime_record.name, "store names match runtime")
+		for field: String in ["points", "hidden", "repeatable", "earned_description", "unearned_description"]:
+			check(store_record.get(field) == runtime_record[field], "store behavior and localized text match runtime: " + field)
+		var image_path := "res://" + str(store_record.get("image", ""))
+		var digest := FileAccess.get_sha256(image_path)
+		check(not digest.is_empty() and digest == store_record.get("sha256"), "achievement image matches recorded SHA-256")
+		check(not image_hashes.has(digest), "each achievement has distinct artwork")
+		image_hashes[digest] = true
 	var seen: Dictionary = {}
 	var total_points := 0
 	for definition: Dictionary in definitions:
-		check(not seen.has(definition.id), "unique permanent proposed ID")
+		check(not seen.has(definition.id), "unique permanent registered ID")
 		seen[definition.id] = true
 		total_points += int(definition.points)
 		check(not definition.hidden and not definition.repeatable, "ordinary campaign milestone, not secret reveal")
@@ -47,7 +65,7 @@ func _run() -> void:
 	adapter.set_process(false)
 	adapter.state = "authenticated"
 	adapter.queue_campaign_achievements(100)
-	check(adapter.pending_achievements.is_empty(), "unregistered capability remains off")
+	check(adapter.pending_achievements.is_empty(), "unconfigured adapter defaults safely off")
 	adapter.achievements_enabled = true
 	adapter.queue_campaign_achievements(100)
 	adapter.queue_campaign_achievements(100)

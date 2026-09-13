@@ -10,8 +10,8 @@
   "approval_source_task": "019fc591-9c35-79e2-a59d-cef0f0158890",
   "total_points": 1000,
   "apple_review_submitted": false,
-  "localizations_complete": false,
-  "artwork_complete": false,
+  "localizations_complete": true,
+  "artwork_complete": true,
   "device_unlock_verified": false,
   "records": [
     {
@@ -24,13 +24,16 @@
       "locale": "en-US",
       "earned_description": "You completed Level 4. Keep the marsh glowing!",
       "unearned_description": "Complete Level 4 in Fred's marsh adventure.",
-      "localization_saved": false,
+      "localization_saved": true,
       "visibility_correction": {
         "expected_hidden": false,
         "expected_repeatable": false,
         "save_issued": true,
         "persistence_reverified": true
-      }
+      },
+      "image": "assets/store/game-center/campaign-004-v1.png",
+      "image_sha256": "e4efd31b567e58d8b9add9252f19e6ccf7c7766f7b6a057632043806aa23d682",
+      "localization_row_verified": true
     },
     {
       "id": "com.flinsvault.fredmyers.campaign_008",
@@ -42,13 +45,16 @@
       "locale": "en-US",
       "earned_description": "You completed Level 8. Keep the marsh glowing!",
       "unearned_description": "Complete Level 8 in Fred's marsh adventure.",
-      "localization_saved": false,
+      "localization_saved": true,
       "visibility_correction": {
         "expected_hidden": false,
         "expected_repeatable": false,
         "save_issued": true,
         "persistence_reverified": true
-      }
+      },
+      "image": "assets/store/game-center/campaign-008-v1.png",
+      "image_sha256": "57cf89e22c92f4c5d91316f55b642e84cc41cd5c32e83d80465abee7261ac2a9",
+      "localization_row_verified": true
     },
     {
       "id": "com.flinsvault.fredmyers.campaign_012",
@@ -60,13 +66,16 @@
       "locale": "en-US",
       "earned_description": "You completed Level 12. Keep the marsh glowing!",
       "unearned_description": "Complete Level 12 in Fred's marsh adventure.",
-      "localization_saved": false,
+      "localization_saved": true,
       "visibility_correction": {
         "expected_hidden": false,
         "expected_repeatable": false,
         "save_issued": true,
         "persistence_reverified": true
-      }
+      },
+      "image": "assets/store/game-center/campaign-012-v1.png",
+      "image_sha256": "d197f9d6051e65b883c09ad4504b1f742eb72dff548c88ab6f4c7895cd92c1a5",
+      "localization_row_verified": true
     },
     {
       "id": "com.flinsvault.fredmyers.campaign_016",
@@ -78,13 +87,16 @@
       "locale": "en-US",
       "earned_description": "You completed Level 16. Keep the marsh glowing!",
       "unearned_description": "Complete Level 16 in Fred's marsh adventure.",
-      "localization_saved": false,
+      "localization_saved": true,
       "visibility_correction": {
         "expected_hidden": false,
         "expected_repeatable": false,
         "save_issued": true,
         "persistence_reverified": true
-      }
+      },
+      "image": "assets/store/game-center/campaign-016-v1.png",
+      "image_sha256": "bd69d02475c9713e4b6f5fc353c127d71af94e1fb6f6be36f5cfe695025e1427",
+      "localization_row_verified": true
     },
     {
       "id": "com.flinsvault.fredmyers.campaign_020",
@@ -96,13 +108,16 @@
       "locale": "en-US",
       "earned_description": "You completed Level 20. Keep the marsh glowing!",
       "unearned_description": "Complete Level 20 in Fred's marsh adventure.",
-      "localization_saved": false,
+      "localization_saved": true,
       "visibility_correction": {
         "expected_hidden": false,
         "expected_repeatable": false,
         "save_issued": true,
         "persistence_reverified": true
-      }
+      },
+      "image": "assets/store/game-center/campaign-020-v1.png",
+      "image_sha256": "1ec3364bbb8b50f363bc8d1eab858217274afe9024dd9235424c0f9fc64a3500",
+      "localization_row_verified": true
     },
     {
       "id": "com.flinsvault.fredmyers.campaign_024",
@@ -114,13 +129,16 @@
       "locale": "en-US",
       "earned_description": "You completed Level 24. Keep the marsh glowing!",
       "unearned_description": "Complete Level 24 in Fred's marsh adventure.",
-      "localization_saved": false,
+      "localization_saved": true,
       "visibility_correction": {
         "expected_hidden": false,
         "expected_repeatable": false,
         "save_issued": true,
         "persistence_reverified": true
-      }
+      },
+      "image": "assets/store/game-center/campaign-024-v1.png",
+      "image_sha256": "65cb4366d03f397184eb2f949ec468373dd25fbe399acf1bd8d5a669d8d084dc",
+      "localization_row_verified": true
     },
     {
       "id": "com.flinsvault.fredmyers.campaign_028",
@@ -132,13 +150,16 @@
       "locale": "en-US",
       "earned_description": "You completed Level 28. Keep the marsh glowing!",
       "unearned_description": "Complete Level 28 in Fred's marsh adventure.",
-      "localization_saved": false,
+      "localization_saved": true,
       "visibility_correction": {
         "expected_hidden": false,
         "expected_repeatable": false,
         "save_issued": true,
         "persistence_reverified": true
-      }
+      },
+      "image": "assets/store/game-center/campaign-028-v1.png",
+      "image_sha256": "18fe8f7d50787ddc91b8d5cef505ffeb8aec432ed5a65f4057818549392d775d",
+      "localization_row_verified": true
     },
     {
       "id": "com.flinsvault.fredmyers.campaign_032",
@@ -150,13 +171,16 @@
       "locale": "en-US",
       "earned_description": "You completed Level 32. Keep the marsh glowing!",
       "unearned_description": "Complete Level 32 in Fred's marsh adventure.",
-      "localization_saved": false,
+      "localization_saved": true,
       "visibility_correction": {
         "expected_hidden": false,
         "expected_repeatable": false,
         "save_issued": true,
         "persistence_reverified": true
-      }
+      },
+      "image": "assets/store/game-center/campaign-032-v1.png",
+      "image_sha256": "96996762412208a4c93f3074dac11da7b9a2290593b691c0400ec0794717c3b0",
+      "localization_row_verified": true
     },
     {
       "id": "com.flinsvault.fredmyers.campaign_036",
@@ -168,13 +192,16 @@
       "locale": "en-US",
       "earned_description": "You completed Level 36. Keep the marsh glowing!",
       "unearned_description": "Complete Level 36 in Fred's marsh adventure.",
-      "localization_saved": false,
+      "localization_saved": true,
       "visibility_correction": {
         "expected_hidden": false,
         "expected_repeatable": false,
         "save_issued": true,
         "persistence_reverified": true
-      }
+      },
+      "image": "assets/store/game-center/campaign-036-v1.png",
+      "image_sha256": "0f1d13f038cffb19ef09da6f91b9315081daa072dd60a35cad015a35bf3327a4",
+      "localization_row_verified": true
     },
     {
       "id": "com.flinsvault.fredmyers.campaign_040",
@@ -186,13 +213,16 @@
       "locale": "en-US",
       "earned_description": "You completed Level 40. Keep the marsh glowing!",
       "unearned_description": "Complete Level 40 in Fred's marsh adventure.",
-      "localization_saved": false,
+      "localization_saved": true,
       "visibility_correction": {
         "expected_hidden": false,
         "expected_repeatable": false,
         "save_issued": true,
         "persistence_reverified": true
-      }
+      },
+      "image": "assets/store/game-center/campaign-040-v1.png",
+      "image_sha256": "a8fd9f5a61365ba474cbb8878ed76144eb360cce1ed4d626d0083ba7dbc71831",
+      "localization_row_verified": true
     },
     {
       "id": "com.flinsvault.fredmyers.campaign_044",
@@ -204,13 +234,16 @@
       "locale": "en-US",
       "earned_description": "You completed Level 44. Keep the marsh glowing!",
       "unearned_description": "Complete Level 44 in Fred's marsh adventure.",
-      "localization_saved": false,
+      "localization_saved": true,
       "visibility_correction": {
         "expected_hidden": false,
         "expected_repeatable": false,
         "save_issued": true,
         "persistence_reverified": true
-      }
+      },
+      "image": "assets/store/game-center/campaign-044-v1.png",
+      "image_sha256": "0bcd64bd2558e6211de755e14da38772914d40b7c9b23c40d264bba93c2c8467",
+      "localization_row_verified": true
     },
     {
       "id": "com.flinsvault.fredmyers.campaign_048",
@@ -222,13 +255,16 @@
       "locale": "en-US",
       "earned_description": "You completed Level 48. Keep the marsh glowing!",
       "unearned_description": "Complete Level 48 in Fred's marsh adventure.",
-      "localization_saved": false,
+      "localization_saved": true,
       "visibility_correction": {
         "expected_hidden": false,
         "expected_repeatable": false,
         "save_issued": true,
         "persistence_reverified": true
-      }
+      },
+      "image": "assets/store/game-center/campaign-048-v1.png",
+      "image_sha256": "73bddd9bcddfad382bb7bddfc670e65cbd1bfaf87935ce32d250f39165bbbb58",
+      "localization_row_verified": true
     },
     {
       "id": "com.flinsvault.fredmyers.campaign_052",
@@ -240,13 +276,16 @@
       "locale": "en-US",
       "earned_description": "You completed Level 52. Keep the marsh glowing!",
       "unearned_description": "Complete Level 52 in Fred's marsh adventure.",
-      "localization_saved": false,
+      "localization_saved": true,
       "visibility_correction": {
         "expected_hidden": false,
         "expected_repeatable": false,
         "save_issued": true,
         "persistence_reverified": true
-      }
+      },
+      "image": "assets/store/game-center/campaign-052-v1.png",
+      "image_sha256": "f80bb68c7f8dac0ffaae457d312133ea1c9572cde4afc41112ec864a7aa91f1f",
+      "localization_row_verified": true
     },
     {
       "id": "com.flinsvault.fredmyers.campaign_056",
@@ -258,13 +297,16 @@
       "locale": "en-US",
       "earned_description": "You completed Level 56. Keep the marsh glowing!",
       "unearned_description": "Complete Level 56 in Fred's marsh adventure.",
-      "localization_saved": false,
+      "localization_saved": true,
       "visibility_correction": {
         "expected_hidden": false,
         "expected_repeatable": false,
         "save_issued": true,
         "persistence_reverified": true
-      }
+      },
+      "image": "assets/store/game-center/campaign-056-v1.png",
+      "image_sha256": "daa3105e16870ed987f17f798ec0f8a1297038e192eb6261b3eba79e165dc242",
+      "localization_row_verified": true
     },
     {
       "id": "com.flinsvault.fredmyers.campaign_060",
@@ -276,13 +318,16 @@
       "locale": "en-US",
       "earned_description": "You completed Level 60. Keep the marsh glowing!",
       "unearned_description": "Complete Level 60 in Fred's marsh adventure.",
-      "localization_saved": false,
+      "localization_saved": true,
       "visibility_correction": {
         "expected_hidden": false,
         "expected_repeatable": false,
         "save_issued": true,
         "persistence_reverified": true
-      }
+      },
+      "image": "assets/store/game-center/campaign-060-v1.png",
+      "image_sha256": "9a969ef288efa46601d5bf9c8e7e8d0f1b1a5be7b546fdc7c8143467659e58da",
+      "localization_row_verified": true
     },
     {
       "id": "com.flinsvault.fredmyers.campaign_064",
@@ -294,13 +339,16 @@
       "locale": "en-US",
       "earned_description": "You completed Level 64. Keep the marsh glowing!",
       "unearned_description": "Complete Level 64 in Fred's marsh adventure.",
-      "localization_saved": false,
+      "localization_saved": true,
       "visibility_correction": {
         "expected_hidden": false,
         "expected_repeatable": false,
         "save_issued": true,
         "persistence_reverified": true
-      }
+      },
+      "image": "assets/store/game-center/campaign-064-v1.png",
+      "image_sha256": "31b964a651e409749719c4ad4ca2c2fc1ed7d1102413df4a8fa9c1ff63ccbd43",
+      "localization_row_verified": true
     },
     {
       "id": "com.flinsvault.fredmyers.campaign_068",
@@ -312,13 +360,16 @@
       "locale": "en-US",
       "earned_description": "You completed Level 68. Keep the marsh glowing!",
       "unearned_description": "Complete Level 68 in Fred's marsh adventure.",
-      "localization_saved": false,
+      "localization_saved": true,
       "visibility_correction": {
         "expected_hidden": false,
         "expected_repeatable": false,
         "save_issued": true,
         "persistence_reverified": true
-      }
+      },
+      "image": "assets/store/game-center/campaign-068-v1.png",
+      "image_sha256": "2a157d54b3c0aa87bda739082a06f263e8920926c68a5ebe9dfa31e834fb1835",
+      "localization_row_verified": true
     },
     {
       "id": "com.flinsvault.fredmyers.campaign_072",
@@ -330,13 +381,16 @@
       "locale": "en-US",
       "earned_description": "You completed Level 72. Keep the marsh glowing!",
       "unearned_description": "Complete Level 72 in Fred's marsh adventure.",
-      "localization_saved": false,
+      "localization_saved": true,
       "visibility_correction": {
         "expected_hidden": false,
         "expected_repeatable": false,
         "save_issued": true,
         "persistence_reverified": true
-      }
+      },
+      "image": "assets/store/game-center/campaign-072-v1.png",
+      "image_sha256": "c15bb9df59baf79579429c98e3b38e8d8773cb0383c99763c796dbb6492a9aac",
+      "localization_row_verified": true
     },
     {
       "id": "com.flinsvault.fredmyers.campaign_076",
@@ -348,13 +402,16 @@
       "locale": "en-US",
       "earned_description": "You completed Level 76. Keep the marsh glowing!",
       "unearned_description": "Complete Level 76 in Fred's marsh adventure.",
-      "localization_saved": false,
+      "localization_saved": true,
       "visibility_correction": {
         "expected_hidden": false,
         "expected_repeatable": false,
         "save_issued": true,
         "persistence_reverified": true
-      }
+      },
+      "image": "assets/store/game-center/campaign-076-v1.png",
+      "image_sha256": "714126c5a6ba0f7ab466787a11cc5f802842a982e466e418ea49ccef7aab315a",
+      "localization_row_verified": true
     },
     {
       "id": "com.flinsvault.fredmyers.campaign_080",
@@ -366,13 +423,16 @@
       "locale": "en-US",
       "earned_description": "You completed Level 80. Keep the marsh glowing!",
       "unearned_description": "Complete Level 80 in Fred's marsh adventure.",
-      "localization_saved": false,
+      "localization_saved": true,
       "visibility_correction": {
         "expected_hidden": false,
         "expected_repeatable": false,
         "save_issued": true,
         "persistence_reverified": true
-      }
+      },
+      "image": "assets/store/game-center/campaign-080-v1.png",
+      "image_sha256": "624e4c844cd67b1e12f956a0361c6aac9849315ef621961cfb856dd959383f88",
+      "localization_row_verified": true
     },
     {
       "id": "com.flinsvault.fredmyers.campaign_084",
@@ -384,13 +444,16 @@
       "locale": "en-US",
       "earned_description": "You completed Level 84. Keep the marsh glowing!",
       "unearned_description": "Complete Level 84 in Fred's marsh adventure.",
-      "localization_saved": false,
+      "localization_saved": true,
       "visibility_correction": {
         "expected_hidden": false,
         "expected_repeatable": false,
         "save_issued": true,
         "persistence_reverified": true
-      }
+      },
+      "image": "assets/store/game-center/campaign-084-v1.png",
+      "image_sha256": "02aeeb3e17debf912303a37a967f77231a90a8b80f7bdf88f7727b2098c974f7",
+      "localization_row_verified": true
     },
     {
       "id": "com.flinsvault.fredmyers.campaign_088",
@@ -402,13 +465,16 @@
       "locale": "en-US",
       "earned_description": "You completed Level 88. Keep the marsh glowing!",
       "unearned_description": "Complete Level 88 in Fred's marsh adventure.",
-      "localization_saved": false,
+      "localization_saved": true,
       "visibility_correction": {
         "expected_hidden": false,
         "expected_repeatable": false,
         "save_issued": true,
         "persistence_reverified": true
-      }
+      },
+      "image": "assets/store/game-center/campaign-088-v1.png",
+      "image_sha256": "0f282ca0c08116fec2640d1121e0951dd9e1ed6c382072ab1c1b02da61f20458",
+      "localization_row_verified": true
     },
     {
       "id": "com.flinsvault.fredmyers.campaign_092",
@@ -420,13 +486,16 @@
       "locale": "en-US",
       "earned_description": "You completed Level 92. Keep the marsh glowing!",
       "unearned_description": "Complete Level 92 in Fred's marsh adventure.",
-      "localization_saved": false,
+      "localization_saved": true,
       "visibility_correction": {
         "expected_hidden": false,
         "expected_repeatable": false,
         "save_issued": true,
         "persistence_reverified": true
-      }
+      },
+      "image": "assets/store/game-center/campaign-092-v1.png",
+      "image_sha256": "a618e0676bbc6ef7b76f10098e4b594129aa80403ea858d215275d89d0d381b9",
+      "localization_row_verified": true
     },
     {
       "id": "com.flinsvault.fredmyers.campaign_096",
@@ -438,13 +507,16 @@
       "locale": "en-US",
       "earned_description": "You completed Level 96. Keep the marsh glowing!",
       "unearned_description": "Complete Level 96 in Fred's marsh adventure.",
-      "localization_saved": false,
+      "localization_saved": true,
       "visibility_correction": {
         "expected_hidden": false,
         "expected_repeatable": false,
         "save_issued": true,
         "persistence_reverified": true
-      }
+      },
+      "image": "assets/store/game-center/campaign-096-v1.png",
+      "image_sha256": "daa36de1f7064afdbd9fe671d62a9aa077254c8b81213502e0e33c36df46a05a",
+      "localization_row_verified": true
     },
     {
       "id": "com.flinsvault.fredmyers.campaign_100",
@@ -456,14 +528,18 @@
       "locale": "en-US",
       "earned_description": "You completed Level 100. Keep the marsh glowing!",
       "unearned_description": "Complete Level 100 in Fred's marsh adventure.",
-      "localization_saved": false,
+      "localization_saved": true,
       "visibility_correction": {
         "expected_hidden": false,
         "expected_repeatable": false,
         "save_issued": true,
         "persistence_reverified": true
-      }
+      },
+      "image": "assets/store/game-center/campaign-100-v1.png",
+      "image_sha256": "1f86ad09e54c71c7f01f16beb734b3639b1238d9f8dd7baef96b258955c4bfc6",
+      "localization_row_verified": true
     }
   ],
-  "visibility_checkpoint": "2026-09-13: Existing Apple session recovered. Corrected084/088/092/096 then individually reopened all25records and verified exact names,40points,showBeforeEarned=true(Hidden=No),repeatable=false. No IDs or points changed. Localization/artwork/review/native gates remain incomplete."
+  "visibility_checkpoint": "2026-09-13: Existing Apple session recovered. Corrected084/088/092/096 then individually reopened all25records and verified exact names,40points,showBeforeEarned=true(Hidden=No),repeatable=false. No IDs or points changed. Localization/artwork/review/native gates remain incomplete.",
+  "localization_checkpoint": "2026-09-13: All 25 en-US achievement names, earned/unearned descriptions and unique campaign-NNN-v1.png files saved through the existing App Store Connect session. Each saved English localization row was verified with its exact title and image filename; campaign_100 was additionally reopened and both description fields verified. These are configuration saves, not App Review submission or device-award proof."
 }

@@ -16,7 +16,7 @@
   ],
   "capabilities": {
     "accounts": false,
-    "achievements": false,
+    "achievements": true,
     "cloud_save": false,
     "cosmetics": true,
     "game_center": true,

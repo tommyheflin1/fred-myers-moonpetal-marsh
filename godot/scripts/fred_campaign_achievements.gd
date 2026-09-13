@@ -1,7 +1,8 @@
 class_name FredCampaignAchievements
 extends RefCounted
 
-# App-owned proposed IDs, not a claim of Apple registration. No puzzle changes.
+# App-owned IDs reconciled with the 25 Apple records on 2026-09-13.
+# Registration is not App Review approval or device-award proof. No puzzle changes.
 const PREFIX := "com.flinsvault.fredmyers.campaign_"
 const TITLES: Array[String] = [
 	"First Lily Trail", "Reed Runner", "Moonlit Explorer", "Marsh Pathfinder",

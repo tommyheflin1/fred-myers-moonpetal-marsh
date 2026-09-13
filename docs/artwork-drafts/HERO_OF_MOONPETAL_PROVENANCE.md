@@ -24,3 +24,13 @@ icon size, crisp uncluttered silhouette and no clipped border. Deliver exactly
 1024x1024 pixels if supported. No text, letters, numbers, logos, watermark, or
 egg shape. Do not alter or replace the supplied Golden Egg artwork. This is a
 new separate badge.
+
+## Approved Apple-size derivative (2026-09-13)
+
+The owner explicitly approved local dimension-only image processing. The original
+above remains byte-for-byte unchanged. `APPLE_ARTWORK.json` records the unique
+1024x1024 RGB derivative, its source/output hashes and the approval. The derivative
+was saved to the existing Hero of Moonpetal English achievement localization in
+App Store Connect; title, filename and both description fields were read back.
+This supersedes the earlier no-resize/no-upload checkpoint, not the original art.
+No achievement App Review submission or native unlock proof is claimed.

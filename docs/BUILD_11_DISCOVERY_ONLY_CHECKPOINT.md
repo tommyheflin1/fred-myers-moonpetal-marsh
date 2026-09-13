@@ -375,3 +375,53 @@ It is Ready to Submit and has no group assigned in this inventory. The version 1
 build list contains 10,9,7,6; Build 8 is a failed upload. Build 11 is not present.
 No group assignment, upload or submission was performed, and the older Build 10
 must not be represented as containing this candidate's new changes.
+
+## Achievement art, localization and candidate reconciliation (2026-09-13)
+
+The owner answered **yes** to the one explicit local image-processing question.
+`tools/prepare_achievement_artwork.py` produced 25 unique 1024x1024 RGB PNG copies
+using dimension-only LANCZOS resizing, with no crop or retouch. All original hashes
+were checked and preserved; the superhero Golden Egg image was not changed.
+`docs/artwork-drafts/APPLE_ARTWORK.json` records exact originals, derivatives,
+hashes and approval. The contact sheet was visually inspected for intact rims,
+distinct motifs and readable central imagery. The 25 production copies are
+registered as project-generated assets; unrelated existing provenance findings
+are not thereby approved.
+
+All 25 copies and matching English titles/earned/unearned descriptions were saved
+through the single existing App Store Connect tab. Each saved English row was
+verified for exact title and campaign-NNN-v1.png filename. Hero of Moonpetal was
+additionally reopened to read both persisted description fields. All 25 permanent
+IDs, 40-point values, Hidden=No settings and non-repeatability are preserved.
+The registration manifest now records these actual saves. No Add for Review,
+older-build submission, new session, Mac reconnect, logout or signing change.
+
+The candidate store/game_center.json now contains all 25 matching achievement
+definitions and hashed artwork. Enabled the existing capability in game/game.json
+after reconciling the registered catalog. Runtime mechanics, save schema and
+Golden Egg progression did not change. The expanded campaign regression checks
+runtime/store IDs, names, descriptions, flags, points, image hashes and uniqueness,
+in addition to bounded dispatch, authentication isolation and replay behavior.
+
+Validation of these uncommitted changes on parent 88adb0c:
+
+- Godot 4.7.1 import completed; campaign test: 394 checks, zero failures.
+- All 49 Godot run_*.gd suites completed: TOTAL=49 FAILED=0, isolated temporary
+  APPDATA/LOCALAPPDATA and Dummy audio. This includes 36 Pause checks, 25 Level-5
+  return checks, 50 public-name review checks, 35 website-integration checks and
+  48 discovery-only-network checks. Network/identity tests use fictional fixtures.
+- Logs: C:/Users/tommy/AppData/Local/Temp/fred-build11-suite-3e7609be89be41b7b0c8ee5aae1b9390.
+  Existing ObjectDB/resource shutdown warnings remain in several suites; this is
+  not a clean native-device or audible-mix result.
+- Store draft validation passed. Internal-TestFlight release readiness still
+  fails nine requirements: four non-device Golden Egg reviews; backbone evidence;
+  third-party SDK review; creative owner review; audible mix review; package approval.
+- IP release audit still fails existing asset/dependency/evidence-image findings.
+  No unknown license, risk acceptance, visual approval or native result was invented.
+
+The website lifecycle remains assigned to the harness task; no Fred website
+deployment or alternate uploader was attempted. An optional detailed progress
+message to that task was rejected by tool safety review and was not delivered;
+this local checkpoint is the durable record. No restriction was bypassed.
+The completed artwork/registration work does not prove a Build 11 binary upload,
+TestFlight device acceptance, App Review submission or public release.
