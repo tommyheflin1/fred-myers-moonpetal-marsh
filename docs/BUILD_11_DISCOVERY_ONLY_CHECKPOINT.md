@@ -275,3 +275,27 @@ sole website lifecycle ownership was explicitly transferred to harness task
 Fred must not concurrently save, deploy, package or modify that website.
 Apple points remain blocked pending exact allocation approval. No Build 11
 archive, upload, TestFlight device installation, or App Review submission verified.
+
+## Apple achievement allocation completed (2026-09-13)
+
+Harness task relayed the owner's explicit answer, "Approve this achievement
+allocation", to the exact 25-milestone/every-four-levels/40-points question.
+The previously blocked Save operation then succeeded through the normal Apple UI.
+All 25 campaign records now exist and have 40 points saved, verified in the full
+Apple inventory. The final record shows 0 of 1000 total points remaining.
+Exact Apple IDs, titles, thresholds and prepared English text are preserved in
+BUILD_11_APPLE_ACHIEVEMENT_RECORDS.json. This supersedes the earlier allocation
+authorization blocker. Do not ask for that approval again or recreate the records.
+
+None of the achievement records has been added for review. Localization Save
+remained disabled after entering valid English text without an image; cancelled
+only that unfinished modal, preserving every saved record. Unique compliant art,
+localization, runtime capability enablement and native award/replay verification
+remain incomplete. The Hero of Moonpetal draft was generated separately from the
+unchanged superhero Golden Egg; its provenance and dimensions are recorded beside it.
+
+The harness website owner reports fresh-context and lossless-TAR attempts also
+failed at the native 60-second upload boundary. Latest reported request is
+d74cea13-21ba-4b70-8118-53771482c2f1. Existing version 83 is preserved. This is
+not evidence of broken website source or successful publication. No additional
+website operations were performed by the Fred task after ownership transfer.
