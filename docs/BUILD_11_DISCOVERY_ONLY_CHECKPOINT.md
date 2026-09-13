@@ -145,3 +145,39 @@ No new version/deployment succeeded. Resume archive-backed saving of the unchang
 package and exact source after upload service recovery, then deploy and verify live.
 Do not remove the archive argument to conceal an upload transport failure. Do not
 mark production endpoint, physical-device behavior, or Apple delivery verified.
+
+## Campaign achievement implementation and Apple checkpoint
+
+The next isolated full Godot run completed with `TOTAL=49 FAILED=0`, including
+164 campaign-achievement assertions. App-owned milestones use actual completion
+of levels 4, 8, ... 100; existing saved completion records support replay. Dispatch
+is paced, uses the pinned shared gaming adapter, and does not add another native
+event poller. Achievement capability remains disabled pending complete Apple
+record/artwork reconciliation and device verification. These are local checks,
+not Apple award acknowledgements or device tests.
+
+Apple now contains the first newly created record:
+`com.flinsvault.fredmyers.campaign_004` / First Lily Trail,
+record `903c1325-40bb-4e4e-bd34-03eaf6946ab8`. Its 40 points were saved and verified
+in the UI (960 of 1000 remaining). Localization/artwork are incomplete and it
+has NOT been added for review. No other proposed campaign ID is registered yet.
+The localization modal was cancelled without losing the saved base record.
+
+Original built-in image-generation draft is preserved at
+`docs/artwork-drafts/first-lily-trail-v1.png` outside production assets. It is
+1254x1254 RGB, not the required 1024x1024 production artwork, and is not uploaded.
+Prompt: original polished storybook gold medal, luminous lily-pad trail across
+midnight teal marsh water, moon-white flower, fireflies and crescent moon; no
+text, numbers, logos, watermark or borrowed characters. Generation source:
+`exec-d02e97af-7767-4df4-9287-7eb81e426c51.png`. No change to superhero egg art.
+
+A third unchanged website-package save failed with the same 60000ms blob-upload
+timeout, request `a26ec554-9f6a-42f3-9bcd-ed6ad39ce544`. Latest saved version remains
+83, source c0807276b62185c0988655886fc39ca92c99d30e. Do not deploy this older
+version as the new Golden Egg fix. The canonical process audit still reports
+MIGRATION_REQUIRED (14 differences), disabled achievements and missing backbone
+evidence. No release gate has been marked passed to bypass these failures.
+
+Existing Mac session became responsive without reconnecting. A bounded
+`caffeinate -di -t 3600` was started, PID 22477. No logout, reboot, account,
+certificate or provisioning changes. No Build 11 archive/upload/submission yet.

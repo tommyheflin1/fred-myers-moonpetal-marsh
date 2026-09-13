@@ -15,6 +15,13 @@ const DASHBOARD_FAILSAFE_SECONDS := 4.0
 const SCORE_LEADERBOARD_ID := "com.flinsvault.fredmyers.adventure_score"
 const LEVEL_LEADERBOARD_ID := "com.flinsvault.fredmyers.highest_level"
 const BUNDLE_ID := "com.flinsvault.fredmyers"
+const CampaignAchievements = preload("res://scripts/fred_campaign_achievements.gd")
+const GamingDispatch = preload("res://addons/mobile_game_core/online/platform_gaming_service.gd")
+
+var achievements_enabled := false
+var pending_achievements: Array[String] = []
+var achievement_dispatch_elapsed := 0.0
+var achievement_attempts: Dictionary = {}
 
 var plugin: Object
 var state := "unavailable"
@@ -81,6 +88,8 @@ func begin_sign_in() -> bool:
 	# Re-read provider metadata even when the device is already authenticated.
 	# A fresh adapter otherwise has no current display name/account context.
 	elapsed_seconds = 0.0
+	pending_achievements.clear()
+	achievement_attempts.clear()
 	state = "authenticating"
 	display_name = ""
 	team_player_id = ""
@@ -103,6 +112,36 @@ func submit_personal_records(score: int, highest_level: int) -> bool:
 
 func pending_score_count() -> int:
 	return pending_records.size() + (0 if in_flight_record.is_empty() else 1)
+
+
+func queue_campaign_achievements(completed_level: int) -> void:
+	if not achievements_enabled or not is_authenticated():
+		return
+	for achievement_id: String in CampaignAchievements.earned_ids(completed_level):
+		if not pending_achievements.has(achievement_id):
+			pending_achievements.append(achievement_id)
+	achievement_attempts.clear()
+
+
+func _dispatch_campaign_achievement(delta: float) -> void:
+	if not achievements_enabled or not is_authenticated() or state != "authenticated":
+		return
+	achievement_dispatch_elapsed = maxf(0.0, achievement_dispatch_elapsed - maxf(0.0, delta))
+	if pending_achievements.is_empty() or achievement_dispatch_elapsed > 0.0:
+		return
+	var achievement_id: String = pending_achievements.pop_front()
+	# Submission helper only, never a competing native event poller.
+	var dispatcher := GamingDispatch.new()
+	dispatcher.configure("apple_game_center", {"score": SCORE_LEADERBOARD_ID}, "", plugin)
+	var started: bool = dispatcher.submit_achievement(achievement_id, 100.0, false)
+	dispatcher.free()
+	achievement_dispatch_elapsed = 0.2
+	if not started:
+		achievement_attempts[achievement_id] = int(achievement_attempts.get(achievement_id, 0)) + 1
+		if int(achievement_attempts[achievement_id]) < 3:
+			pending_achievements.append(achievement_id)
+	# Starting a request is not server confirmation. Replay saved completed
+	# levels on next login; do not persist fabricated successful awards.
 
 
 func show_leaderboards() -> bool:
@@ -144,6 +183,7 @@ func _process(delta: float) -> void:
 	if not is_available():
 		return
 	poll()
+	_dispatch_campaign_achievement(delta)
 	if dashboard_state in ["presenting", "cooldown"]:
 		dashboard_elapsed_seconds += maxf(0.0, delta)
 		var release_after := DASHBOARD_FAILSAFE_SECONDS if dashboard_state == "presenting" else DASHBOARD_REENTRY_GUARD_SECONDS
@@ -323,6 +363,9 @@ func _has_required_interface(candidate: Object) -> bool:
 
 func _reset_transient_state() -> void:
 	elapsed_seconds = 0.0
+	pending_achievements.clear()
+	achievement_attempts.clear()
+	achievement_dispatch_elapsed = 0.0
 	pending_records.clear()
 	in_flight_record.clear()
 	submission_elapsed_seconds = 0.0

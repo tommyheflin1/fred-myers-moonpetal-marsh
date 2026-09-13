@@ -258,6 +258,9 @@ func _ready() -> void:
     golden_service.configure(golden_network.request_json, golden_secure_store)
     golden_pending_review_available = golden_service.has_pending_discovery() or golden_service.has_canonical_discovery()
     var game_center_available := bool(game_center.configure())
+    var achievement_config: Variant = JSON.parse_string(FileAccess.get_file_as_string("res://game/game.json"))
+    if achievement_config is Dictionary:
+        game_center.achievements_enabled = bool(achievement_config.get("capabilities", {}).get("achievements", false))
     game_scoring.configure(
         OS.get_name(),
         GameCenterAdapter.SCORE_LEADERBOARD_ID if game_center_available else "",
@@ -372,6 +375,8 @@ func _on_update_gate_state_changed(state: String) -> void:
     queue_redraw()
 
 func _on_game_center_sign_in_completed(result: Dictionary) -> void:
+    if bool(result.get("ok", false)) and is_instance_valid(game_center) and game_center.has_method("queue_campaign_achievements"):
+        game_center.queue_campaign_achievements(GameCenterAdapter.CampaignAchievements.completed_level_from_records(leaderboard.entries))
     # Ordinary Game Center does not initialize or exchange website identity.
     if bool(result.get("ok", false)) and not golden_public_review_requested and not golden_identity_link_requested:
         game_center_status = "GAME CENTER CONNECTED"
@@ -583,6 +588,8 @@ func _fixed_tick(delta: float) -> void:
         )
         if is_instance_valid(game_center):
             game_center.submit_personal_records(int(score_result.event.score), level_number)
+            if game_center.has_method("queue_campaign_achievements"):
+                game_center.queue_campaign_achievements(level_number)
         _sync_fred_style()
         screen = Screen.COMPLETE; _save("Lily Leap is complete.")
 
