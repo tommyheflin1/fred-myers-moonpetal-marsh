@@ -127,3 +127,21 @@ Live Apple Game Center inventory was inspected: two existing leaderboards, no ac
 records. The harness confirmed that the owner-requested update requires 25 app-specific
 achievements. These must be implemented and registered, not represented by capability
 flags alone. No proposed achievement ID is claimed to exist in Apple.
+
+## Privacy approval and website delivery checkpoint
+
+Owner explicitly approved the revised September 12 three-choice/no-normal-gameplay
+website policy: "YES, THATS WHAT IT IS SUPPOSED TO DO!" App privacy approval is recorded
+in 8203579. Do not ask for this approval again. Registry sync succeeded through the
+existing tool. Website source 0ae3fa72eba74024650414f39e30d2fb6f61ea2d is pushed to the
+existing Sites main branch; its production build and all 155 Node tests passed.
+
+The validated package SHA256 is
+b5857b1fa54056a4b140fd8303493ed04089631473c39d4e57fc979e4ee773c8.
+Two native save_site_version attempts failed in blob upload after 60 seconds each
+(request IDs 5e807070-21a7-4a9a-8f2c-a4d76b186705 and
+c722452c-701e-4991-ae5a-c8d0729e0c5f). Latest saved version was still 83 when checked.
+No new version/deployment succeeded. Resume archive-backed saving of the unchanged
+package and exact source after upload service recovery, then deploy and verify live.
+Do not remove the archive argument to conceal an upload transport failure. Do not
+mark production endpoint, physical-device behavior, or Apple delivery verified.
