@@ -109,3 +109,21 @@ The subsequent complete run passed all 48 Godot suites, including soundtrack.
 Canonical audit still reports MIGRATION_REQUIRED: shared-tool migration, achievements
 and backbone evidence remain open; the two hidden-navigation inventory errors are
 resolved. Website f3a66d4 remains unpublished; no Apple upload was performed here.
+
+## Exact-capture provenance follow-up
+
+The existing capture tool ran against clean a4639fc3a94cae284c10f2f100a67f60f1637bda
+with isolated user data. All sixteen iPhone/iPad renders passed the screenshot
+dimension, RGB and metadata validator. The two touch-control captures are byte-for-byte
+identical to their corresponding owner-approved store-build11 files and were visually
+inspected. They are now registered in store/screenshots.json with that capture commit
+and exact hashes. Other changed captures are not silently owner-approved, and the
+existing eight-per-device Apple screenshot selections were not modified.
+
+Internal-TestFlight store readiness now clears screenshot sets and capture provenance;
+eight other review/evidence failures remain. Underlying artwork provenance is still
+unresolved independently of screenshot approval and is not marked cleared here.
+Live Apple Game Center inventory was inspected: two existing leaderboards, no achievement
+records. The harness confirmed that the owner-requested update requires 25 app-specific
+achievements. These must be implemented and registered, not represented by capability
+flags alone. No proposed achievement ID is claimed to exist in Apple.

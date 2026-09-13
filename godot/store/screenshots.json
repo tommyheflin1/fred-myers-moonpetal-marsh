@@ -1,6 +1,9 @@
 {
   "schema": "flins-app-store-screenshots-v1",
-  "capture_commit": "",
-  "sets": {"iphone-6.9": [], "ipad-13": []},
-  "notes": "Build 11 exact-candidate screenshots are pending. Earlier Apple screenshots are not relabeled as new captures."
+  "capture_commit": "a4639fc3a94cae284c10f2f100a67f60f1637bda",
+  "sets": {
+    "iphone-6.9": [{"file": "assets/store/screenshots/build11-a4639fc/iphone69-04-touch-controls.png", "sha256": "089f49726c629ed62e34a243cda4a2ddbc0d432302dc63b333c4f6ba1a7bdcfe", "caption": "Fred's touch controls and marsh hero mission"}],
+    "ipad-13": [{"file": "assets/store/screenshots/build11-a4639fc/ipad13-04-touch-controls.png", "sha256": "6a64502cacbafa7753c53ed21715dbb4a08ef61195d12d4d26be9ef118e9dc04", "caption": "Fred's touch controls and marsh hero mission on iPad"}]
+  },
+  "notes": "New actual OpenGL captures from the exact clean capture_commit using the existing capture_app_store_build_4.gd tool, not an assertion that this is Build 4. These two files are byte-identical to the respective owner-approved Build 11 touch-control screenshots. All sixteen compositions were recaptured and structurally validated under builds/store-a4639fc; only these exact approved bytes are registered here. Existing eight-per-device Apple screenshot selections have not been changed. Other recaptures are not silently owner-approved. This is rendered desktop evidence, not native-device testing."
 }
