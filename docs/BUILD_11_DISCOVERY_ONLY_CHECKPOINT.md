@@ -205,3 +205,23 @@ Internal-TestFlight readiness remains blocked by achievement enablement/evidence
 Game Center identity and privacy flow review, production website/contract,
 third-party inventory, creative review, audible runtime mix and package review.
 No signing, uploading or App Review submission occurred during this migration.
+
+## Achievement retry correction
+
+Found and fixed two session-level dispatch problems: repeated progress enqueues
+previously reset failed-attempt counts, and later completions could resend all
+previously started achievements. A session-only started set now suppresses repeats;
+failed-attempt counts survive enqueue calls. Fresh authentication clears both so
+saved completion can replay without pretending any request was confirmed by Apple.
+Enqueue is also blocked while identity refresh is in progress.
+
+Actual targeted tests after this correction: campaign achievements 167 passed,
+Game Center adapter 56 passed, discovery-only network 48 passed, Pause input 36
+passed. All four commands exited zero. These are fictional/native-adapter local
+checks, not physical-device results. The prior 49-suite result predates this small
+correction and is not relabeled as an exact-final full-suite result.
+
+Live Apple inspection still shows First Lily Trail / campaign_004, 40 points,
+Prepare for Submission with no localization. No account/session/signing changes.
+Source SDK review is in BUILD_11_SDK_SOURCE_REVIEW.md; native artifact inspection
+is still missing, so the corresponding release gate remains false.

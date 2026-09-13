@@ -60,14 +60,28 @@ func _run() -> void:
 		adapter._dispatch_campaign_achievement(0.2)
 	check(plugin.awards.size() == 25 and adapter.pending_achievements.is_empty(), "all eligible milestones dispatched")
 	check(plugin.awards[0].progress == 100.0 and not plugin.awards[0].show_completion_banner, "replay does not flood banners")
+	adapter.queue_campaign_achievements(100)
+	adapter._dispatch_campaign_achievement(0.2)
+	check(plugin.awards.size() == 25 and adapter.pending_achievements.is_empty(), "later level completions do not resend every started achievement")
+	adapter.configure(plugin)
+	adapter.set_process(false)
+	adapter.state = "authenticated"
 	plugin.award_error = FAILED
 	adapter.queue_campaign_achievements(4)
 	for index in 10:
+		adapter.queue_campaign_achievements(4)
 		adapter._dispatch_campaign_achievement(0.2)
-	check(plugin.awards.size() == 28, "synchronous failure gets only three attempts")
+	check(plugin.awards.size() == 28, "repeated enqueue cannot reset the three-attempt failure limit")
 	adapter.queue_campaign_achievements(8)
 	adapter.begin_sign_in()
 	check(adapter.pending_achievements.is_empty(), "re-authentication clears prior account's transient queue")
+	adapter.queue_campaign_achievements(100)
+	check(adapter.pending_achievements.is_empty(), "provider authentication alone cannot enqueue during identity refresh")
+	plugin.award_error = OK
+	adapter.state = "authenticated"
+	adapter.queue_campaign_achievements(4)
+	adapter._dispatch_campaign_achievement(0.2)
+	check(plugin.awards.size() == 29, "fresh login permits replay without assuming earlier server confirmation")
 	adapter.queue_free()
 	await process_frame
 	print("CAMPAIGN_ACHIEVEMENTS checks=", checks, " failures=", failures, " native_device_verified=false")

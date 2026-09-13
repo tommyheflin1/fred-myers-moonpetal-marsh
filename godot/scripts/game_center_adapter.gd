@@ -22,6 +22,7 @@ var achievements_enabled := false
 var pending_achievements: Array[String] = []
 var achievement_dispatch_elapsed := 0.0
 var achievement_attempts: Dictionary = {}
+var achievement_started_this_session: Dictionary = {}
 
 var plugin: Object
 var state := "unavailable"
@@ -90,6 +91,7 @@ func begin_sign_in() -> bool:
 	elapsed_seconds = 0.0
 	pending_achievements.clear()
 	achievement_attempts.clear()
+	achievement_started_this_session.clear()
 	state = "authenticating"
 	display_name = ""
 	team_player_id = ""
@@ -115,12 +117,11 @@ func pending_score_count() -> int:
 
 
 func queue_campaign_achievements(completed_level: int) -> void:
-	if not achievements_enabled or not is_authenticated():
+	if not achievements_enabled or not is_authenticated() or state != "authenticated":
 		return
 	for achievement_id: String in CampaignAchievements.earned_ids(completed_level):
-		if not pending_achievements.has(achievement_id):
+		if not pending_achievements.has(achievement_id) and not achievement_started_this_session.has(achievement_id) and int(achievement_attempts.get(achievement_id, 0)) < 3:
 			pending_achievements.append(achievement_id)
-	achievement_attempts.clear()
 
 
 func _dispatch_campaign_achievement(delta: float) -> void:
@@ -140,6 +141,8 @@ func _dispatch_campaign_achievement(delta: float) -> void:
 		achievement_attempts[achievement_id] = int(achievement_attempts.get(achievement_id, 0)) + 1
 		if int(achievement_attempts[achievement_id]) < 3:
 			pending_achievements.append(achievement_id)
+	else:
+		achievement_started_this_session[achievement_id] = true
 	# Starting a request is not server confirmation. Replay saved completed
 	# levels on next login; do not persist fabricated successful awards.
 
@@ -365,6 +368,7 @@ func _reset_transient_state() -> void:
 	elapsed_seconds = 0.0
 	pending_achievements.clear()
 	achievement_attempts.clear()
+	achievement_started_this_session.clear()
 	achievement_dispatch_elapsed = 0.0
 	pending_records.clear()
 	in_flight_record.clear()
