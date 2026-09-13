@@ -42,6 +42,8 @@
       "private_game_audit_identity": "provider_reported_game_player_id",
       "offline_linking": "explicit_server_verified_only",
       "activation_trigger": "verified_local_discovery",
+      "presentation": "hidden_in_game_discovery",
+      "normal_navigation_visible": false,
       "startup_network_requests": false,
       "core_gameplay_requires_backend": false,
       "game_center_independent": true,

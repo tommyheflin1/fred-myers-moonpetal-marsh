@@ -25,7 +25,7 @@ func _run() -> void:
 	check(not Main.TITLE_LICENSES_RECT.intersects(Main.TITLE_PENDING_EGG_RECT), "licenses never overlap saved discovery")
 	game.golden_pending_review_available = true
 	game._handle_click(Vector2(1110, 655))
-	check(game.screen == Main.Screen.GOLDEN_EGG, "saved discovery right-hand touch opens discovery")
+	check(game.screen == Main.Screen.TITLE, "old saved discovery touch target cannot reopen closed event")
 	check(not game.third_party_notices.visible, "saved discovery touch never opens notices")
 	game.screen = Main.Screen.TITLE
 	game._handle_click(Main.TITLE_LICENSES_RECT.get_center())

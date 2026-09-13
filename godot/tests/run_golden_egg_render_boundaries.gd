@@ -29,6 +29,8 @@ func _run() -> void:
 	var source := FileAccess.get_file_as_string("res://scripts/main.gd")
 	var level := source.split("func _draw_level() -> void:")[1].split("\nfunc ")[0]
 	var egg := source.split("func _draw_canonical_golden_egg(")[1].split("\nfunc ")[0]
+	var title := source.split("func _draw_title() -> void:")[1].split("\nfunc ")[0]
+	check(not title.contains("GOLDEN") and not title.contains("golden_"), "title renders no discovery entry point even with saved pending state")
 	check(level.count("_draw_gameplay_hud()") == 2, "ordinary route and room both draw gameplay HUD")
 	check(not egg.contains("PAUSE_RECT") and not egg.contains("_status_panel") and not egg.contains("_draw_gameplay_hud"), "egg artwork never draws gameplay controls or feedback")
 	check(not Main.GOLDEN_EGG_PUBLIC_RECT.intersects(Main.GOLDEN_EGG_PRIVATE_RECT), "privacy choices do not overlap")

@@ -218,7 +218,8 @@ func _test_ui_flow() -> void:
 	game.screen = game.Screen.TITLE
 	game.golden_pending_review_available = true
 	game._handle_click(game.TITLE_PENDING_EGG_RECT.get_center())
-	check(game.golden_privacy == "public", "reopened public record never displays a false Anonymous checkmark")
+	check(game.screen == game.Screen.TITLE and game.golden_privacy == "public", "public record stays private to storage and cannot reopen from title")
+	game.screen = game.Screen.GOLDEN_EGG
 	game.golden_public_review_requested = true
 	game._on_game_center_sign_in_completed({"ok": false, "error": "game_center_auth_failed"})
 	check(game.golden_discovery_status == "name_check_failed" and not game.golden_public_review_requested, "cancelled sign-in gives a visible name-check status without public consent")

@@ -1119,16 +1119,7 @@ func _handle_click(position: Vector2) -> void:
         _refresh_touch_holds()
         third_party_notices.open()
         return
-    if screen == Screen.TITLE and golden_pending_review_available and TITLE_PENDING_EGG_RECT.has_point(position):
-        _cancel_golden_public_review()
-        golden_privacy = "public" if golden_service.privacy_status == "PUBLIC" else "anonymous"
-        golden_discovery_status = "accepted" if golden_service.has_canonical_discovery() else "pending"
-        golden_reveal_seconds = 0.0
-        screen = Screen.GOLDEN_EGG
-        _set_feedback("[DISCOVERY SAFE] Review your website privacy choice. Nothing changes until you choose.")
-        _sync_music()
-        queue_redraw()
-    elif screen == Screen.TITLE and TITLE_START_RECT.has_point(position): _open_story()
+    if screen == Screen.TITLE and TITLE_START_RECT.has_point(position): _open_story()
     elif screen == Screen.TITLE and TITLE_CUSTOMIZE_RECT.has_point(position):
         _reset_wardrobe_selection()
         screen = Screen.CUSTOMIZE; _sync_music(); queue_redraw()
@@ -1609,8 +1600,6 @@ func _draw_title() -> void:
     _button(TITLE_CUSTOMIZE_RECT, "CUSTOMIZE FRED  •  %d COINS" % customization.coins)
     _button(TITLE_LEADERBOARD_RECT, "MARSH LEADERBOARDS")
     _button(TITLE_LICENSES_RECT, "LICENSES")
-    if golden_pending_review_available:
-        _button(TITLE_PENDING_EGG_RECT, "REVIEW SAVED GOLDEN EGG")
     _status_panel(Rect2(70,640,440,42), 14)
     _text(Vector2(285,708), "THE MARSHLAND MARCH  •  LOCAL SAVES  •  GAME CENTER OPTIONAL", 11, Color("b9f5c7"), HORIZONTAL_ALIGNMENT_CENTER, 520)
 

@@ -77,7 +77,8 @@ v2 freshness. TurboRack confirms publication is OFF in its live Build 2 configur
   sent. Earlier privacy categories, retention, contact and Apple answers are retained;
   only startup/three-choice behavior changes. No draft policy has been published.
 - Current canonical backbone audit additionally requires achievements/evidence and
-  hiding normal-navigation recovery UI. Fred's released baseline has two leaderboards
+  integration evidence. The follow-up below removes normal-navigation recovery UI.
+  Fred's released baseline has two leaderboards
   and no achievements. Adding game features or overriding that newer requirement needs
   an explicit scope decision; no fake capability or forged MATCH is recorded.
 - Store media has approved pictures but no frozen capture provenance; source SDK/music
@@ -87,3 +88,24 @@ v2 freshness. TurboRack confirms publication is OFF in its live Build 2 configur
 
 Resume `tools/release-ios preflight -> archive -> upload -> status` only after its
 actual gates pass. Keep preserved Build 10 Mac artifacts and signing assets unchanged.
+
+## Hidden-event navigation follow-up
+
+Following the canonical Golden Egg skill, normal title navigation no longer draws
+or handles the saved-discovery entry point. Pending/canonical discovery storage is
+preserved, but closing the event does not unlock a permanent menu category. Existing
+publication choices, native leaderboard identifiers, puzzle and Level 5 return are
+unchanged. App inventory now declares hidden presentation and no normal navigation.
+
+Targeted headless regression: 140 checks passed across discovery return, public-name
+review, notices, render-source boundaries and discovery-only networking. Actual
+OpenGL title/reveal/gameplay/return boundary test: 15 checks passed. These are local
+tests, not physical-device or Apple proof.
+
+The first broad regression attempt encountered one soundtrack end-wrap timing failure.
+Three unchanged isolated soundtrack reruns then passed 28 checks each. Do not erase
+this intermittent result or claim audible/device loop acceptance from these tests.
+The subsequent complete run passed all 48 Godot suites, including soundtrack.
+Canonical audit still reports MIGRATION_REQUIRED: shared-tool migration, achievements
+and backbone evidence remain open; the two hidden-navigation inventory errors are
+resolved. Website f3a66d4 remains unpublished; no Apple upload was performed here.

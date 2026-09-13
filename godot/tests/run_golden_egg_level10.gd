@@ -56,10 +56,10 @@ func _init() -> void:
 	game.screen = game.Screen.TITLE
 	game.golden_pending_review_available = true
 	game._handle_click(game.TITLE_PENDING_EGG_RECT.get_center())
-	check(game.screen == game.Screen.GOLDEN_EGG and game.golden_privacy == "anonymous", "pending discovery can be reviewed later without automatically publishing a name")
-	check(not game.golden_network.is_busy(), "opening saved discovery review does not start a network operation")
+	check(game.screen == game.Screen.TITLE and game.golden_privacy == "public", "closed discovery cannot reopen from normal navigation or change privacy")
+	check(not game.golden_network.is_busy(), "normal navigation starts no discovery operation")
 	game._handle_click(game.GOLDEN_EGG_RETURN_RECT.get_center())
-	check(game.screen == game.Screen.PLAYING and game.level_number == 5, "saved discovery review retains the return-to-Level-5 action")
+	check(game.screen == game.Screen.TITLE, "closed reveal actions are inert on title")
 	game.queue_free()
 	print("RESULT golden_egg_level5_passed=%d golden_egg_level5_failed=%d" % [passed,failed])
 	quit(1 if failed else 0)
