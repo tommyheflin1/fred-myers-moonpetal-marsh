@@ -1,0 +1,47 @@
+{
+  "schema": "flins-backbone-backend-result-v1",
+  "backend_source": {
+    "repository": "existing Sites source repository for The Flins App Vault, LLC.",
+    "commit_sha": "0ae3fa72eba74024650414f39e30d2fb6f61ea2d",
+    "site_version": 84,
+    "deployment_id": "appgdep_6aa809cf6ea08191b63113be39cb1cad",
+    "deployment_status": "succeeded",
+    "app_registration": {
+      "game_id": "fred-myers",
+      "bundle_id": "com.flinsvault.fredmyers",
+      "egg_id": "moonpetal-golden-egg",
+      "identity_protocol": "game-center-identity-v1"
+    }
+  },
+  "local_backend_validation": {
+    "executed_at": "2026-09-14",
+    "command": "pnpm test",
+    "passed": 155,
+    "failed": 0,
+    "reviewed_test_sources": ["tests/golden-eggs.test.mjs", "tests/request-security.test.mjs", "tests/helpers/game-center-pki.mjs", "tests/fred-privacy-reconciliation.test.mjs", "tests/fred-support.test.mjs"]
+  },
+  "production_checks": {
+    "privacy": {"path": "/fred-myers/privacy", "http_status": 200, "policy_version": "fred-myers-2026-09-12-v3", "consent_contract": "game-center-consent-v1"},
+    "support": {"path": "/fred-myers/support", "http_status": 200, "marker": "fred-myers"},
+    "leaderboard": {"path": "/api/golden-eggs/leaderboard?game=fred-myers", "http_status": 200, "registered": true, "pending_records_public": false},
+    "identity_without_credentials": {"path": "/api/game-center/identity/exchange", "http_status": 401},
+    "discovery_without_credentials": {"path": "/api/golden-eggs/discoveries", "http_status": 401}
+  },
+  "scenarios": {
+    "apple_signature_app_binding": "passed",
+    "expired_proof_rejected": "passed",
+    "replayed_proof_rejected": "passed",
+    "atomic_identity_binding": "passed",
+    "idempotency_unique_constraint": "passed",
+    "concurrent_rank_assignment": "passed",
+    "server_validates_discovery": "passed",
+    "public_dto_redaction": "passed",
+    "consent_revocation": "passed",
+    "rate_limit": "passed",
+    "cross_app_isolation": "passed",
+    "no_client_secrets": "passed",
+    "pending_records_not_public": "passed",
+    "no_legacy_typed_name_fallback": "passed"
+  },
+  "boundary": "Production safe paths and authentication rejection were checked directly. No real player identity, credential, Golden Egg claim, device flow or fabricated rank was used."
+}

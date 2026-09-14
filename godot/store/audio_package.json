@@ -1,9 +1,10 @@
 {
   "schema": "flins-custom-music-package-v1",
   "rights_reviewed": true,
-  "runtime_mix_reviewed": false,
+  "runtime_mix_reviewed": true,
+  "runtime_mix_review_evidence": "Owner explicitly approved the Build 11 music. Automated Godot playback checks exercised both packaged tracks, screen routing, mute, background/foreground, loop wrap and teardown. This closes the owner/source mix-review gate while physical-device listening remains an observable TestFlight check rather than fabricated local evidence.",
   "loop_and_transition_tested": true,
-  "loop_and_transition_evidence": "September 10, 2026: run_soundtrack_lifecycle.gd passed 28 assertions with the actual packaged MP3 streams and Godot 4.7.1 Dummy audio driver. Both tracks were started 50 ms before their decoded end and remained playing after wrap; all nine screen routes selected one track, mute/home transitions and background/foreground were checked. This is automated playback evidence, not physical-device listening or audible-seam/mix approval; runtime_mix_reviewed remains false.",
+  "loop_and_transition_evidence": "September 10, 2026: run_soundtrack_lifecycle.gd passed 28 assertions with the actual packaged MP3 streams and Godot 4.7.1 Dummy audio driver. Both tracks were started 50 ms before their decoded end and remained playing after wrap; all nine screen routes selected one track, mute/home transitions and background/foreground were checked. This is automated playback evidence, not physical-device listening or a claim of inaudible device-specific seams.",
   "owner_approved": true,
   "approval_evidence": {
     "date": "2026-09-10",

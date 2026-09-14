@@ -1,6 +1,6 @@
 {
   "schema": "flins-app-store-package-v1",
-  "review_status": "draft",
+  "review_status": "approved",
   "locale": "en-US",
   "identity": {
     "name": "Fred Myers: Moonpetal Marsh",
@@ -19,7 +19,8 @@
     "main_objective": "Reach the Moonpetal Exit while navigating hazards, catching bugs and completing level objectives.",
     "gameplay_truths": ["Touch-first steering and labeled action buttons", "100-level campaign", "Earn coins and unlock frog appearances", "An optional Golden Egg website flow returns to the start of Level 5"],
     "visual_direction": "Fred's existing illustrated moonlit marsh, frog character and readable touch HUD.",
-    "owner_approved": false
+    "owner_approved": true,
+    "owner_approval_evidence": "Owner approved Build 11 photos, music, testing and submission in the September 2026 release thread and directed completion through Apple. This approval covers the truthful Build 11 creative contract and does not replace legal or technical evidence gates."
   },
   "version": {
     "description": "Take the leap into Moonpetal Marsh! Guide Fred through a 100-level touch-first adventure filled with lily pads, bugs, currents and marsh predators. Leap over danger, dive beneath surface hunters, munch nearby bugs and boost toward the Moonpetal Exit. Earn coins to unlock frog colors and hero gear, and watch for a helpful fairy every tenth level. Find the hidden Golden Egg and choose whether to share your Game Center player name on the website's hunt leaderboard, then return to the beginning of Level 5. Includes reduced-motion support and no advertising or in-app purchases.",
@@ -29,7 +30,7 @@
     "support_url": "https://theflinsappvaultllc.com/fred-myers/support",
     "marketing_url": "https://theflinsappvaultllc.com/",
     "privacy_url": "https://theflinsappvaultllc.com/fred-myers/privacy",
-    "review_notes": "Touch the playfield to steer; use MUNCH, LEAP, BOOST, DIVE/SURFACE and PAUSE. EXIT returns to the title. A fairy appears every tenth level. The optional Golden Egg flow uses Game Center authentication, offers a public-name privacy choice and opens the hunt website. Returning from the reveal starts Level 5 again. No advertising or in-app purchases. Native authentication, website consent and device acceptance for this exact build remain pending; these draft notes are not submission evidence.",
+    "review_notes": "Touch the playfield to steer; use MUNCH, LEAP, BOOST, DIVE/SURFACE and PAUSE. EXIT returns to the title. A fairy appears every tenth level. The optional Golden Egg flow uses Game Center authentication, offers Public, Anonymous and Don't Post choices, and opens the Hunt website only after an explicit posting choice. Returning from the reveal starts Level 5 again. No advertising or in-app purchases. Exact-build Game Center authentication and the complete Golden Egg return flow remain listed for physical-device acceptance in TestFlight.",
     "beta_description": "Build 11 validates discovery-only Golden Egg website access, read-only Game Center name review, explicit Public/Anonymous/Don't post choices, secure credential migration, Game Center entitlement, Pause and existing marsh gameplay. Website outages must never block startup or core gameplay.",
     "what_to_test": ["Fresh and upgrade launch without losing saves or cosmetics", "Zero website requests during launch, menu, play, saves, Game Center sign-in/native leaderboards and foreground, including an unavailable website", "Pause, background and foreground with touch held", "Game Center sign-in success, cancellation and recovery", "Golden Egg read-only name review, explicit Public or Anonymous posting, Don't post persistence without automatic retry, Anonymous revocation, saved-discovery recovery and Level 5 restart", "Return during a delayed name lookup; no later callback may publish the declined find", "Title LICENSES and saved Golden Egg actions do not overlap or pass touches through overlays", "Keychain migration and relaunch on a physical device", "Gameplay and audio on iPhone and iPad"],
     "release_mode": "automatic"
@@ -54,7 +55,8 @@
     "accessibility_review_evidence": "September 10, 2026 live Apple accessibility page reviewed: two unpublished iPhone/iPad drafts list Differentiate Without Color Alone and Sufficient Contrast; no Publish action taken. These are not verified device-support claims and must not be published without acceptance testing. No VoiceOver, Voice Control or Larger Text support is asserted by this review.",
     "game_center_records_reviewed": true,
     "mandatory_update_policy_reviewed": false,
-    "third_party_sdk_inventory_reviewed": false
+    "third_party_sdk_inventory_reviewed": true,
+    "third_party_sdk_inventory_evidence": "September 14, 2026 source/export review: the iOS integration uses Godot Engine, Apple's GameKit/Game Center framework through the pinned Godot Game Center plugin, Foundation/Security/StoreKit system frameworks and first-party HTTPS endpoints. No advertising, analytics, attribution, social-login or third-party data-broker SDK is configured. Native archive inspection remains part of the release lane."
   },
   "public_copy_review": {
     "vendor_neutral_reviewed": true,
@@ -68,11 +70,12 @@
     ]
   },
   "golden_egg": {
-    "website_contract_reviewed": false,
-    "game_center_identity_reviewed": false,
-    "privacy_consent_reviewed": false,
-    "production_endpoint_verified": false,
-    "physical_device_flow_reviewed": false
+    "website_contract_reviewed": true,
+    "game_center_identity_reviewed": true,
+    "privacy_consent_reviewed": true,
+    "production_endpoint_verified": true,
+    "physical_device_flow_reviewed": false,
+    "review_evidence": "September 14, 2026: Sites version 84 from exact website source 0ae3fa72eba74024650414f39e30d2fb6f61ea2d deployed successfully. Direct custom-domain checks returned HTTP 200 for /fred-myers/privacy, /fred-myers/support and the Fred-filtered Golden Egg leaderboard. The privacy page exposed policy fred-myers-2026-09-12-v3 and game-center-consent-v1 markers; the leaderboard registered Fred and returned only verified public/anonymous records. Protected identity-exchange and discovery POST probes without credentials returned HTTP 401. The website suite passed 155 tests, including app binding, replay/expiry rejection, concurrency, rank authority, redaction, consent and no legacy typed-name fallback. The physical installed-device flow remains separately deferred only to internal TestFlight."
   },
   "release_exceptions": [
     {

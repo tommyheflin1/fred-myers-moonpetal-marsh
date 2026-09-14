@@ -1,5 +1,33 @@
 # Fred Build 11 Golden Egg and export review
 
+## Production website and API verification - September 14, 2026
+
+The exact tested website source `0ae3fa72eba74024650414f39e30d2fb6f61ea2d`
+was already present on the configured Sites `main` branch, saved as version 84 and
+deployed successfully as deployment `appgdep_6aa809cf6ea08191b63113be39cb1cad`.
+The existing public audience and custom domain were preserved.
+
+Direct production checks against `https://theflinsappvaultllc.com` then confirmed:
+
+- `/fred-myers/privacy`: HTTP 200 with `fred-myers`, policy
+  `fred-myers-2026-09-12-v3`, and `game-center-consent-v1` markers.
+- `/fred-myers/support`: HTTP 200 with the Fred-specific support marker.
+- `/api/golden-eggs/leaderboard?game=fred-myers`: HTTP 200, Fred registered as
+  a participating game, and only the verified public/anonymous result shape exposed.
+- Unauthenticated POST requests to `/api/game-center/identity/exchange` and
+  `/api/golden-eggs/discoveries`: HTTP 401, confirming the protected handlers are
+  live and do not accept an unverified typed-name submission.
+- The exact website checkout passed its production build and all 155 local tests
+  before deployment. Those tests cover app-bound Apple identity proof validation,
+  expiry/replay rejection, atomic identity binding, idempotency, concurrent rank
+  assignment, server validation, public redaction, consent changes, rate limits,
+  cross-app isolation, pending-record exclusion and legacy typed-name rejection.
+
+This supersedes the historical website-unpublished and Fred-policy-404 notes below.
+It proves the deployed contract and safe rejection paths, not a successful real-player
+post or installed-device Game Center flow. Those exact-build device checks remain
+deferred only to internal TestFlight.
+
 ## Later owner-directed superhero revision
 
 The owner rejected the ordinary frog emblem and requested a superhero frog. The

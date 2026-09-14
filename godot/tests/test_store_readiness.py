@@ -97,6 +97,8 @@ class StoreReadinessTests(unittest.TestCase):
             game["capabilities"].update(game_center=True,golden_eggs=True)
             (root/"game/game.json").write_text(json.dumps(game))
             package=json.loads((root/"store/app_store_package.json").read_text())
+            package["review_status"]="draft"
+            package["golden_egg"]["production_endpoint_verified"]=False
             package["release_exceptions"]=[{"gate":gate,"reason":"Fictional approved deferral","owner_approved":True,
                 "exact_version":game["marketing_version"],"exact_build":game["build_number"],"deferred_until":"app-review"} for gate in STORE.DEVICE_DEFERRABLE_GATES]
             (root/"store/app_store_package.json").write_text(json.dumps(package))
@@ -106,12 +108,11 @@ class StoreReadinessTests(unittest.TestCase):
             self.assertIn("store package owner approval missing",internal)
             self.assertIn("Golden Egg production_endpoint_verified missing",internal)
 
-    def test_fred_draft_is_structurally_valid_and_not_releasable(self):
+    def test_fred_candidate_is_structurally_valid_and_device_gated_for_app_review(self):
         self.assertEqual([],STORE.validate(ROOT))
         errors=STORE.validate(ROOT,release=True)
-        self.assertTrue(any("owner approval" in x for x in errors))
-        self.assertIn("creative contract owner review missing",errors)
-        self.assertIn("Golden Egg production_endpoint_verified missing",errors)
+        self.assertEqual({"Game Center on_device_authentication_tested missing", "Game Center on_device_replay_tested missing", "Golden Egg physical_device_flow_reviewed missing"}, set(errors))
+        self.assertEqual([], STORE.validate(ROOT,release=True,purpose="internal-testflight"))
 
     def test_field_limits_and_privacy_identity_fail_closed(self):
         with tempfile.TemporaryDirectory() as tmp:
