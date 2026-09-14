@@ -29,8 +29,9 @@ const GoldenEggService = preload("res://scripts/golden_egg_service.gd")
 const GoldenEggLocalStore = preload("res://scripts/golden_egg_local_store.gd")
 const GoldenEggNetworkBridge = preload("res://scripts/golden_egg_network_bridge.gd")
 const UpdateGateScript = preload("res://scripts/fred_update_gate.gd")
+# Keep the required engine/plugin notice text packaged for distribution without
+# advertising it as a title-screen feature.
 const ThirdPartyNotices = preload("res://scripts/third_party_notices.gd")
-const TITLE_LICENSES_RECT := Rect2(1010, 30, 225, 58)
 
 enum Screen { TITLE, STORY, INSTRUCTIONS, PLAYING, FAILED, COMPLETE, LEADERBOARD, CUSTOMIZE, GOLDEN_EGG }
 const START := Vector2(135, 560)
@@ -145,7 +146,6 @@ var _cached_world_labels: Array[Dictionary] = []
 var golden_chime: AudioStreamPlayer
 var golden_room_open := false
 var update_gate: Node
-var third_party_notices: Control
 var update_overlay: CanvasLayer
 var update_title: Label
 var update_detail: Label
@@ -213,9 +213,6 @@ func _handle_application_resumed() -> void:
 func _handle_back_request() -> String:
     if _update_blocks_play():
         return "update_blocked"
-    if is_instance_valid(third_party_notices) and third_party_notices.visible:
-        third_party_notices.close()
-        return "licenses_closed"
     touch_contacts.clear()
     touch_positions.clear()
     pointer_touch_active = false
@@ -288,11 +285,6 @@ func _ready() -> void:
     add_child(golden_chime)
     _sync_fred_style()
     _configure_update_gate()
-    var notices_layer := CanvasLayer.new()
-    notices_layer.layer = 50
-    add_child(notices_layer)
-    third_party_notices = ThirdPartyNotices.new()
-    notices_layer.add_child(third_party_notices)
     if not _update_blocks_play() and game_center_available:
         update_connection_started = true
         _request_game_center_connection()
@@ -991,8 +983,6 @@ func _reveal_golden_egg() -> void:
 func _unhandled_input(event: InputEvent) -> void:
     if _update_blocks_play():
         return
-    if is_instance_valid(third_party_notices) and third_party_notices.visible:
-        return
     # Native touch and the desktop pointer already share one Fred input path.
     # Godot compatibility events would otherwise execute the same tap twice
     # (Pause immediately unpauses). Keep this guard even if an export overrides
@@ -1049,8 +1039,6 @@ func _set_gameplay_paused(paused: bool) -> void:
 
 func _handle_touch(index: int, position: Vector2, pressed: bool) -> void:
     if _update_blocks_play():
-        return
-    if is_instance_valid(third_party_notices) and third_party_notices.visible:
         return
     touch_controls_visible = true
     if not pressed:
@@ -1116,15 +1104,6 @@ func _refresh_touch_holds() -> void:
 
 func _handle_click(position: Vector2) -> void:
     if _update_blocks_play():
-        return
-    if is_instance_valid(third_party_notices) and third_party_notices.visible:
-        return
-    if screen == Screen.TITLE and TITLE_LICENSES_RECT.has_point(position):
-        touch_contacts.clear()
-        touch_positions.clear()
-        pointer_touch_active = false
-        _refresh_touch_holds()
-        third_party_notices.open()
         return
     if screen == Screen.TITLE and TITLE_START_RECT.has_point(position): _open_story()
     elif screen == Screen.TITLE and TITLE_CUSTOMIZE_RECT.has_point(position):
@@ -1606,7 +1585,6 @@ func _draw_title() -> void:
     _button(TITLE_START_RECT, "BEGIN FRED'S STORY")
     _button(TITLE_CUSTOMIZE_RECT, "CUSTOMIZE FRED  •  %d COINS" % customization.coins)
     _button(TITLE_LEADERBOARD_RECT, "MARSH LEADERBOARDS")
-    _button(TITLE_LICENSES_RECT, "LICENSES")
     _status_panel(Rect2(70,640,440,42), 14)
     _text(Vector2(285,708), "THE MARSHLAND MARCH  •  LOCAL SAVES  •  GAME CENTER OPTIONAL", 11, Color("b9f5c7"), HORIZONTAL_ALIGNMENT_CENTER, 520)
 

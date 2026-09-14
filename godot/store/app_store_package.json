@@ -20,7 +20,7 @@
     "gameplay_truths": ["Touch-first steering and labeled action buttons", "100-level campaign", "Earn coins and unlock frog appearances", "An optional Golden Egg website flow returns to the start of Level 5"],
     "visual_direction": "Fred's existing illustrated moonlit marsh, frog character and readable touch HUD.",
     "owner_approved": true,
-    "owner_approval_evidence": "Owner approved Build 11 photos, music, testing and submission in the September 2026 release thread and directed completion through Apple. This approval covers the truthful Build 11 creative contract and does not replace legal or technical evidence gates."
+    "owner_approval_evidence": "Owner approved the Fred 1.1 photos, music, testing and submission in the September 2026 release thread, then explicitly required the unwanted title Licenses UI to be removed and the corrected replacement build completed through Apple. This approval does not replace legal or technical evidence gates."
   },
   "version": {
     "description": "Take the leap into Moonpetal Marsh! Guide Fred through a 100-level touch-first adventure filled with lily pads, bugs, currents and marsh predators. Leap over danger, dive beneath surface hunters, munch nearby bugs and boost toward the Moonpetal Exit. Earn coins to unlock frog colors and hero gear, and watch for a helpful fairy every tenth level. Find the hidden Golden Egg and choose whether to share your Game Center player name on the website's hunt leaderboard, then return to the beginning of Level 5. Includes reduced-motion support and no advertising or in-app purchases.",
@@ -31,8 +31,8 @@
     "marketing_url": "https://theflinsappvaultllc.com/",
     "privacy_url": "https://theflinsappvaultllc.com/fred-myers/privacy",
     "review_notes": "Touch the playfield to steer; use MUNCH, LEAP, BOOST, DIVE/SURFACE and PAUSE. EXIT returns to the title. A fairy appears every tenth level. The optional Golden Egg flow uses Game Center authentication, offers Public, Anonymous and Don't Post choices, and opens the Hunt website only after an explicit posting choice. Returning from the reveal starts Level 5 again. No advertising or in-app purchases. Exact-build Game Center authentication and the complete Golden Egg return flow remain listed for physical-device acceptance in TestFlight.",
-    "beta_description": "Build 11 validates discovery-only Golden Egg website access, read-only Game Center name review, explicit Public/Anonymous/Don't post choices, secure credential migration, Game Center entitlement, Pause and existing marsh gameplay. Website outages must never block startup or core gameplay.",
-    "what_to_test": ["Fresh and upgrade launch without losing saves or cosmetics", "Zero website requests during launch, menu, play, saves, Game Center sign-in/native leaderboards and foreground, including an unavailable website", "Pause, background and foreground with touch held", "Game Center sign-in success, cancellation and recovery", "Golden Egg read-only name review, explicit Public or Anonymous posting, Don't post persistence without automatic retry, Anonymous revocation, saved-discovery recovery and Level 5 restart", "Return during a delayed name lookup; no later callback may publish the declined find", "Title LICENSES and saved Golden Egg actions do not overlap or pass touches through overlays", "Keychain migration and relaunch on a physical device", "Gameplay and audio on iPhone and iPad"],
+    "beta_description": "Build 12 removes the unwanted title Licenses UI and validates discovery-only Golden Egg website access, read-only Game Center name review, explicit Public/Anonymous/Don't post choices, secure credential migration, Game Center entitlement, Pause and existing marsh gameplay. Website outages must never block startup or core gameplay.",
+    "what_to_test": ["Fresh and upgrade launch without losing saves or cosmetics", "Zero website requests during launch, menu, play, saves, Game Center sign-in/native leaderboards and foreground, including an unavailable website", "Pause, background and foreground with touch held", "Game Center sign-in success, cancellation and recovery", "Golden Egg read-only name review, explicit Public or Anonymous posting, Don't post persistence without automatic retry, Anonymous revocation, saved-discovery recovery and Level 5 restart", "Return during a delayed name lookup; no later callback may publish the declined find", "The title contains no Licenses button or legal-notice modal", "Keychain migration and relaunch on a physical device", "Gameplay and audio on iPhone and iPad"],
     "release_mode": "automatic"
   },
   "distribution": {
@@ -50,7 +50,7 @@
     "age_rating_evidence": "2026-09-10 live App Store Connect questionnaire reviewed without edits: 9+ global, regional exceptions; infrequent fantasy violence and contests, no gambling/loot boxes, no mature/sexual/medical content, no messaging/ads/unrestricted web access; not Made for Kids.",
     "privacy_answers_reviewed": true,
     "export_compliance_reviewed": true,
-    "export_compliance_review_evidence": "September 10, 2026: inspected accepted version 1.1 Build 10 metadata in App Store Connect: Binary State Validated; App Uses Non-Exempt Encryption No. Preserved that established false declaration in the existing release configuration, consistent with the historical Fred export helper. Source inventory includes standard Godot TLS, authentication/HMAC, Keychain and public-signature verification; this does not claim OS-only encryption or absence of crypto. Generated and signed Build 11 artifacts must still match the declaration and privacy inventory; native verification remains pending.",
+    "export_compliance_review_evidence": "September 10, 2026: inspected accepted version 1.1 Build 10 metadata in App Store Connect: Binary State Validated; App Uses Non-Exempt Encryption No. Preserved that established false declaration in the existing release configuration, consistent with the historical Fred export helper. Source inventory includes standard Godot TLS, authentication/HMAC, Keychain and public-signature verification; this does not claim OS-only encryption or absence of crypto. Generated and signed Build 12 artifacts must still match the declaration and privacy inventory; native verification remains pending.",
     "accessibility_reviewed": true,
     "accessibility_review_evidence": "September 10, 2026 live Apple accessibility page reviewed: two unpublished iPhone/iPad drafts list Differentiate Without Color Alone and Sufficient Contrast; no Publish action taken. These are not verified device-support claims and must not be published without acceptance testing. No VoiceOver, Voice Control or Larger Text support is asserted by this review.",
     "game_center_records_reviewed": true,
@@ -60,12 +60,12 @@
   },
   "public_copy_review": {
     "vendor_neutral_reviewed": true,
-    "review_evidence": "September 10, 2026 source and rendered review of Fred title/gameplay/Golden Egg/notice UI, draft store copy and dedicated website support/privacy pages. No discretionary external company or website endorsements were found. Anatomy-reference URLs are internal source metadata, not drawn player-facing copy. Unrelated website projects are not certified by this Fred-only review. Required platform/privacy and actual license notices are itemized below; native artifact and policy-publication approval remain separate.",
+    "review_evidence": "September 14, 2026 source and rendered review of Fred title/gameplay/Golden Egg UI, draft store copy and dedicated website support/privacy pages. The title contains no Licenses button or legal-notice modal. No discretionary external company or website endorsements were found. Anatomy-reference URLs are internal source metadata, not drawn player-facing copy. Unrelated website projects are not certified by this Fred-only review. Required platform/privacy and bundled license notices are itemized below; native artifact and policy-publication approval remain separate.",
     "external_company_names": [],
     "external_website_names": [],
     "required_disclosures": [
       {"text": "Apple Game Center; Game Center; App Store", "basis": "Exact platform-service labels needed to explain optional authentication, provider-reported finder names, service privacy practices and the user-controlled App Store update destination. No endorsement is claimed."},
-      {"text": "Godot Engine and the executing engine's embedded license/copyright notices in LICENSES", "basis": "MIT and bundled third-party notice obligations; scripts/third_party_notices.gd reproduces runtime-provided notices and the exact pinned Game Center plugin MIT text. Required legal notices are not discretionary marketing copy."},
+      {"text": "Godot Engine and pinned Game Center plugin license/copyright notices", "basis": "MIT and bundled third-party notice obligations; scripts/third_party_notices.gd packages the runtime-provided notices and exact pinned Game Center plugin MIT text without a player-facing title-menu promotion."},
       {"text": "https://theflinsappvaultllc.com; https://apps.apple.com/app/id6803295872", "basis": "First-party service/privacy/support destination and the exact required platform product destination, not unrelated third-party promotion."}
     ]
   },
@@ -82,41 +82,41 @@
       "gate": "game_center.on_device_authentication_tested",
       "owner_approved": true,
       "exact_version": "1.1",
-      "exact_build": 11,
+      "exact_build": 12,
       "deferred_until": "app-review",
-      "reason": "Owner directed move forward in response to the specific three-check Build 11 internal-TestFlight deferral request. Device authentication must be tested on the uploaded build before App Review; evidence remains false until tested."
+      "reason": "Owner explicitly directed the corrected replacement build to internal TestFlight after removing the title Licenses UI. Device authentication must be tested on Build 12 before App Review; evidence remains false until tested."
     },
     {
       "gate": "game_center.on_device_replay_tested",
       "owner_approved": true,
       "exact_version": "1.1",
-      "exact_build": 11,
+      "exact_build": 12,
       "deferred_until": "app-review",
-      "reason": "Same specific owner response authorizes first internal TestFlight only. Device score replay remains mandatory before App Review; no other gate is waived."
+      "reason": "The same replacement-build direction authorizes Build 12 internal TestFlight only. Device score replay remains mandatory before App Review; no other gate is waived."
     },
     {
       "gate": "golden_egg.physical_device_flow_reviewed",
       "owner_approved": true,
       "exact_version": "1.1",
-      "exact_build": 11,
+      "exact_build": 12,
       "deferred_until": "app-review",
-      "reason": "Same specific owner response authorizes first internal TestFlight only. The exact-build discovery, consent, website and return flow must pass on a physical device before App Review."
+      "reason": "The same replacement-build direction authorizes Build 12 internal TestFlight only. The exact-build discovery, consent, website and return flow must pass on a physical device before App Review."
     }
   ],
   "release_authorization": {
     "mode": "automatic",
     "owner_approved": true,
     "exact_version": "1.1",
-    "exact_build": 11,
-    "reason": "Owner explicitly requested Build 11 submission and updating the live app. Preserve the existing App Store Connect automatically-release-after-approval and release-to-all selections. This does not waive readiness or device gates."
+    "exact_build": 12,
+    "reason": "Owner explicitly requested the corrected replacement Build 12 be tested and submitted after removal of the unwanted title Licenses UI. Preserve the existing App Store Connect automatically-release-after-approval and release-to-all selections. This does not waive readiness or device gates."
   },
   "media": {
     "app_icon": "assets/store/app-icon-1024.png",
     "screenshots_manifest": "store/screenshots.json",
     "exact_version": "1.1",
-    "exact_build": 11,
+    "exact_build": 12,
     "visual_owner_reviewed": true,
-    "visual_owner_review_evidence": "September 10, 2026 owner explicitly stated: BUILD 11 IS GOOD WITH PHOTOS. Approval is for the existing Build 11 photos, not fabricated capture provenance or replacement images. Screenshot file/hash registration and exact capture-commit validation remain required.",
-    "testing_authorization_evidence": "Owner also approved proceeding with everything in test for Build 11. Existing exact-build internal-TestFlight device deferrals are retained; unperformed checks remain unverified."
+    "visual_owner_review_evidence": "The owner approved the existing Build 11 screenshot bytes, then visually rejected only the title Licenses UI and directed its removal for Build 12. The registered App Store screenshots are gameplay-only, unchanged by this title-only correction, and do not show the removed control. Screenshot file/hash registration and capture-commit validation remain required.",
+    "testing_authorization_evidence": "Owner explicitly authorized the corrected Build 12 for internal testing and submission. Exact-build device checks remain unverified until performed."
   }
 }

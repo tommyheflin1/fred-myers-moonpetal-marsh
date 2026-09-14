@@ -1,6 +1,7 @@
 extends SceneTree
 
 const Main = preload("res://scripts/main.gd")
+const Notices = preload("res://scripts/third_party_notices.gd")
 var failures := 0
 var checks := 0
 
@@ -21,24 +22,17 @@ func _run() -> void:
 	root.add_child(game)
 	await process_frame
 	game.set_process(false)
-	check(not game.third_party_notices.visible, "notices start hidden")
-	check(not Main.TITLE_LICENSES_RECT.intersects(Main.TITLE_PENDING_EGG_RECT), "licenses never overlap saved discovery")
+	var main_source := FileAccess.get_file_as_string("res://scripts/main.gd")
+	var title_source := main_source.split("func _draw_title() -> void:")[1].split("\nfunc ")[0]
+	check(not main_source.contains("TITLE_LICENSES_RECT"), "title exposes no license touch target")
+	check(not title_source.contains("LICENSES"), "title draws no license button")
+	check(not main_source.contains("third_party_notices.open()"), "gameplay exposes no license modal")
+	check(Notices.runtime_notices().contains("MIT License"), "required notices remain packaged")
 	game.golden_pending_review_available = true
 	game._handle_click(Vector2(1110, 655))
 	check(game.screen == Main.Screen.TITLE, "old saved discovery touch target cannot reopen closed event")
-	check(not game.third_party_notices.visible, "saved discovery touch never opens notices")
-	game.screen = Main.Screen.TITLE
-	game._handle_click(Main.TITLE_LICENSES_RECT.get_center())
-	check(game.third_party_notices.visible, "title opens readable notices")
-	check(game.third_party_notices.notice_text.text.contains("MIT License"), "actual notices populated")
 	game._handle_click(Main.TITLE_START_RECT.get_center())
-	check(game.screen == Main.Screen.TITLE, "click cannot pass through notices")
-	game._handle_touch(0, Main.TITLE_START_RECT.get_center(), true)
-	check(game.screen == Main.Screen.TITLE, "touch cannot pass through notices")
-	check(game._handle_back_request() == "licenses_closed", "back closes notices instead of quitting")
-	check(not game.third_party_notices.visible, "notices closed")
-	game._handle_click(Main.TITLE_START_RECT.get_center())
-	check(game.screen == Main.Screen.STORY, "normal title action resumes after close")
+	check(game.screen == Main.Screen.STORY, "normal title action remains available")
 	game.queue_free()
 	await process_frame
 	print("NOTICES_INTEGRATION: ", checks, " checks, ", failures, " failed")

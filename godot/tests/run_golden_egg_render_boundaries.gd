@@ -35,7 +35,7 @@ func _run() -> void:
 	check(not egg.contains("PAUSE_RECT") and not egg.contains("_status_panel") and not egg.contains("_draw_gameplay_hud"), "egg artwork never draws gameplay controls or feedback")
 	check(not Main.GOLDEN_EGG_PUBLIC_RECT.intersects(Main.GOLDEN_EGG_PRIVATE_RECT), "privacy choices do not overlap")
 	check(not Main.GOLDEN_EGG_HUNT_RECT.intersects(Main.GOLDEN_EGG_RETURN_RECT), "website and return actions do not overlap")
-	check(not Main.TITLE_LICENSES_RECT.intersects(Main.TITLE_PENDING_EGG_RECT), "saved discovery remains separate from LICENSES")
+	check(not title.contains("LICENSES"), "title does not publicize bundled legal notices")
 	if DisplayServer.get_name() != "headless":
 		var game := ObservedMain.new()
 		game.audio_enabled = false
