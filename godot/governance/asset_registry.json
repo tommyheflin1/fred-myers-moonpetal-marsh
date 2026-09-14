@@ -1103,6 +1103,31 @@
       "notes": "Store icon is byte-identical to the verified project-generated v3 platform master.",
       "risk_status": "GREEN",
       "owner_decision": "USE_VERIFIED_PROJECT_GENERATED_ASSET"
+    },
+    {
+      "asset_id": "fred-app-icon-1024",
+      "asset_name": "app-icon-1024.png",
+      "asset_type": "image",
+      "application": "fred-myers",
+      "path": "assets/store/app-icon-1024.png",
+      "sha256": "910e00644cbe2b0dac2d35a55d49a4f2032283f9831bcf80c15d35e2563dbda7",
+      "source_category": "PROJECT_GENERATED",
+      "source_name": "Existing Fred project generation",
+      "creator_or_publisher": "Fred project",
+      "source_reference": "../docs/M2_APP_ICON_UPLIFT.md; byte-identical compatibility copy of assets/store/app-icon.png for the shared iOS release verifier",
+      "date_introduced": "2026-09-14",
+      "license": "Original project-generated artwork; byte-identical release-harness copy of the verified platform master",
+      "commercial_use_status": "PERMITTED",
+      "modification_status": "PERMITTED",
+      "attribution_required": false,
+      "attribution_text": "",
+      "redistribution_restrictions": "NONE",
+      "repository_exposure": "PUBLIC_RAW",
+      "verification_status": "PROJECT_GENERATION_HISTORY_AND_HASH_VERIFIED",
+      "evidence_reference": "../docs/M2_APP_ICON_UPLIFT.md; SHA-256 matches assets/store/app-icon.png and assets/art/fred-app-icon-v3-platform.png",
+      "notes": "Harness-standard 1024 icon path; bytes and approved artwork are unchanged.",
+      "risk_status": "GREEN",
+      "owner_decision": "USE_VERIFIED_PROJECT_GENERATED_ASSET"
     }
   ],
   "dependencies": [

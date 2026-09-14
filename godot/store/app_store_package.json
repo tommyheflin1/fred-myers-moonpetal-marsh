@@ -111,7 +111,7 @@
     "reason": "Owner explicitly requested Build 11 submission and updating the live app. Preserve the existing App Store Connect automatically-release-after-approval and release-to-all selections. This does not waive readiness or device gates."
   },
   "media": {
-    "app_icon": "assets/store/app-icon.png",
+    "app_icon": "assets/store/app-icon-1024.png",
     "screenshots_manifest": "store/screenshots.json",
     "exact_version": "1.1",
     "exact_build": 11,
