@@ -1,6 +1,6 @@
 # Versioned development-to-Apple process
 
-Process 1.8 candidate 30, reviewed 2026-09-12. This is a shared operating contract,
+Process 1.8 candidate 32, reviewed 2026-09-14. This is a shared operating contract,
 not a production monorepo or permission to change released apps.
 
 ## Development and reuse
@@ -121,6 +121,12 @@ without source-tree/archive hashes need a reviewed migration or a new candidate;
 fabricate missing provenance. Never rerun preflight over a preserved signed archive.
 
 ## Stable change processing
+
+Candidate 32 distinguishes tracked review evidence from production assets. Files under
+`docs/evidence/` remain documentation and are excluded from the production provenance
+scan because the release process separately forbids exporting that directory. Material
+selected for an app or store package still belongs in a production path and must be
+registered normally; moving a file under `docs/evidence/` is never a clearance mechanism.
 
 Candidate 30 adds the tested shared publication-v2 wire adapter and identity-exchange
 protocol header. Read `docs/GOLDEN_EGG_PUBLICATION_V2.md`. It does not replace each

@@ -9,6 +9,7 @@ RISKS={"GREEN","YELLOW","ORANGE","RED"}
 ASSET_EXT={".png",".jpg",".jpeg",".svg",".webp",".psd",".tif",".tiff",".fbx",".gltf",".glb",".blend",".obj",".mtl",".wav",".mp3",".ogg",".flac",".ttf",".otf",".woff",".woff2",".ase",".aseprite",".kra",".zip",".tar",".gz"}
 DEPENDENCY_MANIFESTS={"package.json","requirements.txt","pyproject.toml","pom.xml","build.gradle","cargo.toml","go.mod","composer.json","plugin.cfg"}
 IGNORE_PARTS={".git",".godot","node_modules","builds","exports",".pytest_cache","__pycache__","coverage","dist",".next"}
+NON_PRODUCTION_PREFIXES={("docs","evidence")}
 REQUIRED={"asset_id","asset_name","asset_type","application","source_category","source_name","creator_or_publisher","source_reference","date_introduced","license","commercial_use_status","modification_status","attribution_required","attribution_text","redistribution_restrictions","repository_exposure","verification_status","evidence_reference","notes","risk_status","owner_decision"}
 PASS_DECISIONS={"ACCEPT_DOCUMENTED_RISK"}
 
@@ -17,7 +18,13 @@ def tracked_files(root:Path)->list[Path]:
     # prototypes stay advisory/outside distribution until deliberately adopted.
     run=subprocess.run(["git","-c",f"safe.directory={root.as_posix()}","-C",str(root),"ls-files"],capture_output=True,text=True)
     names=run.stdout.splitlines() if run.returncode==0 else [str(p.relative_to(root)) for p in root.rglob("*") if p.is_file()]
-    return [root/n for n in names if not any(part in IGNORE_PARTS or part.startswith(".tmp") for part in Path(n).parts)]
+    tracked=[]
+    for name in names:
+        parts=Path(name).parts
+        if any(part in IGNORE_PARTS or part.startswith(".tmp") for part in parts): continue
+        if any(tuple(parts[:len(prefix)])==prefix for prefix in NON_PRODUCTION_PREFIXES): continue
+        tracked.append(root/name)
+    return tracked
 
 def decision_covers(registry:dict,item_id:str)->bool:
     for d in registry.get("owner_decisions",[]):

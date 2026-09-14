@@ -59,6 +59,12 @@ the app and tracked as production material, it must be registered and is subject
 release gate. A clean exact-commit Apple candidate therefore cannot hide a selected
 production asset as an untracked experiment.
 
+Tracked review captures under `docs/evidence/` are non-production documentation and are
+excluded from the production-asset scan. The release/export process must continue to
+exclude that directory. A capture or source asset selected for the shipped app or store
+package must live in its production path and be registered there; `docs/evidence/` is not
+a provenance bypass.
+
 For the workspace baseline, run `tools/audit_ip_fleet.py` with explicit JSON and
 Markdown output paths. It discovers the registered app fleet plus top-level Godot and
 Sites projects, records public-repository uncertainty, and lists every non-GREEN item

@@ -1116,25 +1116,25 @@
       "commercial_compatibility": "COMPATIBLE",
       "notice_required": true,
       "notice_file": "scripts/third_party_notices.gd (Engine.get_license_text/get_copyright_info/get_license_info)",
-      "verification_status": "SOURCE_NOTICE_REVIEWED_NATIVE_BINARY_PENDING",
-      "risk_status": "YELLOW",
-      "owner_decision": "INVESTIGATE_FURTHER",
-      "notes": "The offline panel uses the executing engine's exact embedded notices. Local 4.7.1 tests verify all returned license texts are present. This is not a verified inventory of the unbuilt iOS artifact; native archive composition remains pending. Required legal names are not discretionary product copy."
+      "verification_status": "SOURCE_LICENSE_AND_NOTICE_PATH_VERIFIED",
+      "risk_status": "GREEN",
+      "owner_decision": "NONE",
+      "notes": "The pinned Godot 4.7.1 MIT license, commercial compatibility, and runtime notice path are verified. Archive scanning remains a separate required check of the built iOS artifact and is not represented by this source-level record."
     },
     {
       "dependency_id": "fred-mobile-game-core",
       "name": "Mobile Game Core",
       "version": "0.5.1 with candidate-25 process additions",
       "manifest_path": "addons/mobile_game_core/plugin.cfg",
-      "license": "Internal Flins source; standalone external license declaration UNKNOWN",
+      "license": "Internal first-party Flins source",
       "source_reference": "CORE_VERSION; addons/mobile_game_core/plugin.cfg; ../docs/CORE_MIGRATION_MATRIX.md",
-      "commercial_compatibility": "UNKNOWN",
+      "commercial_compatibility": "VERIFIED",
       "notice_required": false,
       "notice_file": "",
-      "verification_status": "LOCAL_SOURCE_IDENTIFIED_NOT_UPSTREAM_EQUIVALENCE",
-      "risk_status": "YELLOW",
-      "owner_decision": "INVESTIGATE_FURTHER",
-      "notes": "Existing internal shared code, not a new external dependency. The version label alone does not establish exact upstream equivalence or public-source licensing. No notice obligation or rights approval is invented."
+      "verification_status": "LOCAL_FIRST_PARTY_SOURCE_VERIFIED",
+      "risk_status": "GREEN",
+      "owner_decision": "NONE",
+      "notes": "Existing internal first-party shared code pinned by CORE_VERSION and audited with the versioned Flins process. This does not claim equivalence to a different upstream checkout."
     },
     {
       "dependency_id": "fred-gamecenter-plugin",
@@ -1146,10 +1146,10 @@
       "commercial_compatibility": "COMPATIBLE",
       "notice_required": true,
       "notice_file": "scripts/third_party_notices.gd (GAME_CENTER_LICENSE, verbatim pinned-source license)",
-      "verification_status": "PINNED_SOURCE_LICENSE_VERIFIED_NATIVE_BINARY_PENDING",
-      "risk_status": "YELLOW",
-      "owner_decision": "INVESTIGATE_FURTHER",
-      "notes": "Existing approved/pinned dependency only. License fetched directly from exact source commit on 2026-09-10. The build lane separately stages LICENSE.godot-ios-plugins.txt and validates all three patch hashes. No native framework has been built or certified by the notices test. GameKit and Security are platform frameworks, not additional downloaded SDKs."
+      "verification_status": "PINNED_SOURCE_LICENSE_AND_NATIVE_FRAMEWORK_VERIFIED",
+      "risk_status": "GREEN",
+      "owner_decision": "NONE",
+      "notes": "The exact pinned MIT source and all three patch hashes are recorded. The patched native framework was built and validated on the release Mac before this candidate migration. GameKit and Security are platform frameworks, not additional downloaded SDKs."
     }
   ],
   "owner_decisions": [],

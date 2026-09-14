@@ -40,12 +40,20 @@ if [[ -d "$destination" ]]; then
   exit 0
 fi
 
+fresh_clone=0
 if [[ ! -d "$source_root/.git" ]]; then
   mkdir -p "$(dirname "$source_root")"
   git clone --filter=blob:none --no-checkout https://github.com/godot-sdk-integrations/godot-ios-plugins.git "$source_root"
+  fresh_clone=1
 fi
 
 git -C "$source_root" fetch --quiet origin "$plugin_commit"
+if [[ "$fresh_clone" == 1 ]]; then
+  # A --no-checkout clone reports every tracked path as deleted until its first
+  # checkout. Populate the pinned tree before applying the dirty-cache guard so
+  # a brand-new isolated cache is not mistaken for an already-patched cache.
+  git -C "$source_root" checkout --detach "$plugin_commit"
+fi
 if [[ -n "$(git -C "$source_root" status --porcelain --ignore-submodules=all)" ]]; then
   git -C "$source_root" apply --reverse --check "$keychain_patch_file"
   git -C "$source_root" apply --reverse "$keychain_patch_file"
