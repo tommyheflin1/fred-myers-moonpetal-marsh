@@ -1050,9 +1050,9 @@
       "repository_exposure": "PUBLIC_ORIGIN_LOCAL_CANDIDATE",
       "verification_status": "OWNER_ATTESTATION_RECORDED",
       "evidence_reference": "store/audio_package.json; owner confirmed commercial App Store distribution rights for both named tracks on 2026-09-10",
-      "notes": "No asset was replaced or relicensed. Origin visibility was verified public on 2026-09-10; private-branch approval does not establish private hosting. App distribution and public raw-source permissions remain separate.",
+      "notes": "No asset was replaced or relicensed. Origin visibility was verified public on 2026-09-10; private-branch approval does not establish private hosting. App distribution and public raw-source permissions remain separate. On 2026-09-14 the owner explicitly approved ACCEPT_DOCUMENTED_RISK for fred-existing-12 and fred-existing-13 after being told that App Store distribution rights are confirmed but raw-source public redistribution rights are not independently documented. This records direction, not legal clearance.",
       "risk_status": "YELLOW",
-      "owner_decision": "INVESTIGATE_FURTHER"
+      "owner_decision": "ACCEPT_DOCUMENTED_RISK"
     },
     {
       "asset_id": "fred-existing-13",
@@ -1075,9 +1075,9 @@
       "repository_exposure": "PUBLIC_ORIGIN_LOCAL_CANDIDATE",
       "verification_status": "OWNER_ATTESTATION_RECORDED",
       "evidence_reference": "store/audio_package.json; owner confirmed commercial App Store distribution rights for both named tracks on 2026-09-10",
-      "notes": "No asset was replaced or relicensed. Origin visibility was verified public on 2026-09-10; private-branch approval does not establish private hosting. App distribution and public raw-source permissions remain separate.",
+      "notes": "No asset was replaced or relicensed. Origin visibility was verified public on 2026-09-10; private-branch approval does not establish private hosting. App distribution and public raw-source permissions remain separate. On 2026-09-14 the owner explicitly approved ACCEPT_DOCUMENTED_RISK for fred-existing-12 and fred-existing-13 after being told that App Store distribution rights are confirmed but raw-source public redistribution rights are not independently documented. This records direction, not legal clearance.",
       "risk_status": "YELLOW",
-      "owner_decision": "INVESTIGATE_FURTHER"
+      "owner_decision": "ACCEPT_DOCUMENTED_RISK"
     },
     {
       "asset_id": "fred-existing-14",
@@ -1152,6 +1152,19 @@
       "notes": "The exact pinned MIT source and all three patch hashes are recorded. The patched native framework was built and validated on the release Mac before this candidate migration. GameKit and Security are platform frameworks, not additional downloaded SDKs."
     }
   ],
-  "owner_decisions": [],
-  "notes": "Build 11 registry reconciled against tracked creation history, project generation reports, exact asset hashes, live repository visibility, internal Core, Godot and the pinned Game Center plugin. The two owner-supplied music files retain separate YELLOW public raw-source redistribution findings; this registry does not treat App Store distribution rights as raw-source redistribution permission or legal clearance."
+  "owner_decisions": [
+    {
+      "asset_id": "fred-existing-12",
+      "decision": "ACCEPT_DOCUMENTED_RISK",
+      "owner_approved": true,
+      "reason": "On 2026-09-14 the owner explicitly approved ACCEPT_DOCUMENTED_RISK for fred-existing-12 and fred-existing-13 after being told that App Store distribution rights are confirmed but public raw-source redistribution rights are not independently documented."
+    },
+    {
+      "asset_id": "fred-existing-13",
+      "decision": "ACCEPT_DOCUMENTED_RISK",
+      "owner_approved": true,
+      "reason": "On 2026-09-14 the owner explicitly approved ACCEPT_DOCUMENTED_RISK for fred-existing-12 and fred-existing-13 after being told that App Store distribution rights are confirmed but public raw-source redistribution rights are not independently documented."
+    }
+  ],
+  "notes": "Build 11 registry reconciled against tracked creation history, project generation reports, exact asset hashes, live repository visibility, internal Core, Godot and the pinned Game Center plugin. The two owner-supplied music files retain separate YELLOW public raw-source redistribution findings with an explicit item-specific ACCEPT_DOCUMENTED_RISK direction; this registry does not treat the decision as license verification or legal clearance."
 }
