@@ -131,6 +131,8 @@ class StoreReadinessTests(unittest.TestCase):
             # This fictional media-only fixture is independent of Fred's live services.
             game["capabilities"].update(game_center=False,achievements=False,golden_eggs=False)
             gc["enabled"]=False
+            gc["leaderboards"]=[]
+            gc["achievements"]=[]
             game["updates"]["app_store_url"]="https://apps.apple.com/app/id1234567890"
             package["review_status"]="approved"; package["identity"].update(subtitle="A Real Game",copyright="2026 Fictional Studio",secondary_category="Family",content_rights_attested=True)
             package["creative_contract"]={"story_premise":"Restore a fictional garden.","player_role":"Garden keeper","main_objective":"Repair every path.","gameplay_truths":["Play 10 deterministic levels"],"visual_direction":"Original colorful shapes","owner_approved":True}

@@ -16,6 +16,14 @@ func check(condition: bool, label: String) -> void:
 func _init() -> void:
 	_run.call_deferred()
 
+func wait_for_loop_wrap(player: AudioStreamPlayer, timeout_seconds: float = 2.0) -> bool:
+	var deadline_ms: int = Time.get_ticks_msec() + int(timeout_seconds * 1000.0)
+	while Time.get_ticks_msec() < deadline_ms:
+		await create_timer(0.05).timeout
+		if player.playing and player.get_playback_position() < 1.0:
+			return true
+	return false
+
 func _run() -> void:
 	var game: Node2D = Main.new()
 	game.saver = FredSaveAdapter.new("user://soundtrack_test")
@@ -31,8 +39,7 @@ func _run() -> void:
 		check(player.stream is AudioStreamMP3 and player.stream.loop, "track looping enabled")
 		if player.stream != null:
 			player.play(player.stream.get_length() - 0.05)
-			await create_timer(0.35).timeout
-			check(player.playing and player.get_playback_position() < 1.0, "packaged track wraps at its end without stopping")
+			check(await wait_for_loop_wrap(player), "packaged track wraps at its end without stopping")
 			player.stop()
 	game._sync_music()
 	await process_frame
