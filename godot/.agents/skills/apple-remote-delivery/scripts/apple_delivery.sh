@@ -32,6 +32,12 @@ write_checkpoint() {
   python3 "$root/tools/release_checkpoint.py" record --root "$root" --commit "$commit" --mode "$gate"
 }
 
+codesign_entitlement_is_true() {
+  local app="$1"
+  local key="$2"
+  codesign -d --entitlements :- "$app" 2>/dev/null | python3 -c 'import plistlib, sys; payload = plistlib.loads(sys.stdin.buffer.read()); raise SystemExit(0 if payload.get(sys.argv[1]) is True else 1)' "$key"
+}
+
 check_mode="$mode"
 [[ "$check_mode" != prepare ]] || check_mode=preflight
 python3 "$root/tools/release_checkpoint.py" check --root "$root" --commit "$commit" --mode "$check_mode"
@@ -92,7 +98,7 @@ case "$mode" in
     [[ "$(plutil -extract CFBundleVersion raw "$plist")" == "$build" ]]
     [[ "$(plutil -extract ITSAppUsesNonExemptEncryption raw "$plist")" == "$encryption_declaration" ]]
     if [[ "$game_center" == true ]]; then
-      [[ "$(codesign -d --entitlements :- "$app" 2>/dev/null | plutil -extract 'com.apple.developer.game-center' raw -)" == true ]]
+      codesign_entitlement_is_true "$app" 'com.apple.developer.game-center'
     fi
     write_checkpoint archived
     echo "APPLE_ARCHIVE_PASS version=$version build=$build signed=true upload=false"
@@ -123,7 +129,7 @@ case "$mode" in
       [[ "$(plutil -extract CFBundleShortVersionString raw "$exported_app/Info.plist")" == "$version" ]]
       [[ "$(plutil -extract CFBundleVersion raw "$exported_app/Info.plist")" == "$build" ]]
       if [[ "$game_center" == true ]]; then
-        [[ "$(codesign -d --entitlements :- "$exported_app" 2>/dev/null | plutil -extract 'com.apple.developer.game-center' raw -)" == true ]] || {
+        codesign_entitlement_is_true "$exported_app" 'com.apple.developer.game-center' || {
           echo "APPLE_UPLOAD_STOP exported IPA lost Game Center entitlement"; exit 3;
         }
       fi

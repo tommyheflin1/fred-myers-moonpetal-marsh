@@ -1,5 +1,5 @@
 {
-  "process_version": "1.8.0-candidate.32",
+  "process_version": "1.8.0-candidate.33",
   "normalization": "CRLF-to-LF",
   "files": {
     ".agents/skills/app-privacy-policy/SKILL.md": "40e903f41490c8cedaf6c74d03de74cab39cff63216f3f442a45fedad652ab29",
@@ -9,7 +9,7 @@
     ".agents/skills/apple-remote-delivery/references/standard-release-process.md": "277bf7ca40945e74936e125f80640272ef0e6b353b6b71e52fe6ae24100c5ff3",
     ".agents/skills/apple-remote-delivery/references/troubleshooting.md": "1043096fd6b10563f1cca170fb3c56506f1e47023372bf7b8db6f5a2906e4d90",
     ".agents/skills/apple-remote-delivery/scripts/apple_api_upload.sh": "ec803c9a0ac500525fb22a15401e2340e6a1b8b6a804232e3974f455d413d61a",
-    ".agents/skills/apple-remote-delivery/scripts/apple_delivery.sh": "7289f32706f6ec8e9ff2dc33579de14c7ddb5fa63ea617723e633f7be6cf8a15",
+    ".agents/skills/apple-remote-delivery/scripts/apple_delivery.sh": "42e7b738b73c00a3fbfae604689c95f0df2ae46741421e1cf9b0ece4e0d83e84",
     ".agents/skills/apple-remote-delivery/scripts/apple_receipt_status.py": "1480c032658b8da4692b515a4b0812820c19d41623ec549edf9bf760dba1ee2e",
     ".agents/skills/apple-remote-delivery/scripts/apple_remote_doctor.sh": "64f297ed2b9265c3d0d9583b4df07311f9e703537d2b588c4890c06d1025295d",
     ".agents/skills/apple-remote-delivery/SKILL.md": "8a7d5977cb6eeb4d4a064e418b1507fb2724702c5a046257dae98c1d97e5d94a",
