@@ -103,6 +103,24 @@
       "reason": "The same replacement-build direction authorizes Build 12 internal TestFlight only. The exact-build discovery, consent, website and return flow must pass on a physical device before App Review."
     }
   ],
+  "accepted_rollout_defects": [
+    {
+      "decision_id": "fred-identity-publication-2026-09-14",
+      "exact_version": "1.1",
+      "exact_build": 12,
+      "exact_source_commit": "4ec15ae26a38a5dafd91409c6fd08a96c21df90b",
+      "apple_processed_build_id": "208e1f81-0ba8-4e58-adb2-5af068b290ba",
+      "app_review_submission_id": "1e210371-bfe9-4f2b-a0a9-893896253334",
+      "owner_approved": true,
+      "owner_decision_date": "2026-09-14",
+      "status": "open-owner-accepted-repair-deferred",
+      "defect_ids": ["FRED-GC-001", "FRED-EGG-001", "FRED-EGG-002"],
+      "evidence": "Owner reported that Golden Egg discovery and the hidden room worked, while the standard leaderboard omitted the Game Center name, Golden Egg did not obtain/apply that name, and Anonymous publication failed. The installed build was not stated, so this is owner-device observation rather than exact-Build-12 reproduction.",
+      "scope": "The owner accepted only these three Fred defects for the current rollout after Build 12 submission and deferred repair until the all-app completion milestone. Failed and unverified gates remain false; no other gate is waived.",
+      "app_owned_record": "docs/FRED_ACCEPTED_IDENTITY_PUBLICATION_DEFECTS_2026-09-14.md",
+      "shared_decision_record": "mobile-game-template/docs/FRED_ACCEPTED_IDENTITY_PUBLICATION_DEFECTS_2026-09-14.md"
+    }
+  ],
   "release_authorization": {
     "mode": "automatic",
     "owner_approved": true,
