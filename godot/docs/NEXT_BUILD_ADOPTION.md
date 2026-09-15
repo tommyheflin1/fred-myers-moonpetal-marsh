@@ -13,6 +13,8 @@ evidence that the pending migration or native-device defects are complete.
 - Branch: `codex/fred-game-center-identity`.
 - App-owned checkpoint before this record:
   `905af76a3627e779b024b3b90af76f5805c45818`.
+- Practical-standard record checkpoint before this scope correction:
+  `e11b4a1`.
 - Submitted Build 12 source remains
   `4ec15ae26a38a5dafd91409c6fd08a96c21df90b`; this documentation must not
   be represented as source for that immutable Apple artifact.
@@ -31,19 +33,27 @@ evidence that the pending migration or native-device defects are complete.
 ## Canonical standard and audit
 
 - Canonical harness commit:
-  `7d195b4ba21792a57e5621f14fbf90e788bf4cb3`.
-- Canonical process: `1.8.0-candidate.36`.
-- `docs/PRACTICAL_BUILD_STANDARD.md` and the locked Turbo-only exception are
-  central reference documents, not files to copy into Fred.
-- Canonical `tools/audit_process.py --root <fred-root>` run on 2026-09-15
-  returned `MIGRATION_REQUIRED` with no backbone errors. Five files require a
-  reviewed next-build migration:
+  `82729fd922efd4e0a5340b27a1d995776b42e698`.
+- Canonical process: `1.8.0-candidate.37`.
+- Harness authority is procedural and nonvisual only: common backend contracts,
+  integration validation, recordkeeping, and build/delivery procedure. Harness
+  adoption must not change Fred's gameplay, hidden solution, visuals, music,
+  menus, or player-facing screens; it must not generate or replace artwork.
+  App-specific configuration and exact owner approvals remain app-owned.
+- The candidate-36 canonical `tools/audit_process.py --root <fred-root>` run on
+  2026-09-15 returned `MIGRATION_REQUIRED` with no backbone errors and identified
+  five files for reviewed next-build migration:
   `docs/SHARED_BUILD_PROCESS.md`, `tools/audit_process.py`,
   `tools/privacy_policy.py`, `tools/store_readiness.py`, and
   `tools/backbone_contract.py`.
+- Candidate 37 is a procedural documentation correction. Per its checkpoint-reuse
+  rule, the audit/build was not restarted solely for this change. At the start of
+  Fred's next candidate, run one current canonical audit and review its actual
+  applicable implementation differences rather than treating the candidate-36
+  list as a fresh result.
 - Do not update `PROCESS_LOCK.json` merely to conceal differences. Review the
-  five diffs, migrate compatible changes, run app regressions, and rerun the
-  canonical audit before freezing the next candidate.
+  current audit's actual diffs, migrate compatible procedural changes, run app
+  regressions, and rerun the canonical audit before freezing the next candidate.
 
 ## Reused owner decisions
 
@@ -53,15 +63,17 @@ evidence that the pending migration or native-device defects are complete.
 | FRED-D02 | SETTLED | No unsolicited legal, policy, license or credits UI. Keep policies external through App Store links and preserve required bundled notices without adding a menu function. Reference canonical `docs/OWNER_LICENSE_PRESENTATION_DECISION.md`. Build 12 already removed the rejected Licenses control. |
 | FRED-D03 | SETTLED | Reuse owner music decision `FLINS-MUSIC-2026-09-14`. Preserve Fred-specific track hashes, audio integration/tests, and the separately accepted `fred-existing-12` and `fred-existing-13` provenance risks. Do not ask the generic commercial-use question again. |
 | FRED-D04 | SETTLED | Store materials are listing text, screenshots, icons and achievement art, not player data. Privacy must separately describe local saves/settings, Apple Game Center processing and optional consented Golden Egg website processing; do not invent a no-data claim or add collection. |
-| FRED-D05 | SETTLED | Preserve Fred's proven manual-signing, manual-export/altool `tools/release-ios` lane, profile name, bundle/team identity and existing Mac checkpoint. Do not switch uploaders, reset signing, or repeat a valid archive because documentation changed. |
+| FRED-D05 | SETTLED | Preserve Fred's app-specific configured manual-signing, manual-export/altool `tools/release-ios` lane, profile name, bundle/team identity and existing Mac checkpoint. This is Fred's historical exact configuration, not a general harness method or permission transferable to another app. Do not switch uploaders, reset signing, or repeat a valid archive because documentation changed. |
 | FRED-D06 | SETTLED | The owner accepted only `FRED-GC-001`, `FRED-EGG-001` and `FRED-EGG-002` for the submitted rollout, with repair deferred. Reference `docs/FRED_ACCEPTED_IDENTITY_PUBLICATION_DEFECTS_2026-09-14.md`. The acceptance is not passing evidence and does not transfer to a future build. |
 
 ## Next-build engineering work
 
-- `FRED-E01 / ENGINEERING_WORK`: review and adopt the five candidate-36 process
-  changes named by the audit, preserving Fred's game rules, Core pin, save/store
-  identities and native adapters. Rerun the app's regression suites and canonical
-  audit after migration.
+- `FRED-E01 / ENGINEERING_WORK`: at the next-build start, run the candidate-37
+  canonical audit once, review only applicable procedural implementation changes,
+  and preserve Fred's game rules, hidden solution, Core pin, save/store identities,
+  native adapters, visuals, music and menus. Rerun relevant regressions and the
+  canonical audit after the reviewed migration; do not adopt presentation changes
+  under harness authority.
 - `FRED-E02 / ENGINEERING_WORK`: repair and reproduce the three deferred identity
   and publication defects on a named physical-device build. Verify standard native
   leaderboard display name, Golden Egg provider-name flow, Anonymous publication,
