@@ -3,6 +3,12 @@
 Recorded: 2026-09-14  
 Status: OPEN / OWNER ACCEPTED / REPAIR DEFERRED
 
+Owner reaffirmed 2026-09-20: keep these issues locked as deferred, continue
+building the remaining apps, and perform the Fred repair and physical-device
+verification after all apps have been built. This reaffirmation changes no
+submitted binary, Apple release state, defect status, security requirement, or
+evidence field.
+
 This app-owned record applies the shared harness decision in
 `mobile-game-template/docs/FRED_ACCEPTED_IDENTITY_PUBLICATION_DEFECTS_2026-09-14.md`
 to Fred Myers: Moonpetal Marsh version 1.1, build 12, source commit
@@ -43,6 +49,10 @@ After the all-app milestone, diagnose native authentication/name delivery and
 normal leaderboard display independently from the discovery-only website flow.
 Then verify Public and Anonymous publication on a physical device against the
 deployed backend, recording the exact installed build and backend version.
+
+Run that deferred acceptance pass only on a newly named Fred candidate containing
+the repairs. It must not be recorded as Build 12 evidence, and the three issues
+remain open until the repaired exact build passes the applicable tests.
 
 Preserve discovery-only networking, explicit publication consent, Anonymous and
 Don't Post semantics, secure Game Center identity verification, and normal
