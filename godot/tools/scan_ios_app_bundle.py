@@ -45,6 +45,16 @@ def scan(project_root: Path, app: Path, stage: str) -> dict[str, object]:
         "CFBundleShortVersionString": game["marketing_version"],
         "CFBundleVersion": str(game["build_number"]),
     }
+    if "remote-notification" in info.get("UIBackgroundModes", []):
+        errors.append("notification background mode prohibited")
+    for manifest in app.rglob("Info.plist"):
+        try:
+            nested = plistlib.loads(manifest.read_bytes())
+            point = nested.get("NSExtension", {}).get("NSExtensionPointIdentifier", "")
+            if str(point).startswith("com.apple.usernotifications."):
+                errors.append("notification extension prohibited")
+        except (OSError, ValueError, plistlib.InvalidFileException):
+            errors.append("unreadable nested Info.plist")
     for key, value in expected.items():
         if str(info.get(key, "")) != str(value):
             errors.append(f"{key} mismatch")

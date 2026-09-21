@@ -98,9 +98,11 @@ def validate(root: Path, release: bool=False, verify_live: bool=False, purpose: 
     if purpose not in {"app-review", "internal-testflight"}: return ["invalid release purpose"]
     try: game,package,shots,game_center,audio=load(root)
     except (OSError,ValueError) as exc: return [f"package load failed: {exc}"]
+    from backbone_contract import local_only_release_approved
+    local_only = local_only_release_approved(root, game)
     if release:
         from backbone_contract import validate as validate_backbone
-        errors.extend("backbone: " + error for error in validate_backbone(root))
+        errors.extend("backbone: " + error for error in validate_backbone(root, purpose=purpose))
     identity=package.get("identity",{}); creative=package.get("creative_contract",{}); version=package.get("version",{})
     distribution=package.get("distribution",{}); compliance=package.get("compliance",{}); media=package.get("media",{})
     public_copy=package.get("public_copy_review",{})
@@ -188,6 +190,8 @@ def validate(root: Path, release: bool=False, verify_live: bool=False, purpose: 
         if release and contract.get("auth_protocol") in {None,"","unconfigured"}: errors.append("Golden Egg authentication protocol is not configured")
         if release:
             for field in ("website_contract_reviewed","game_center_identity_reviewed","privacy_consent_reviewed","production_endpoint_verified","physical_device_flow_reviewed"):
+                if local_only and field in {"website_contract_reviewed", "production_endpoint_verified", "physical_device_flow_reviewed"}:
+                    continue  # Offline local-hunt evidence substitutes only for deferred publication flow.
                 if golden.get(field) is not True and not device_check_deferred(package,game,f"golden_egg.{field}",purpose) and not website_check_deferred(package,game,f"golden_egg.{field}"): errors.append(f"Golden Egg {field} missing")
     updates=game.get("updates",{})
     if not isinstance(updates.get("enabled"),bool): errors.append("version enforcement enabled flag must be explicit")

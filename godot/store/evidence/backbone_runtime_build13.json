@@ -1,0 +1,98 @@
+{
+  "schema": "flins-backbone-runtime-result-v1",
+  "candidate": {
+    "game_id": "fred-myers",
+    "bundle_id": "com.flinsvault.fredmyers",
+    "marketing_version": "1.1",
+    "build_number": 13
+  },
+  "executed_at": "2026-09-20T00:00:00-06:00",
+  "environment": "Godot 4.7.1 Windows desktop test runner with test-specific local storage",
+  "suite_result": {
+    "suite_count": 49,
+    "failed_processes": 0,
+    "result_directory": "ephemeral isolated Windows APPDATA/LOCALAPPDATA per suite",
+    "note": "All 49 run_*.gd suites completed with zero failed processes against the Build 13 candidate in Godot 4.7.1. This record is not physical-device or Apple proof."
+  },
+  "scenario_groups": {
+    "network_independence": {
+      "status": "passed",
+      "test": "tests/run_discovery_only_network.gd",
+      "covers": [
+        "startup_zero_egg_requests",
+        "menu_zero_egg_requests",
+        "gameplay_zero_egg_requests",
+        "game_center_independent",
+        "native_leaderboard_independent",
+        "offline_gameplay",
+        "dns_failure_gameplay",
+        "http_404_gameplay",
+        "campaign_unavailable_gameplay",
+        "discovery_before_consent_before_network",
+        "timeout_nonblocking"
+      ]
+    },
+    "publication_and_restart": {
+      "status": "passed",
+      "test": "tests/run_golden_egg_public_name_review.gd",
+      "covers": [
+        "public_provider_name_only",
+        "anonymous_no_name",
+        "pending_restart_fresh_identity",
+        "account_switch_rejected",
+        "duplicate_idempotency",
+        "server_authoritative_rank",
+        "local_only_zero_requests_and_retries"
+      ]
+    },
+    "secure_storage": {
+      "status": "passed",
+      "test": "tests/run_golden_egg_secure_storage.gd",
+      "covers": [
+        "secure_storage"
+      ]
+    },
+    "achievement_replay": {
+      "status": "passed",
+      "test": "tests/run_game_center_adapter.gd",
+      "covers": [
+        "achievement_replay"
+      ]
+    },
+    "privacy_inventory": {
+      "status": "passed",
+      "test": "tests/test_privacy_reconciliation.py",
+      "covers": [
+        "privacy_inventory_matches"
+      ]
+    },
+    "title_legal_ui_absence": {
+      "status": "passed",
+      "test": "tests/run_notices_integration.gd",
+      "covers": [
+        "no_title_license_button",
+        "no_in_game_license_modal",
+        "required_notices_packaged"
+      ]
+    },
+    "pause_and_level_five_return": {
+      "status": "passed",
+      "test": "tests/run_pause_input_regression.gd and tests/run_golden_egg_render_boundaries.gd",
+      "covers": [
+        "pause_input",
+        "golden_egg_return_to_level_five"
+      ]
+    },
+    "native_game_center_navigation": {
+      "status": "passed",
+      "test": "tests/run_game_center_adapter.gd and tests/run_menu_lives_leaderboard.gd",
+      "covers": [
+        "provider_reported_player_name",
+        "sign_in_then_open_leaderboard",
+        "duplicate_native_presentation_blocked",
+        "native_close_clears_touch_state",
+        "home_returns_to_title"
+      ]
+    }
+  }
+}

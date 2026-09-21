@@ -64,8 +64,9 @@ Local evidence on 2026-09-20:
 
 - `tests/run_game_center_adapter.gd`: 55 passed, 0 failed.
 - `tests/run_menu_lives_leaderboard.gd`: 38 passed, 0 failed.
-- Full Godot sweep: every non-website test passed. The pre-existing Build 11/Build 12
-  Golden Egg website build-identity mismatch remains intentionally outside this repair.
+- The Build 13 candidate reports its actual build number to the already-existing
+  Golden Egg service contract. This release-identity correction does not claim the
+  separately deferred Golden Egg name/publication defects are fixed.
 - Python suite: 38 passed; the only failure is the expected source-bound release-evidence
   invalidation caused by this new repair. Evidence must be regenerated for a newly named
   candidate, never relabeled as Build 12 proof.

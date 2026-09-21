@@ -2,13 +2,13 @@
   "schema": "flins-custom-music-package-v1",
   "rights_reviewed": true,
   "runtime_mix_reviewed": true,
-  "runtime_mix_review_evidence": "Owner explicitly approved the music used by Fred. Build 12 retains the byte-identical Build 11 tracks and changes only the unwanted title Licenses UI. Automated Godot playback checks exercised both packaged tracks, screen routing, mute, background/foreground, loop wrap and teardown. This closes the owner/source mix-review gate while physical-device listening remains an observable TestFlight check rather than fabricated local evidence.",
+  "runtime_mix_review_evidence": "Owner explicitly approved the music used by Fred. Build 13 retains the byte-identical approved tracks while repairing the standard native Game Center leaderboard return flow. Automated Godot playback checks exercise both packaged tracks, screen routing, mute, background/foreground, loop wrap and teardown. This closes the owner/source mix-review gate while physical-device listening remains an observable TestFlight check rather than fabricated local evidence.",
   "loop_and_transition_tested": true,
   "loop_and_transition_evidence": "September 10, 2026: run_soundtrack_lifecycle.gd passed 28 assertions with the actual packaged MP3 streams and Godot 4.7.1 Dummy audio driver. Both tracks were started 50 ms before their decoded end and remained playing after wrap; all nine screen routes selected one track, mute/home transitions and background/foreground were checked. This is automated playback evidence, not physical-device listening or a claim of inaudible device-specific seams.",
   "owner_approved": true,
   "approval_evidence": {
     "date": "2026-09-10",
-    "scope": "Existing Fred 1.1 music retained unchanged in Build 12: The Marshland March and Marshland Chase",
+    "scope": "Existing Fred 1.1 music retained unchanged in Build 13: The Marshland March and Marshland Chase",
     "owner_statement": "MUSIC IS APPROVED; PRIVACY - VERIFY PRIVACY POLICY FOLLOW HARNESS GUIDELINES",
     "basis": "Owner confirmation in response to the specific commercial App Store music-rights question; not independent verification of a third-party license",
     "approved_file_sha256": {

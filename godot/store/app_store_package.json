@@ -26,13 +26,13 @@
     "description": "Take the leap into Moonpetal Marsh! Guide Fred through a 100-level touch-first adventure filled with lily pads, bugs, currents and marsh predators. Leap over danger, dive beneath surface hunters, munch nearby bugs and boost toward the Moonpetal Exit. Earn coins to unlock frog colors and hero gear, and watch for a helpful fairy every tenth level. Find the hidden Golden Egg and choose whether to share your Game Center player name on the website's hunt leaderboard, then return to the beginning of Level 5. Includes reduced-motion support and no advertising or in-app purchases.",
     "promotional_text": "Leap, dive, munch and boost through a moonlit marsh as Fred becomes the frog hero every little frog dreams about.",
     "keywords": ["frog", "marsh", "adventure", "lily pads", "animals", "family", "hero", "touch"],
-    "whats_new": "A golden surprise awaits in Moonpetal Marsh! Fred's superhero Golden Egg has a fresh shine. Find it and choose to share your Game Center name, post as Anonymous, or keep your find to yourself. Then hop back to the start of Level 5. We've also polished Pause and made sure a sleepy hunt website never interrupts your adventure.",
+    "whats_new": "Fred's marsh adventure is smoother than ever! The Game Center leaderboard now opens cleanly, shows the signed-in player identity, and returns you to the title when you tap Home. We've also tightened touch recovery after closing Game Center while keeping Pause, saves, music and the full 100-level journey intact.",
     "support_url": "https://theflinsappvaultllc.com/fred-myers/support",
     "marketing_url": "https://theflinsappvaultllc.com/",
     "privacy_url": "https://theflinsappvaultllc.com/fred-myers/privacy",
     "review_notes": "Touch the playfield to steer; use MUNCH, LEAP, BOOST, DIVE/SURFACE and PAUSE. EXIT returns to the title. A fairy appears every tenth level. The optional Golden Egg flow uses Game Center authentication, offers Public, Anonymous and Don't Post choices, and opens the Hunt website only after an explicit posting choice. Returning from the reveal starts Level 5 again. No advertising or in-app purchases. Exact-build Game Center authentication and the complete Golden Egg return flow remain listed for physical-device acceptance in TestFlight.",
-    "beta_description": "Build 12 removes the unwanted title Licenses UI and validates discovery-only Golden Egg website access, read-only Game Center name review, explicit Public/Anonymous/Don't post choices, secure credential migration, Game Center entitlement, Pause and existing marsh gameplay. Website outages must never block startup or core gameplay.",
-    "what_to_test": ["Fresh and upgrade launch without losing saves or cosmetics", "Zero website requests during launch, menu, play, saves, Game Center sign-in/native leaderboards and foreground, including an unavailable website", "Pause, background and foreground with touch held", "Game Center sign-in success, cancellation and recovery", "Golden Egg read-only name review, explicit Public or Anonymous posting, Don't post persistence without automatic retry, Anonymous revocation, saved-discovery recovery and Level 5 restart", "Return during a delayed name lookup; no later callback may publish the declined find", "The title contains no Licenses button or legal-notice modal", "Keychain migration and relaunch on a physical device", "Gameplay and audio on iPhone and iPad"],
+    "beta_description": "Build 13 repairs the standard native Game Center leaderboard flow: the signed-in player identity is displayed, sign-in intent continues into the leaderboard, duplicate presentation is blocked, native dismissal clears held touches, and Home returns to the title. Pause, saves, audio, offline play and existing marsh gameplay remain unchanged. Golden Egg website defects remain outside this repair and are still deferred by the owner.",
+    "what_to_test": ["Fresh and upgrade launch without losing saves or cosmetics", "From the title, tap LEADERBOARD while signed out; complete Game Center sign-in and confirm the native leaderboard opens without a second tap", "Confirm the title shows the provider-reported Game Center player name after sign-in", "Dismiss the native leaderboard, then tap Home and confirm the title is immediately interactive", "Repeatedly open and close the leaderboard; no duplicate controller, freeze, stuck overlay or held-touch movement", "Pause, background and foreground with touch held", "Game Center score submission and leaderboard display using the existing Fred leaderboard ID", "Zero website requests during launch, menu, play, saves, Game Center sign-in/native leaderboards and foreground", "The title contains no Licenses button or legal-notice modal", "Gameplay, audio and offline play on iPhone and iPad"],
     "release_mode": "automatic"
   },
   "distribution": {
@@ -50,7 +50,7 @@
     "age_rating_evidence": "2026-09-10 live App Store Connect questionnaire reviewed without edits: 9+ global, regional exceptions; infrequent fantasy violence and contests, no gambling/loot boxes, no mature/sexual/medical content, no messaging/ads/unrestricted web access; not Made for Kids.",
     "privacy_answers_reviewed": true,
     "export_compliance_reviewed": true,
-    "export_compliance_review_evidence": "September 10, 2026: inspected accepted version 1.1 Build 10 metadata in App Store Connect: Binary State Validated; App Uses Non-Exempt Encryption No. Preserved that established false declaration in the existing release configuration, consistent with the historical Fred export helper. Source inventory includes standard Godot TLS, authentication/HMAC, Keychain and public-signature verification; this does not claim OS-only encryption or absence of crypto. Generated and signed Build 12 artifacts must still match the declaration and privacy inventory; native verification remains pending.",
+    "export_compliance_review_evidence": "September 10, 2026: inspected accepted version 1.1 Build 10 metadata in App Store Connect: Binary State Validated; App Uses Non-Exempt Encryption No. Preserved that established false declaration in the existing release configuration, consistent with the historical Fred export helper. Source inventory includes standard Godot TLS, authentication/HMAC, Keychain and public-signature verification; this does not claim OS-only encryption or absence of crypto. Generated and signed Build 13 artifacts must still match the declaration and privacy inventory; native verification remains pending.",
     "accessibility_reviewed": true,
     "accessibility_review_evidence": "September 10, 2026 live Apple accessibility page reviewed: two unpublished iPhone/iPad drafts list Differentiate Without Color Alone and Sufficient Contrast; no Publish action taken. These are not verified device-support claims and must not be published without acceptance testing. No VoiceOver, Voice Control or Larger Text support is asserted by this review.",
     "game_center_records_reviewed": true,
@@ -82,25 +82,25 @@
       "gate": "game_center.on_device_authentication_tested",
       "owner_approved": true,
       "exact_version": "1.1",
-      "exact_build": 12,
+      "exact_build": 13,
       "deferred_until": "app-review",
-      "reason": "Owner explicitly directed the corrected replacement build to internal TestFlight after removing the title Licenses UI. Device authentication must be tested on Build 12 before App Review; evidence remains false until tested."
+      "reason": "Owner explicitly directed the Build 13 native leaderboard repair through the established Apple lane. Device authentication must be tested on exact Build 13 before App Review; evidence remains false until tested."
     },
     {
       "gate": "game_center.on_device_replay_tested",
       "owner_approved": true,
       "exact_version": "1.1",
-      "exact_build": 12,
+      "exact_build": 13,
       "deferred_until": "app-review",
-      "reason": "The same replacement-build direction authorizes Build 12 internal TestFlight only. Device score replay remains mandatory before App Review; no other gate is waived."
+      "reason": "The same Build 13 direction authorizes internal TestFlight only. Device score replay remains mandatory before App Review; no other gate is waived."
     },
     {
       "gate": "golden_egg.physical_device_flow_reviewed",
       "owner_approved": true,
       "exact_version": "1.1",
-      "exact_build": 12,
+      "exact_build": 13,
       "deferred_until": "app-review",
-      "reason": "The same replacement-build direction authorizes Build 12 internal TestFlight only. The exact-build discovery, consent, website and return flow must pass on a physical device before App Review."
+      "reason": "The owner explicitly deferred Golden Egg website repairs while requesting the independent native leaderboard fix. Exact Build 13 Golden Egg discovery, consent, website and return flow remains mandatory before App Review and is not represented as fixed."
     }
   ],
   "accepted_rollout_defects": [
@@ -113,10 +113,10 @@
       "app_review_submission_id": "1e210371-bfe9-4f2b-a0a9-893896253334",
       "owner_approved": true,
       "owner_decision_date": "2026-09-14",
-      "status": "open-owner-accepted-repair-deferred",
+      "status": "native-leaderboard-repaired-next-candidate-device-verification-pending",
       "defect_ids": ["FRED-GC-001", "FRED-EGG-001", "FRED-EGG-002"],
       "evidence": "Owner reported that Golden Egg discovery and the hidden room worked, while the standard leaderboard omitted the Game Center name, Golden Egg did not obtain/apply that name, and Anonymous publication failed. The installed build was not stated, so this is owner-device observation rather than exact-Build-12 reproduction.",
-      "scope": "The owner accepted only these three Fred defects for the current rollout after Build 12 submission and deferred repair until the all-app completion milestone. Failed and unverified gates remain false; no other gate is waived.",
+      "scope": "FRED-GC-001 has a source-level repair in the Build 13 candidate and still requires exact-build device verification. FRED-EGG-001 and FRED-EGG-002 remain owner-deferred. Failed and unverified gates remain false; no other gate is waived.",
       "app_owned_record": "docs/FRED_ACCEPTED_IDENTITY_PUBLICATION_DEFECTS_2026-09-14.md",
       "shared_decision_record": "mobile-game-template/docs/FRED_ACCEPTED_IDENTITY_PUBLICATION_DEFECTS_2026-09-14.md"
     }
@@ -125,16 +125,16 @@
     "mode": "automatic",
     "owner_approved": true,
     "exact_version": "1.1",
-    "exact_build": 12,
-    "reason": "Owner explicitly requested the corrected replacement Build 12 be tested and submitted after removal of the unwanted title Licenses UI. Preserve the existing App Store Connect automatically-release-after-approval and release-to-all selections. This does not waive readiness or device gates."
+    "exact_build": 13,
+    "reason": "Owner explicitly requested the completed native leaderboard/Home repair be tested, uploaded and submitted as the latest Fred update. Preserve the existing App Store Connect automatically-release-after-approval and release-to-all selections. This does not waive readiness or device gates."
   },
   "media": {
     "app_icon": "assets/store/app-icon-1024.png",
     "screenshots_manifest": "store/screenshots.json",
     "exact_version": "1.1",
-    "exact_build": 12,
+    "exact_build": 13,
     "visual_owner_reviewed": true,
-    "visual_owner_review_evidence": "The owner approved the existing Build 11 screenshot bytes, then visually rejected only the title Licenses UI and directed its removal for Build 12. The registered App Store screenshots are gameplay-only, unchanged by this title-only correction, and do not show the removed control. Screenshot file/hash registration and capture-commit validation remain required.",
-    "testing_authorization_evidence": "Owner explicitly authorized the corrected Build 12 for internal testing and submission. Exact-build device checks remain unverified until performed."
+    "visual_owner_review_evidence": "The owner approved the existing gameplay screenshot bytes. Build 13 changes only the native leaderboard presentation/return path and title identity label; the registered screenshots are gameplay-only, remain byte-identical, and do not depict the changed native controller. Screenshot file/hash registration and capture-commit validation remain required.",
+    "testing_authorization_evidence": "Owner explicitly authorized Build 13 for internal testing and Apple submission. Exact-build device checks remain unverified until performed."
   }
 }

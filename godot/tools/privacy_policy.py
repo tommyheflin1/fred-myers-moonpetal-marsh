@@ -23,7 +23,12 @@ def validate(game: dict, require_approved: bool = False) -> list[str]:
     for field in ("game_center", "golden_eggs"):
         if bool(privacy.get(field)) != bool(capabilities.get(field)): errors.append(f"privacy {field} differs from enabled capability")
     remote=privacy.get("remote_data",{})
-    expected={"game_center_user_id":bool(capabilities.get("game_center")),"game_center_display_name":bool(capabilities.get("golden_eggs")),"golden_egg_discovery":bool(capabilities.get("golden_eggs"))}
+    publishing=game.get("integrations",{}).get("golden_eggs",{}).get("publishing_enabled",True)
+    if type(publishing) is not bool: errors.append("Golden Egg publishing flag must be boolean")
+    # Local discovery is not website collection. Native Game Center remains a
+    # separate service; this inventory correction never grants a release waiver.
+    hunt_collection=bool(capabilities.get("golden_eggs")) and publishing is not False
+    expected={"game_center_user_id":bool(capabilities.get("game_center")),"game_center_display_name":hunt_collection,"golden_egg_discovery":hunt_collection}
     for field,collected in expected.items():
         item=remote.get(field,{})
         if item.get("collected") is not collected or item.get("linked_to_user") is not collected: errors.append(f"privacy remote data {field} collection/linkage mismatch")

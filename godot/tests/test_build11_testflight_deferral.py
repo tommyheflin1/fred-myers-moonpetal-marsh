@@ -10,7 +10,7 @@ READINESS = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(READINESS)
 
 
-class TestBuild12Deferral(unittest.TestCase):
+class TestBuild13Deferral(unittest.TestCase):
     def setUp(self):
         self.game = json.loads((ROOT / "game/game.json").read_text())
         self.package = json.loads((ROOT / "store/app_store_package.json").read_text())
@@ -22,7 +22,7 @@ class TestBuild12Deferral(unittest.TestCase):
             self.assertFalse(READINESS.device_check_deferred(self.package, self.game, gate, "app-review"))
 
     def test_approval_cannot_transfer_to_another_build_or_version(self):
-        for change in ({"build_number": 13}, {"marketing_version": "1.2"}):
+        for change in ({"build_number": 14}, {"marketing_version": "1.2"}):
             for gate in READINESS.DEVICE_DEFERRABLE_GATES:
                 self.assertFalse(READINESS.device_check_deferred(self.package, self.game | change, gate, "internal-testflight"))
 

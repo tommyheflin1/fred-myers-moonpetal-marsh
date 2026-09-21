@@ -2,6 +2,7 @@ class_name PlatformGamingService
 extends Node
 
 signal sign_in_completed(result: Dictionary)
+signal leaderboard_closed
 
 const SIGN_IN_TIMEOUT_SECONDS := 30.0
 const EventPump = preload("res://addons/mobile_game_core/online/native_event_pump.gd")
@@ -18,6 +19,7 @@ var team_player_id := ""
 var game_player_id := ""
 var display_name := ""
 var score_submission_allowed := false
+var leaderboard_presenting := false
 
 
 func configure(configured_provider: String, configured_leaderboards: Dictionary, configured_achievement_prefix: String, plugin_override: Object = null) -> bool:
@@ -37,6 +39,7 @@ func configure(configured_provider: String, configured_leaderboards: Dictionary,
         state = "unavailable"
         return false
     score_submission_allowed = plugin_override != null or not OS.is_debug_build()
+    leaderboard_presenting = false
     state = "ready"
     return true
 
@@ -52,9 +55,17 @@ func submit_score(board: String, score: int) -> bool:
 
 
 func open_leaderboard(board: String) -> bool:
-    if not is_available() or not leaderboard_ids.has(board) or not bool(plugin.call("is_authenticated")) or not plugin.has_method("show_game_center"):
+    if not can_open_leaderboard(board):
         return false
-    return int(plugin.call("show_game_center", {"view": "leaderboards", "leaderboard_name": str(leaderboard_ids[board])})) == OK
+    var error := int(plugin.call("show_game_center", {"view": "leaderboards", "leaderboard_name": str(leaderboard_ids[board])}))
+    if error != OK:
+        return false
+    leaderboard_presenting = true
+    return true
+
+
+func can_open_leaderboard(board: String) -> bool:
+    return is_available() and leaderboard_ids.has(board) and bool(plugin.call("is_authenticated")) and plugin.has_method("show_game_center") and not leaderboard_presenting
 
 
 func submit_achievement(achievement_id: String, progress: float = 100.0, show_banner: bool = true) -> bool:
@@ -103,6 +114,11 @@ func _process(delta: float) -> void:
 
 func _handle_event(event: Dictionary) -> void:
     var event_type := str(event.get("type", ""))
+    if event_type == "show_game_center":
+        if leaderboard_presenting:
+            leaderboard_presenting = false
+            leaderboard_closed.emit()
+        return
     if event_type == "authentication" and state == "authenticating":
         if str(event.get("result", "")) != "ok" or str(event.get("player_id", "")).is_empty():
             _finish({"ok": false, "error": "platform_auth_failed", "error_code": int(event.get("error_code", 0))})

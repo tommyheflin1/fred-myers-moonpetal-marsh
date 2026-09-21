@@ -1,9 +1,33 @@
 # Versioned development-to-Apple process
 
-Process 1.8 candidate 32, reviewed 2026-09-14. This is a shared operating contract,
+Process 1.8 candidate 41, reviewed 2026-09-20. This is a shared operating contract,
 not a production monorepo or permission to change released apps.
 
+Use `docs/PRACTICAL_BUILD_STANDARD.md` for checkpoint reuse, historical Apple
+recoveries, independent Game Center, consistent data inventory and asset records.
+Candidate 37 removes app-specific exception references from the common procedure
+and explicitly limits harness authority to procedural, nonvisual shared functionality.
+Actual release gates remain; game presentation and content are not harness-owned.
+
 ## Development and reuse
+
+Candidate 41 records the native Game Center presentation-close contract in the
+locked shared adapter and event-pump documentation. A native `show_game_center`
+callback, not application pause/resume timing, releases the presentation guard;
+adopting apps still own their screen navigation and device acceptance evidence.
+
+Candidate 40 adds the owner's exact Snake 1.4 (11) internal-TestFlight-only
+pending-public privacy-copy exception, with bound owner decision and remaining
+inventory evidence. Default/App Review fails closed. See the reference-only
+`docs/SNAKE_INTERNAL_TESTFLIGHT_PRIVACY_COPY_DECISION.md`. No website/runtime change.
+
+Candidate 39 reconciles the standing defect deferral only for exact TurboRack
+1.2 (4), with a fresh hash-bound local-hunt run receipt and no native-device waiver.
+See `docs/TURBORACK_BUILD4_DEFERRAL_RECONCILIATION.md` for app-owned adoption.
+
+Candidate 38 adds the no-notifications source/config audit and bundle tripwires.
+Read `docs/OWNER_NO_NOTIFICATIONS_DECISION.md`; no app notifications are permitted.
+Static checks do not replace dependency, entitlement and physical-device review.
 
 Read `docs/OWNER_WEBSITE_CONTACT_DECISION.md` before website integration work or an
 owner approval question. It records the latest discovery-only contact instruction
@@ -121,6 +145,19 @@ without source-tree/archive hashes need a reviewed migration or a new candidate;
 fabricate missing provenance. Never rerun preflight over a preserved signed archive.
 
 ## Stable change processing
+
+Candidate 35 separates local Golden Egg capability from website collection in the
+privacy inventory. Explicitly disabled publishing requires no Hunt display-name
+or discovery collection claim; native Game Center remains separately disclosed.
+This truthful inventory correction does not waive the backbone release contract
+or authorize disabled publishing for another app/build. Consent and no-tracking
+constraints remain in force, including before any future reactivation.
+
+Candidate 34 implements an exact owner-approved app/build local-only publication
+exception. Historical decisions remain app-scoped records, not shared procedure.
+It requires current hash-bound local-hunt evidence and truthful deferred online
+records. It does not waive native identity, privacy, security, media or Apple
+delivery gates, or change other apps' default online contract.
 
 Candidate 32 distinguishes tracked review evidence from production assets. Files under
 `docs/evidence/` remain documentation and are excluded from the production provenance

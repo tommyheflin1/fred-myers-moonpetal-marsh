@@ -3,15 +3,15 @@
   "game_id": "fred-myers",
   "bundle_id": "com.flinsvault.fredmyers",
   "marketing_version": "1.1",
-  "build_number": 12,
+  "build_number": 13,
   "contract_sha256": "638df504f3d870d5c990e7a87040be71f9e3191034176c08c6a7391cdd343292",
   "review_status": "approved",
   "review_boundary": "Source-bound automated runtime and backend evidence plus direct production safe-path checks. Installed-device Game Center, real-player posting and Apple delivery remain separate gates.",
   "source_files": {
-    "game/game.json": "703177b120119515fe5488db85900c82949fee516dd6997fc2837fb28b59f8b9",
-    "scripts/main.gd": "9bf591a741587f3a6760958e0ea9e55c3d6ffc8f566ecd15d08e47d791d6decb",
-    "scripts/game_center_adapter.gd": "544ea3f8c4a47cdace35bd42f97038dce194ad32c6603981db0b23c29af1c3f5",
-    "scripts/golden_egg_service.gd": "2440f29b1acd49b7cbdc8685213962dffd3c93629505e25245fc640354b5b1c8",
+    "game/game.json": "a3dffbba8c28419ac922fed1e49a630649be0e854cc7fab5a12ebbeb9eeb7b7b",
+    "scripts/main.gd": "70069e9b09ad7be6d12085e57c90da0d9a6c14b427fc5272f7e7a8793646b69a",
+    "scripts/game_center_adapter.gd": "13e4412bb4a2cf09172650b2c8880e05962853a7c290d2bb778b0871e80564db",
+    "scripts/golden_egg_service.gd": "47bac1fc92d4a24e069d1903a028755f6c1c31e95ad61222e2c8f8c3e3c6d152",
     "scripts/golden_egg_network_bridge.gd": "5158bece4e3bb45ccf4cfcee7f66044f85fdf6f2bf95e5cf042c253752a7b0d0",
     "addons/mobile_game_core/online/golden_egg_secure_store.gd": "9d74ca4af1de5c535a12be0b09e24af6638a938e61572ced86cc98c7687b890a",
     "scripts/golden_egg_client.gd": "a06236bc26f4f090d8841d1af0845d6435a335ccde7ced4e67c2617590494b3e",
@@ -19,48 +19,198 @@
     "tests/run_discovery_only_network.gd": "2c87d4af8712bb43f1e48593ae6f30bbeae46f4d2a271078a0c6471964b22390",
     "tests/run_golden_egg_public_name_review.gd": "be2c70122642ee71e1e4888598ea5deb716e35340c1183adac013a21e3326ff3",
     "tests/run_golden_egg_secure_storage.gd": "720c323180b4951e634b187d3625d8cde50db09c7540592dce2ce9bd7fef4bdd",
-    "tests/run_game_center_adapter.gd": "14cc1bd200831a6a5266556aad429af523561340d1cfbba05b7e8be99a2303c5",
+    "tests/run_game_center_adapter.gd": "4ccbea00cb369133c446e0a355563d7836cdda369f5dcfecc8fa7b837033f53a",
     "tests/test_privacy_reconciliation.py": "5a636bdeea7ccb15fd0ebd61b8d72db46415f9ed4c9057477fe348a39a28f4a6",
-    "store/evidence/backbone_runtime_build12.json": "228a40d9430d498c6a7b1637c2650f585cf953923f84b242f31066ca0626247e",
-    "store/evidence/backbone_backend_build11.json": "26eca9662ca7d5c605f240dbfdcfe661827b2f654055868c9b91111a5b608fee"
+    "store/evidence/backbone_backend_build11.json": "26eca9662ca7d5c605f240dbfdcfe661827b2f654055868c9b91111a5b608fee",
+    "store/evidence/backbone_runtime_build13.json": "78133d17b81f29ecf1bf21e195bcf7e76dab8343e9dd782b561c05ba58cc7b27"
   },
   "runtime": {
-    "startup_zero_egg_requests": {"status": "passed", "test": "tests/run_discovery_only_network.gd", "result": "store/evidence/backbone_runtime_build12.json"},
-    "menu_zero_egg_requests": {"status": "passed", "test": "tests/run_discovery_only_network.gd", "result": "store/evidence/backbone_runtime_build12.json"},
-    "gameplay_zero_egg_requests": {"status": "passed", "test": "tests/run_discovery_only_network.gd", "result": "store/evidence/backbone_runtime_build12.json"},
-    "game_center_independent": {"status": "passed", "test": "tests/run_discovery_only_network.gd", "result": "store/evidence/backbone_runtime_build12.json"},
-    "native_leaderboard_independent": {"status": "passed", "test": "tests/run_discovery_only_network.gd", "result": "store/evidence/backbone_runtime_build12.json"},
-    "achievement_replay": {"status": "passed", "test": "tests/run_game_center_adapter.gd", "result": "store/evidence/backbone_runtime_build12.json"},
-    "offline_gameplay": {"status": "passed", "test": "tests/run_discovery_only_network.gd", "result": "store/evidence/backbone_runtime_build12.json"},
-    "dns_failure_gameplay": {"status": "passed", "test": "tests/run_discovery_only_network.gd", "result": "store/evidence/backbone_runtime_build12.json"},
-    "http_404_gameplay": {"status": "passed", "test": "tests/run_discovery_only_network.gd", "result": "store/evidence/backbone_runtime_build12.json"},
-    "campaign_unavailable_gameplay": {"status": "passed", "test": "tests/run_discovery_only_network.gd", "result": "store/evidence/backbone_runtime_build12.json"},
-    "discovery_before_consent_before_network": {"status": "passed", "test": "tests/run_discovery_only_network.gd", "result": "store/evidence/backbone_runtime_build12.json"},
-    "public_provider_name_only": {"status": "passed", "test": "tests/run_golden_egg_public_name_review.gd", "result": "store/evidence/backbone_runtime_build12.json"},
-    "anonymous_no_name": {"status": "passed", "test": "tests/run_golden_egg_public_name_review.gd", "result": "store/evidence/backbone_runtime_build12.json"},
-    "pending_restart_fresh_identity": {"status": "passed", "test": "tests/run_golden_egg_public_name_review.gd", "result": "store/evidence/backbone_runtime_build12.json"},
-    "account_switch_rejected": {"status": "passed", "test": "tests/run_golden_egg_public_name_review.gd", "result": "store/evidence/backbone_runtime_build12.json"},
-    "duplicate_idempotency": {"status": "passed", "test": "tests/run_golden_egg_public_name_review.gd", "result": "store/evidence/backbone_runtime_build12.json"},
-    "server_authoritative_rank": {"status": "passed", "test": "tests/run_golden_egg_public_name_review.gd", "result": "store/evidence/backbone_runtime_build12.json"},
-    "secure_storage": {"status": "passed", "test": "tests/run_golden_egg_secure_storage.gd", "result": "store/evidence/backbone_runtime_build12.json"},
-    "timeout_nonblocking": {"status": "passed", "test": "tests/run_discovery_only_network.gd", "result": "store/evidence/backbone_runtime_build12.json"},
-    "privacy_inventory_matches": {"status": "passed", "test": "tests/test_privacy_reconciliation.py", "result": "store/evidence/backbone_runtime_build12.json"},
-    "local_only_zero_requests_and_retries": {"status": "passed", "test": "tests/run_golden_egg_public_name_review.gd", "result": "store/evidence/backbone_runtime_build12.json"}
+    "startup_zero_egg_requests": {
+      "status": "passed",
+      "test": "tests/run_discovery_only_network.gd",
+      "result": "store/evidence/backbone_runtime_build13.json"
+    },
+    "menu_zero_egg_requests": {
+      "status": "passed",
+      "test": "tests/run_discovery_only_network.gd",
+      "result": "store/evidence/backbone_runtime_build13.json"
+    },
+    "gameplay_zero_egg_requests": {
+      "status": "passed",
+      "test": "tests/run_discovery_only_network.gd",
+      "result": "store/evidence/backbone_runtime_build13.json"
+    },
+    "game_center_independent": {
+      "status": "passed",
+      "test": "tests/run_discovery_only_network.gd",
+      "result": "store/evidence/backbone_runtime_build13.json"
+    },
+    "native_leaderboard_independent": {
+      "status": "passed",
+      "test": "tests/run_discovery_only_network.gd",
+      "result": "store/evidence/backbone_runtime_build13.json"
+    },
+    "achievement_replay": {
+      "status": "passed",
+      "test": "tests/run_game_center_adapter.gd",
+      "result": "store/evidence/backbone_runtime_build13.json"
+    },
+    "offline_gameplay": {
+      "status": "passed",
+      "test": "tests/run_discovery_only_network.gd",
+      "result": "store/evidence/backbone_runtime_build13.json"
+    },
+    "dns_failure_gameplay": {
+      "status": "passed",
+      "test": "tests/run_discovery_only_network.gd",
+      "result": "store/evidence/backbone_runtime_build13.json"
+    },
+    "http_404_gameplay": {
+      "status": "passed",
+      "test": "tests/run_discovery_only_network.gd",
+      "result": "store/evidence/backbone_runtime_build13.json"
+    },
+    "campaign_unavailable_gameplay": {
+      "status": "passed",
+      "test": "tests/run_discovery_only_network.gd",
+      "result": "store/evidence/backbone_runtime_build13.json"
+    },
+    "discovery_before_consent_before_network": {
+      "status": "passed",
+      "test": "tests/run_discovery_only_network.gd",
+      "result": "store/evidence/backbone_runtime_build13.json"
+    },
+    "public_provider_name_only": {
+      "status": "passed",
+      "test": "tests/run_golden_egg_public_name_review.gd",
+      "result": "store/evidence/backbone_runtime_build13.json"
+    },
+    "anonymous_no_name": {
+      "status": "passed",
+      "test": "tests/run_golden_egg_public_name_review.gd",
+      "result": "store/evidence/backbone_runtime_build13.json"
+    },
+    "pending_restart_fresh_identity": {
+      "status": "passed",
+      "test": "tests/run_golden_egg_public_name_review.gd",
+      "result": "store/evidence/backbone_runtime_build13.json"
+    },
+    "account_switch_rejected": {
+      "status": "passed",
+      "test": "tests/run_golden_egg_public_name_review.gd",
+      "result": "store/evidence/backbone_runtime_build13.json"
+    },
+    "duplicate_idempotency": {
+      "status": "passed",
+      "test": "tests/run_golden_egg_public_name_review.gd",
+      "result": "store/evidence/backbone_runtime_build13.json"
+    },
+    "server_authoritative_rank": {
+      "status": "passed",
+      "test": "tests/run_golden_egg_public_name_review.gd",
+      "result": "store/evidence/backbone_runtime_build13.json"
+    },
+    "secure_storage": {
+      "status": "passed",
+      "test": "tests/run_golden_egg_secure_storage.gd",
+      "result": "store/evidence/backbone_runtime_build13.json"
+    },
+    "timeout_nonblocking": {
+      "status": "passed",
+      "test": "tests/run_discovery_only_network.gd",
+      "result": "store/evidence/backbone_runtime_build13.json"
+    },
+    "privacy_inventory_matches": {
+      "status": "passed",
+      "test": "tests/test_privacy_reconciliation.py",
+      "result": "store/evidence/backbone_runtime_build13.json"
+    },
+    "local_only_zero_requests_and_retries": {
+      "status": "passed",
+      "test": "tests/run_golden_egg_public_name_review.gd",
+      "result": "store/evidence/backbone_runtime_build13.json"
+    },
+    "provider_reported_player_name": {
+      "status": "passed",
+      "test": "tests/run_game_center_adapter.gd",
+      "result": "store/evidence/backbone_runtime_build13.json"
+    },
+    "native_leaderboard_return": {
+      "status": "passed",
+      "test": "tests/run_menu_lives_leaderboard.gd",
+      "result": "store/evidence/backbone_runtime_build13.json"
+    }
   },
   "backend": {
-    "apple_signature_app_binding": {"status": "passed", "test": "store/evidence/backbone_backend_build11.json", "result": "store/evidence/backbone_backend_build11.json"},
-    "expired_proof_rejected": {"status": "passed", "test": "store/evidence/backbone_backend_build11.json", "result": "store/evidence/backbone_backend_build11.json"},
-    "replayed_proof_rejected": {"status": "passed", "test": "store/evidence/backbone_backend_build11.json", "result": "store/evidence/backbone_backend_build11.json"},
-    "atomic_identity_binding": {"status": "passed", "test": "store/evidence/backbone_backend_build11.json", "result": "store/evidence/backbone_backend_build11.json"},
-    "idempotency_unique_constraint": {"status": "passed", "test": "store/evidence/backbone_backend_build11.json", "result": "store/evidence/backbone_backend_build11.json"},
-    "concurrent_rank_assignment": {"status": "passed", "test": "store/evidence/backbone_backend_build11.json", "result": "store/evidence/backbone_backend_build11.json"},
-    "server_validates_discovery": {"status": "passed", "test": "store/evidence/backbone_backend_build11.json", "result": "store/evidence/backbone_backend_build11.json"},
-    "public_dto_redaction": {"status": "passed", "test": "store/evidence/backbone_backend_build11.json", "result": "store/evidence/backbone_backend_build11.json"},
-    "consent_revocation": {"status": "passed", "test": "store/evidence/backbone_backend_build11.json", "result": "store/evidence/backbone_backend_build11.json"},
-    "rate_limit": {"status": "passed", "test": "store/evidence/backbone_backend_build11.json", "result": "store/evidence/backbone_backend_build11.json"},
-    "cross_app_isolation": {"status": "passed", "test": "store/evidence/backbone_backend_build11.json", "result": "store/evidence/backbone_backend_build11.json"},
-    "no_client_secrets": {"status": "passed", "test": "store/evidence/backbone_backend_build11.json", "result": "store/evidence/backbone_backend_build11.json"},
-    "pending_records_not_public": {"status": "passed", "test": "store/evidence/backbone_backend_build11.json", "result": "store/evidence/backbone_backend_build11.json"},
-    "no_legacy_typed_name_fallback": {"status": "passed", "test": "store/evidence/backbone_backend_build11.json", "result": "store/evidence/backbone_backend_build11.json"}
+    "apple_signature_app_binding": {
+      "status": "passed",
+      "test": "store/evidence/backbone_backend_build11.json",
+      "result": "store/evidence/backbone_backend_build11.json"
+    },
+    "expired_proof_rejected": {
+      "status": "passed",
+      "test": "store/evidence/backbone_backend_build11.json",
+      "result": "store/evidence/backbone_backend_build11.json"
+    },
+    "replayed_proof_rejected": {
+      "status": "passed",
+      "test": "store/evidence/backbone_backend_build11.json",
+      "result": "store/evidence/backbone_backend_build11.json"
+    },
+    "atomic_identity_binding": {
+      "status": "passed",
+      "test": "store/evidence/backbone_backend_build11.json",
+      "result": "store/evidence/backbone_backend_build11.json"
+    },
+    "idempotency_unique_constraint": {
+      "status": "passed",
+      "test": "store/evidence/backbone_backend_build11.json",
+      "result": "store/evidence/backbone_backend_build11.json"
+    },
+    "concurrent_rank_assignment": {
+      "status": "passed",
+      "test": "store/evidence/backbone_backend_build11.json",
+      "result": "store/evidence/backbone_backend_build11.json"
+    },
+    "server_validates_discovery": {
+      "status": "passed",
+      "test": "store/evidence/backbone_backend_build11.json",
+      "result": "store/evidence/backbone_backend_build11.json"
+    },
+    "public_dto_redaction": {
+      "status": "passed",
+      "test": "store/evidence/backbone_backend_build11.json",
+      "result": "store/evidence/backbone_backend_build11.json"
+    },
+    "consent_revocation": {
+      "status": "passed",
+      "test": "store/evidence/backbone_backend_build11.json",
+      "result": "store/evidence/backbone_backend_build11.json"
+    },
+    "rate_limit": {
+      "status": "passed",
+      "test": "store/evidence/backbone_backend_build11.json",
+      "result": "store/evidence/backbone_backend_build11.json"
+    },
+    "cross_app_isolation": {
+      "status": "passed",
+      "test": "store/evidence/backbone_backend_build11.json",
+      "result": "store/evidence/backbone_backend_build11.json"
+    },
+    "no_client_secrets": {
+      "status": "passed",
+      "test": "store/evidence/backbone_backend_build11.json",
+      "result": "store/evidence/backbone_backend_build11.json"
+    },
+    "pending_records_not_public": {
+      "status": "passed",
+      "test": "store/evidence/backbone_backend_build11.json",
+      "result": "store/evidence/backbone_backend_build11.json"
+    },
+    "no_legacy_typed_name_fallback": {
+      "status": "passed",
+      "test": "store/evidence/backbone_backend_build11.json",
+      "result": "store/evidence/backbone_backend_build11.json"
+    }
   }
 }

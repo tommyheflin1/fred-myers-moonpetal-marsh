@@ -7,6 +7,7 @@ import json
 from pathlib import Path
 import subprocess
 from backbone_contract import validate as validate_backbone
+from notification_policy import validate as validate_notifications
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -20,6 +21,9 @@ def digest(path: Path) -> str:
 def audit(root: Path, reference: Path = ROOT) -> dict:
     lock = json.loads((reference / "PROCESS_LOCK.json").read_text(encoding="utf-8"))
     failures = []
+    reference_only = lock.get("reference_only_files", [])
+    if any(p not in lock["files"] or not p.startswith("docs/") or not p.endswith(".md") for p in reference_only):
+        raise ValueError("reference-only entries must be locked documentation")
     for relative, expected in lock["files"].items():
         path = Path(relative)
         if path.is_absolute() or ".." in path.parts or ":" in relative or "\\" in relative:
@@ -28,6 +32,8 @@ def audit(root: Path, reference: Path = ROOT) -> dict:
         target = root / path
         if not source.is_file() or digest(source) != expected:
             failures.append({"file": relative, "reason": "reference-lock-stale"})
+        elif relative in reference_only and root.resolve() != reference.resolve():
+            continue
         elif not target.is_file():
             failures.append({"file": relative, "reason": "missing"})
         elif digest(target) != expected:
@@ -39,6 +45,7 @@ def audit(root: Path, reference: Path = ROOT) -> dict:
                 failures.append({"file": "game/game.json", "reason": f"missing-{key}"})
     except (OSError, ValueError):
         failures.append({"file": "game/game.json", "reason": "identity-adapter-required"})
+    failures.extend({"file": "notification-policy", "reason": error} for error in validate_notifications(root))
     result = subprocess.run(
         ["git", "-c", f"safe.directory={root.as_posix()}", "-C", str(root), "rev-parse", "HEAD"],
         capture_output=True,
@@ -47,6 +54,7 @@ def audit(root: Path, reference: Path = ROOT) -> dict:
     return {"app": root.name, "path": str(root), "process_version": lock["process_version"],
             "source_commit": result.stdout.strip() if result.returncode == 0 else None,
             "status": "MATCH" if not failures else "MIGRATION_REQUIRED", "differences": failures,
+            "reference_only_documents": reference_only,
             "backbone_errors": validate_backbone(root, reference),
             "runtime_verified": False, "apple_verified": False}
 
