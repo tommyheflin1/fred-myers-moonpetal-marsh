@@ -90,6 +90,13 @@ evidence that the pending migration or native-device defects are complete.
   tested exact source, and resume the existing lane at its first unfinished gate:
   `tools/release-ios preflight -> archive -> upload -> status`. TestFlight assignment,
   installed-device results, App Review submission and public release remain separate.
+- `FRED-E06 / ENGINEERING_WORK`: repair the native leaderboard and post-leaderboard
+  Home-return defects recorded in
+  `docs/FRED_NATIVE_LEADERBOARD_NAVIGATION_DEFECTS_2026-09-20.md`. This is independent
+  of the website and Golden Egg flow. Reuse the proven Snake Reactor/TurboRack native
+  adapter and overlay-lifecycle behavior as a technical reference, preserve Fred's
+  presentation/gameplay, and close the issues only with exact-build physical-device
+  evidence.
 
 ## Decisions and external access
 
