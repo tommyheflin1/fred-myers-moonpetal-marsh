@@ -3,6 +3,7 @@ extends Node
 
 signal sign_in_completed(result: Dictionary)
 signal score_submission_completed(result: Dictionary)
+signal leaderboard_closed
 
 const SIGN_IN_TIMEOUT_SECONDS := 30.0
 const EventPump = preload("res://addons/mobile_game_core/online/native_event_pump.gd")
@@ -10,8 +11,6 @@ const SCORE_SUBMISSION_TIMEOUT_SECONDS := 20.0
 const SCORE_RETRY_DELAY_SECONDS := 2.0
 const MAX_SCORE_RETRIES := 2
 const MAX_PENDING_RECORDS := 4
-const DASHBOARD_REENTRY_GUARD_SECONDS := 1.25
-const DASHBOARD_FAILSAFE_SECONDS := 4.0
 const SCORE_LEADERBOARD_ID := "com.flinsvault.fredmyers.adventure_score"
 const LEVEL_LEADERBOARD_ID := "com.flinsvault.fredmyers.highest_level"
 const BUNDLE_ID := "com.flinsvault.fredmyers"
@@ -37,7 +36,6 @@ var retry_delay_seconds := 0.0
 var last_auth_error := ""
 var last_auth_error_code := 0
 var dashboard_state := "idle"
-var dashboard_elapsed_seconds := 0.0
 
 
 func configure(plugin_override: Object = null) -> bool:
@@ -157,23 +155,11 @@ func show_leaderboards() -> bool:
 	if error != OK:
 		return false
 	dashboard_state = "presenting"
-	dashboard_elapsed_seconds = 0.0
 	return true
 
 
 func can_show_leaderboards() -> bool:
 	return is_authenticated() and plugin.has_method("show_game_center") and dashboard_state == "idle"
-
-
-func notify_application_paused() -> void:
-	if dashboard_state == "presenting":
-		dashboard_state = "presented"
-
-
-func notify_application_resumed() -> void:
-	if dashboard_state in ["presenting", "presented"]:
-		dashboard_state = "cooldown"
-		dashboard_elapsed_seconds = 0.0
 
 
 func poll() -> void:
@@ -187,12 +173,6 @@ func _process(delta: float) -> void:
 		return
 	poll()
 	_dispatch_campaign_achievement(delta)
-	if dashboard_state in ["presenting", "cooldown"]:
-		dashboard_elapsed_seconds += maxf(0.0, delta)
-		var release_after := DASHBOARD_FAILSAFE_SECONDS if dashboard_state == "presenting" else DASHBOARD_REENTRY_GUARD_SECONDS
-		if dashboard_elapsed_seconds >= release_after:
-			dashboard_state = "idle"
-			dashboard_elapsed_seconds = 0.0
 	if state in ["authenticating", "awaiting_signature"]:
 		elapsed_seconds += maxf(0.0, delta)
 		if elapsed_seconds >= SIGN_IN_TIMEOUT_SECONDS:
@@ -211,6 +191,14 @@ func _process(delta: float) -> void:
 
 func _handle_event(event: Dictionary) -> void:
 	var event_type := str(event.get("type", ""))
+	if event_type == "show_game_center":
+		# The official iOS plug-in reports dismissal through this callback. Do not
+		# infer native-controller lifetime from app pause/resume notifications: a
+		# presented Game Center controller does not have to background the app.
+		if dashboard_state != "idle":
+			dashboard_state = "idle"
+			leaderboard_closed.emit()
+		return
 	if event_type == "authentication" and state == "authenticating":
 		if str(event.get("result", "")) != "ok":
 			_finish_sign_in({
@@ -380,4 +368,3 @@ func _reset_transient_state() -> void:
 	last_auth_error = ""
 	last_auth_error_code = 0
 	dashboard_state = "idle"
-	dashboard_elapsed_seconds = 0.0

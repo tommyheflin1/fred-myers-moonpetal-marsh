@@ -10,6 +10,7 @@ const BOARD_PATH := "user://menu_lives_test_board.json"
 
 class FakeGameCenterNode:
 	extends Node
+	signal leaderboard_closed
 	var available := true
 	var authenticated := false
 	var state := "ready"
@@ -40,6 +41,10 @@ class FakeGameCenterNode:
 
 	func can_show_leaderboards() -> bool:
 		return dashboard_ready
+
+	func dismiss_leaderboard() -> void:
+		dashboard_ready = true
+		leaderboard_closed.emit()
 
 func check(condition: bool, label: String) -> void:
 	if condition:
@@ -77,13 +82,15 @@ func _run() -> void:
 	board.submit("Guest Frog", 2, 3, 4)
 	board.submit("Moon Kid", 8, 2, 1)
 	board.submit("../../unsafe", 4, 1, 5)
+	board.submit("Héro Frog 🐸", 3, 2, 3)
 	var entries := board.load_entries()
-	check(entries.size() == 3, "local leaderboard persists fictional entries")
+	check(entries.size() == 4, "local leaderboard persists fictional entries")
 	check(int(entries[0].level) == 8 and int(entries[0].score) > int(entries[1].score), "leaderboard ranks highest score first")
 	var labels_are_safe := true
 	for entry in entries:
 		labels_are_safe = labels_are_safe and not "/" in str(entry.player) and not "." in str(entry.player)
 	check(labels_are_safe, "leaderboard removes unsafe label characters")
+	check(entries.any(func(entry: Dictionary) -> bool: return str(entry.player) == "Héro Frog 🐸"), "leaderboard preserves a safe international Game Center display name")
 	for index in range(15):
 		board.submit("Frog %02d" % index, index + 1, index % 4, index % 6)
 	check(board.load_entries().size() == Leaderboard.MAX_ENTRIES, "leaderboard stays bounded to ten entries")
@@ -147,10 +154,11 @@ func _run() -> void:
 	var fake_game_center := FakeGameCenterNode.new()
 	game.add_child(fake_game_center)
 	game.game_center = fake_game_center
+	fake_game_center.leaderboard_closed.connect(game._on_game_center_leaderboard_closed)
 	game.game_center_status = "GAME CENTER SIGN-IN NEEDED — TAP CONNECT"
 	game._handle_touch(71, Main.LEADERBOARD_GAME_CENTER_RECT.get_center(), true)
 	game._handle_touch(71, Main.LEADERBOARD_GAME_CENTER_RECT.get_center(), false)
-	check(fake_game_center.sign_in_requests == 1 and game.game_center_status == "CONNECTING TO GAME CENTER", "leaderboard screen offers an explicit Apple sign-in action")
+	check(fake_game_center.sign_in_requests == 1 and game.open_game_center_after_sign_in and game.game_center_status == "CONNECTING TO GAME CENTER", "leaderboard sign-in remembers the player's intent to open Apple Game Center")
 	fake_game_center.state = "ready"
 	game._on_game_center_sign_in_completed({"ok": false, "error": "game_center_auth_failed", "error_code": 6})
 	check(game.game_center_status == "GAME CENTER SIGN-IN NEEDED — TAP CONNECT", "failed Apple sign-in remains understandable and retryable")
@@ -158,11 +166,16 @@ func _run() -> void:
 	check(fake_game_center.sign_in_requests == 2, "player can retry Game Center without restarting Fred")
 	fake_game_center.authenticated = true
 	fake_game_center.state = "authenticated"
-	game._on_game_center_sign_in_completed({"ok": true})
-	game._handle_click(Main.LEADERBOARD_GAME_CENTER_RECT.get_center())
-	check(fake_game_center.presentation_requests == 1, "authenticated player can open the Apple Game Center dashboard")
+	game.open_game_center_after_sign_in = true
+	game._on_game_center_sign_in_completed({"ok": true, "display_name": "Fictional Marsh Hero"})
+	check(fake_game_center.presentation_requests == 1 and game.game_center_status == "OPENING GAME CENTER", "successful sign-in opens the requested Apple leaderboard without a second tap")
 	game._handle_click(Main.LEADERBOARD_GAME_CENTER_RECT.get_center())
 	check(fake_game_center.presentation_requests == 1 and game.game_center_status.contains("ALREADY OPEN"), "repeated Game Center tap is ignored without freezing the leaderboard screen")
+	game.touch_contacts[99] = "steer"
+	game.touch_positions[99] = Vector2(40, 40)
+	game.pointer_touch_active = true
+	fake_game_center.dismiss_leaderboard()
+	check(game.game_center_status.contains("Fictional Marsh Hero") and game._local_leaderboard_player_label() == "Fictional Marsh Hero" and game.touch_contacts.is_empty() and not game.pointer_touch_active, "native dismissal restores clean Fred input and uses the authenticated Game Center player on Fred's local board")
 	game._handle_click(Main.LEADERBOARD_HOME_SPLIT_RECT.get_center())
 	check(game.screen == game.Screen.TITLE, "leaderboard Home button returns to title")
 	game.queue_free()

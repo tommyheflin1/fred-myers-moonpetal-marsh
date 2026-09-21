@@ -66,6 +66,9 @@ func _save() -> void:
 func _safe_label(value: String) -> String:
 	var cleaned := ""
 	for character in value.strip_edges().left(24):
-		if character.to_lower() in "abcdefghijklmnopqrstuvwxyz0123456789 _-":
+		# Game Center display names may contain non-ASCII letters or emoji. This
+		# value is JSON data, never a file path; discard controls and path-like
+		# punctuation while preserving the player's provider-reported name.
+		if character.unicode_at(0) >= 32 and character not in "./\\:*?\"<>|":
 			cleaned += character
 	return cleaned if not cleaned.is_empty() else "Guest Frog"

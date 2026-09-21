@@ -106,6 +106,8 @@ var wardrobe_item := ""
 var game_scoring: RefCounted = AppleGameScoring.new()
 var game_center: Node
 var game_center_status := "OFFLINE MARSH BOARD"
+var game_center_player_name := ""
+var open_game_center_after_sign_in := false
 var menu_music: AudioStreamPlayer
 var chase_music: AudioStreamPlayer
 var audio_enabled := true
@@ -168,8 +170,6 @@ func _handle_application_paused() -> void:
     if application_backgrounded:
         return
     application_backgrounded = true
-    if is_instance_valid(game_center) and game_center.has_method("notify_application_paused"):
-        game_center.notify_application_paused()
     touch_contacts.clear()
     touch_positions.clear()
     pointer_touch_active = false
@@ -192,8 +192,6 @@ func _handle_application_resumed() -> void:
     application_backgrounded = false
     if is_instance_valid(update_gate) and update_gate.required:
         update_gate.begin_check()
-    if is_instance_valid(game_center) and game_center.has_method("notify_application_resumed"):
-        game_center.notify_application_resumed()
     touch_contacts.clear()
     touch_positions.clear()
     pointer_touch_active = false
@@ -266,6 +264,8 @@ func _ready() -> void:
     if game_center_available:
         game_center.sign_in_completed.connect(_on_game_center_sign_in_completed)
         game_center.score_submission_completed.connect(_on_game_center_score_submission_completed)
+        if game_center.has_signal("leaderboard_closed"):
+            game_center.leaderboard_closed.connect(_on_game_center_leaderboard_closed)
     boost.reset()
     _set_feedback(FredSaveFeedback.load_message(result))
     menu_music = AudioStreamPlayer.new()
@@ -367,11 +367,16 @@ func _on_update_gate_state_changed(state: String) -> void:
     queue_redraw()
 
 func _on_game_center_sign_in_completed(result: Dictionary) -> void:
+    if bool(result.get("ok", false)):
+        game_center_player_name = str(result.get("display_name", "")).strip_edges().left(32)
     if bool(result.get("ok", false)) and is_instance_valid(game_center) and game_center.has_method("queue_campaign_achievements"):
         game_center.queue_campaign_achievements(GameCenterAdapter.CampaignAchievements.completed_level_from_records(leaderboard.entries))
     # Ordinary Game Center does not initialize or exchange website identity.
     if bool(result.get("ok", false)) and not golden_public_review_requested and not golden_identity_link_requested:
-        game_center_status = "GAME CENTER CONNECTED"
+        game_center_status = _game_center_connected_status()
+        if open_game_center_after_sign_in:
+            open_game_center_after_sign_in = false
+            _show_game_center_leaderboard()
         queue_redraw()
         return
     if bool(result.get("ok", false)):
@@ -392,6 +397,8 @@ func _on_game_center_sign_in_completed(result: Dictionary) -> void:
             game_center_status = "GAME CENTER CONNECTED — DISCOVERY SAFE FOR RETRY"
             _cancel_golden_public_review()
     else:
+        open_game_center_after_sign_in = false
+        game_center_player_name = ""
         var error := str(result.get("error", ""))
         if error == "game_center_timeout":
             game_center_status = "GAME CENTER TIMED OUT — TAP CONNECT TO RETRY"
@@ -459,13 +466,43 @@ func _request_game_center_connection() -> bool:
     queue_redraw()
     return started
 
+func _game_center_connected_status() -> String:
+    return "GAME CENTER CONNECTED" if game_center_player_name.is_empty() else "GAME CENTER • %s" % game_center_player_name
+
+func _local_leaderboard_player_label() -> String:
+    # Device-local label only; this does not publish or contact the website.
+    return identity.profile_label if game_center_player_name.is_empty() else game_center_player_name
+
+func _show_game_center_leaderboard() -> bool:
+    if game_center.has_method("can_show_leaderboards") and not game_center.can_show_leaderboards():
+        game_center_status = "GAME CENTER IS ALREADY OPEN — PLEASE WAIT"
+        queue_redraw()
+        return false
+    if not game_center.show_leaderboards():
+        game_center_status = "GAME CENTER COULD NOT OPEN — TAP TO RETRY"
+        queue_redraw()
+        return false
+    game_center_status = "OPENING GAME CENTER"
+    queue_redraw()
+    return true
+
+func _on_game_center_leaderboard_closed() -> void:
+    # Native overlays may consume or strand the touch that dismissed them.
+    # Return Fred's menu to a clean input state before Home can be selected.
+    touch_contacts.clear()
+    touch_positions.clear()
+    pointer_touch_active = false
+    _refresh_touch_holds()
+    game_center_status = _game_center_connected_status()
+    queue_redraw()
+
 func _on_game_center_score_submission_completed(result: Dictionary) -> void:
     if bool(result.get("ok", false)):
-        game_center_status = "GAME CENTER SCORE SYNCED"
+        game_center_status = "%s • SCORE SYNCED" % _game_center_connected_status()
     elif bool(result.get("retry_pending", false)):
-        game_center_status = "GAME CENTER RETRYING SCORE"
+        game_center_status = "%s • RETRYING SCORE" % _game_center_connected_status()
     else:
-        game_center_status = "GAME CENTER SCORE PENDING"
+        game_center_status = "%s • SCORE PENDING" % _game_center_connected_status()
     queue_redraw()
 
 func _process(delta: float) -> void:
@@ -573,7 +610,7 @@ func _fixed_tick(delta: float) -> void:
         return
     var golden_sequence_blocks_exit: bool = golden_run.blocks_ordinary_level_completion(level_number)
     if not golden_sequence_blocks_exit and fred.distance_to(_level_exit_position()) < 55 and session.complete_level():
-        leaderboard.submit(identity.profile_label, level_number, session.bug_count, session.health)
+        leaderboard.submit(_local_leaderboard_player_label(), level_number, session.bug_count, session.health)
         customization.earn_coins(15 + mini(10, level_number / 10))
         var score_result: Dictionary = game_scoring.record_level_completion(
             level_number, session.bug_count, session.health, customization.coins
@@ -1130,17 +1167,11 @@ func _handle_click(position: Vector2) -> void:
     elif screen == Screen.FAILED and Rect2(665,500,250,64).has_point(position): _go_home()
     elif screen == Screen.LEADERBOARD and LEADERBOARD_GAME_CENTER_RECT.has_point(position) and _game_center_available():
         if game_center.is_authenticated():
-            if game_center.has_method("can_show_leaderboards") and not game_center.can_show_leaderboards():
-                game_center_status = "GAME CENTER IS ALREADY OPEN — PLEASE WAIT"
-                queue_redraw()
-            elif not game_center.show_leaderboards():
-                game_center_status = "GAME CENTER COULD NOT OPEN — TAP TO RETRY"
-                queue_redraw()
-            else:
-                game_center_status = "OPENING GAME CENTER"
-                queue_redraw()
+            _show_game_center_leaderboard()
         else:
-            _request_game_center_connection()
+            open_game_center_after_sign_in = true
+            if not _request_game_center_connection():
+                open_game_center_after_sign_in = false
     elif screen == Screen.LEADERBOARD and (LEADERBOARD_HOME_SPLIT_RECT if _game_center_available() else LEADERBOARD_HOME_CENTER_RECT).has_point(position): _go_home()
     elif screen == Screen.COMPLETE and Rect2(490,500,300,60).has_point(position):
         _advance_level()

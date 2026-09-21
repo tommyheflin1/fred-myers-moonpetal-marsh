@@ -1,7 +1,7 @@
 # Fred native leaderboard and Home-return defects
 
 Recorded: 2026-09-20  
-Status: OPEN / OWNER REPORTED / REPAIR AND DEVICE RETEST REQUIRED
+Status: CODE REPAIR IMPLEMENTED / LOCAL REGRESSION PASSED / DEVICE RETEST REQUIRED
 
 ## Owner report
 
@@ -49,3 +49,27 @@ On the next authorized Fred repair candidate:
 The issue stays open until the repaired exact build passes those checks. Local mocks,
 desktop tests, Snake/Turbo success, or a successful Apple upload do not close it.
 
+## Implemented next-build repair
+
+Fred now follows the official Game Center plug-in callback instead of guessing native
+leaderboard dismissal from application pause/resume timing. A leaderboard request made
+by a signed-out player resumes automatically after successful Game Center authentication.
+The native `show_game_center` dismissal event releases the presentation guard, clears any
+touch state consumed by the Apple overlay, restores Fred's menu status, and leaves the
+in-game Home control able to return to the actual title screen. The authenticated
+provider-reported display name is shown in Fred's leaderboard status and is used only as
+the device-local score label; this path makes no Golden Egg website request.
+
+Local evidence on 2026-09-20:
+
+- `tests/run_game_center_adapter.gd`: 55 passed, 0 failed.
+- `tests/run_menu_lives_leaderboard.gd`: 38 passed, 0 failed.
+- Full Godot sweep: every non-website test passed. The pre-existing Build 11/Build 12
+  Golden Egg website build-identity mismatch remains intentionally outside this repair.
+- Python suite: 38 passed; the only failure is the expected source-bound release-evidence
+  invalidation caused by this new repair. Evidence must be regenerated for a newly named
+  candidate, never relabeled as Build 12 proof.
+
+This records source and desktop/mock evidence only. `FRED-GC-001` and `FRED-NAV-001`
+remain device-open until the repaired exact TestFlight build completes the acceptance
+steps above.
