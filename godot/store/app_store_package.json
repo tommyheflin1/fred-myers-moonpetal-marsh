@@ -81,7 +81,7 @@
     {
       "gate": "game_center.on_device_authentication_tested",
       "owner_approved": true,
-      "exact_version": "1.1",
+      "exact_version": "1.2",
       "exact_build": 13,
       "deferred_until": "app-review",
       "reason": "Owner explicitly directed the Build 13 native leaderboard repair through the established Apple lane. Device authentication must be tested on exact Build 13 before App Review; evidence remains false until tested."
@@ -89,7 +89,7 @@
     {
       "gate": "game_center.on_device_replay_tested",
       "owner_approved": true,
-      "exact_version": "1.1",
+      "exact_version": "1.2",
       "exact_build": 13,
       "deferred_until": "app-review",
       "reason": "The same Build 13 direction authorizes internal TestFlight only. Device score replay remains mandatory before App Review; no other gate is waived."
@@ -97,7 +97,7 @@
     {
       "gate": "golden_egg.physical_device_flow_reviewed",
       "owner_approved": true,
-      "exact_version": "1.1",
+      "exact_version": "1.2",
       "exact_build": 13,
       "deferred_until": "app-review",
       "reason": "The owner explicitly deferred Golden Egg website repairs while requesting the independent native leaderboard fix. Exact Build 13 Golden Egg discovery, consent, website and return flow remains mandatory before App Review and is not represented as fixed."
@@ -124,14 +124,14 @@
   "release_authorization": {
     "mode": "automatic",
     "owner_approved": true,
-    "exact_version": "1.1",
+    "exact_version": "1.2",
     "exact_build": 13,
     "reason": "Owner explicitly requested the completed native leaderboard/Home repair be tested, uploaded and submitted as the latest Fred update. Preserve the existing App Store Connect automatically-release-after-approval and release-to-all selections. This does not waive readiness or device gates."
   },
   "media": {
     "app_icon": "assets/store/app-icon-1024.png",
     "screenshots_manifest": "store/screenshots.json",
-    "exact_version": "1.1",
+    "exact_version": "1.2",
     "exact_build": 13,
     "visual_owner_reviewed": true,
     "visual_owner_review_evidence": "The owner approved the existing gameplay screenshot bytes. Build 13 changes only the native leaderboard presentation/return path and title identity label; the registered screenshots are gameplay-only, remain byte-identical, and do not depict the changed native controller. Screenshot file/hash registration and capture-commit validation remain required.",

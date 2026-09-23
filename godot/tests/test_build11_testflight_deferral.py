@@ -22,7 +22,7 @@ class TestBuild13Deferral(unittest.TestCase):
             self.assertFalse(READINESS.device_check_deferred(self.package, self.game, gate, "app-review"))
 
     def test_approval_cannot_transfer_to_another_build_or_version(self):
-        for change in ({"build_number": 14}, {"marketing_version": "1.2"}):
+        for change in ({"build_number": 14}, {"marketing_version": "1.3"}):
             for gate in READINESS.DEVICE_DEFERRABLE_GATES:
                 self.assertFalse(READINESS.device_check_deferred(self.package, self.game | change, gate, "internal-testflight"))
 
